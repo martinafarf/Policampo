@@ -1,0 +1,58 @@
+# Integración continua de la v2 (regla RS-18 y auditoría M-01).
+# Corre en cada Pull Request y en cada push a main: lint, tipos, tests, build y auditoría de dependencias.
+# Un PR no se mergea si este flujo falla.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Solo lectura del repositorio: el flujo no publica ni modifica nada.
+permissions:
+  contents: read
+
+# Si llega un push nuevo al mismo PR, se cancela la corrida anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Verificar la v2 (web/)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias (exactas, desde package-lock.json)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Chequeo de tipos
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build
+
+      # Falla si hay vulnerabilidades altas o críticas en las dependencias de producción.
+      - name: Auditoría de dependencias
+        run: npm audit --omit=dev --audit-level=high

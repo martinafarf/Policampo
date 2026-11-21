@@ -2,26 +2,25 @@
 
 Nueva versión de PoliCampo: **Next.js** (React) + **PostgreSQL en Neon**, desplegada en **Vercel**.
 
-Por ahora es un **esqueleto**: una página provisoria y la ruta `/api/salud`, que comprueba la conexión con la base.
+Por ahora tiene una página provisoria, la ruta `/api/salud` (comprueba la conexión con la base) y la **base de la
+autenticación** (módulo 01, tarea T1): Better Auth, Drizzle y las tablas de usuarios y sesiones.
 Las funcionalidades se construyen a partir de las especificaciones (ver [AGENTS.md](../AGENTS.md)).
 
 ## Cómo correrla en tu computadora
 
-Hace falta Node.js 20 o superior.
+Hace falta Node.js 22 o superior.
 
 1. Instalar las dependencias (dentro de `web/`):
    ```bash
    npm install
    ```
-2. Crear `web/.env.local` con la variable `DATABASE_URL`, siguiendo [.env.example](.env.example). Hay dos formas:
-   - Con acceso al proyecto de Neon:
-     ```bash
-     neonctl connection-string --project-id <id-del-proyecto> --pooled
-     ```
-   - Con acceso al proyecto de Vercel: `vercel link` y después `vercel env pull`.
-
-   **`.env.local` nunca se sube** (regla RS-01).
-3. Levantar el servidor de desarrollo:
+2. Crear `web/.env.local` siguiendo [.env.example](.env.example): `DATABASE_URL` (rol `policampo_app` de la rama
+   `desarrollo`), `BETTER_AUTH_SECRET` y `BETTER_AUTH_URL`. Los valores de la base los pasa quien administra el
+   proyecto, por un canal privado. **`.env.local` nunca se sube** (regla RS-01).
+3. Para correr los tests, crear `web/.env.test.local` con `TEST_DATABASE_URL`: una base **descartable** cuyo nombre
+   termine en `_test` (por ejemplo `policampo_test` en la rama `pruebas` de Neon). Los tests la borran y la
+   recrean.
+4. Levantar el servidor de desarrollo:
    ```bash
    npm run dev
    ```
@@ -35,6 +34,9 @@ Hace falta Node.js 20 o superior.
 | `npm run build` | Compila para producción (lo mismo que hace Vercel) |
 | `npm run lint` | Revisa el código con ESLint |
 | `npm run typecheck` | Genera los tipos de las rutas y chequea los tipos con TypeScript (lo corre la CI) |
+| `npm test` | Corre los tests (Vitest) contra la base de tests |
+| `npm run db:generar` | Crea una migración en `drizzle/` a partir de los cambios en `src/db/schema/` |
+| `npm run db:migrar` | Aplica las migraciones con `DATABASE_URL_MIGRACIONES` (rol `policampo_migraciones`) |
 
 ## Infraestructura
 
@@ -51,8 +53,20 @@ No se cambia la configuración de Neon ni de Vercel sin acordarlo con el grupo (
 | --- | --- | --- |
 | Producción | `production` | Solo el despliegue de `main` en Vercel |
 | Desarrollo | `desarrollo` | Las vistas previas de Vercel y el `.env.local` de cada integrante |
+| Tests | `pruebas` (base `policampo_test`) | Los tests de cada integrante. Descartable: se borra en cada corrida |
 
 Nunca se usa la base de producción para probar ni se copian sus datos a desarrollo.
+
+## Roles de la base (regla RS-12)
+
+| Rol | Puede | Dónde se usa |
+| --- | --- | --- |
+| `policampo_app` | Leer, insertar, modificar y borrar **datos**. No puede crear, cambiar ni borrar tablas. | `DATABASE_URL` de la app (local y Vercel) |
+| `policampo_migraciones` | Cambiar el esquema (migraciones). Las tablas que crea quedan disponibles para `policampo_app`. | `DATABASE_URL_MIGRACIONES`, solo en la computadora de quien migra |
+| `neondb_owner` | Todo (dueño). | Solo para administrar roles. La app no lo usa. |
+
+Estado: los roles existen en `desarrollo`. En `production` se crean al aplicar la primera migración allí (con la
+rama de respaldo de RS-16).
 
 ## Respaldo antes de migrar (regla RS-16)
 
@@ -80,9 +94,15 @@ base.
 ## Estructura
 
 ```
-src/app/            Pantallas y rutas (App Router)
-src/app/api/salud/  GET /api/salud: estado de la app y de la base
-src/lib/db.ts       Conexión a Neon (solo servidor)
+src/app/                    Pantallas y rutas (App Router)
+src/app/api/salud/          GET /api/salud: estado de la app y de la base
+src/app/api/auth/[...all]/  Rutas de Better Auth (registro, ingreso, verificación…)
+src/lib/auth.ts             Configuración de Better Auth (especificación 01)
+src/lib/email/              Envío de emails (simulado en desarrollo hasta la T2)
+src/lib/db.ts               Conexión simple a Neon (la usa /api/salud)
+src/db/                     Drizzle: conexión (index.ts) y esquema (schema/)
+drizzle/                    Migraciones SQL versionadas (regla RD-08)
+tests/                      Tests (Vitest)
 ```
 
 Esta versión de Next.js (16) tiene cambios respecto de versiones anteriores: antes de escribir código, consultar la

@@ -12,9 +12,11 @@ etc. Las personas del equipo también lo usan como guía. Leelo completo antes d
   puedan defender el código.
 - **Etapas del código:**
   - **v1** (este repositorio): prototipo en Django + PostgreSQL. **Es solo referencia.**
-  - **v2**: nueva versión con **React**, **PostgreSQL en Neon** y despliegue en **Vercel**. Se construye a partir de
-    especificaciones. El framework, la arquitectura y los comandos se definen en las especificaciones: hasta entonces,
-    **no los asumas**.
+  - **v2** (carpeta `web/`): **Next.js 16** (React), **PostgreSQL en Neon** y despliegue en **Vercel**. Por ahora es
+    un esqueleto conectado a la base. Se construye a partir de especificaciones: la arquitectura interna (librerías,
+    autenticación, migraciones) se define en ellas y **no la asumas**. Next.js 16 cambió respecto de versiones
+    anteriores: antes de escribir código, leé [web/AGENTS.md](web/AGENTS.md) y la documentación en
+    `web/node_modules/next/dist/docs/`.
 
 ## 2. Qué leer antes de trabajar
 
@@ -86,6 +88,8 @@ Cuando varios agentes trabajan a la vez:
 | --- | --- |
 | `docs/` | Documentación anonimizada. Empezar por [docs/README.md](docs/README.md). |
 | `docs/privado/` | Originales con datos reales. **Ignorado por Git: no leer, no subir.** |
+| `web/` | **v2**: app Next.js. Ver [web/README.md](web/README.md). La conexión a la base está en `web/src/lib/db.ts` (solo servidor). |
+| `web/.env.local`, `web/.vercel/` | Secretos y configuración local de Vercel. **Ignorados por Git: no leer, no mostrar, no subir.** |
 | `usuarios/` | v1: usuario personalizado, login con usuario o email, registro. |
 | `principal/` | v1: landing page pública. |
 | `campos/` | v1: establecimientos y sectores (cuestionario y croquis), un método por finca. |
@@ -97,6 +101,23 @@ Cuando varios agentes trabajan a la vez:
 Las ramas `feature/calendario-bruce` (calendario de floración) y `Diagnostico-Informe` (diagnóstico, informe y
 catálogo de especies con compatibilidades) tienen prototipos que **todavía no están en `main`**. Sirven de referencia
 para las especificaciones de esos módulos.
+
+### Cómo correr la v2
+
+Dentro de `web/`:
+
+```bash
+npm run dev
+```
+```bash
+npm run build
+```
+```bash
+npm run lint
+```
+
+`GET /api/salud` tiene que responder `"baseDeDatos":"ok"`. Cada push a una rama crea una vista previa en Vercel, y
+cada cambio en `main` despliega a producción. Antes de pedir revisión, comprobá que `npm run build` funcione.
 
 ### Cómo correr la v1 (solo para consultarla)
 

@@ -50,7 +50,7 @@ El detalle está en [docs/proyecto/semana-2-formulacion-del-proyecto.md](docs/pr
 | Etapa | Estado |
 | --- | --- |
 | **v1: prototipo en Django** (este repositorio) | Autenticación, landing, carga de fincas por cuestionario y croquis, y mapa de entrada y salida. Queda como **referencia** de las reglas y las pantallas. |
-| **v2: nueva versión** | **En preparación.** Se desarrolla con **especificaciones** y agentes de IA. Stack previsto: **React**, **PostgreSQL en Neon** y despliegue en **Vercel**. El framework y la arquitectura se definen en las especificaciones. |
+| **v2: nueva versión** (carpeta [`web/`](web/README.md)) | **En preparación.** Stack: **Next.js** (React), **PostgreSQL en Neon** y despliegue en **Vercel**. La infraestructura ya está conectada; las funcionalidades se desarrollan a partir de **especificaciones**, con agentes de IA. |
 
 ## Metodología de la v2
 
@@ -59,7 +59,8 @@ Desarrollo guiado por especificaciones:
 1. **Documentación** del proyecto, anonimizada, en [`docs/`](docs/README.md).
 2. **Base común:** este README, el [glosario](docs/glosario.md), las [reglas del proyecto](docs/reglas-del-proyecto.md)
    y las instrucciones para agentes en [AGENTS.md](AGENTS.md).
-3. **Infraestructura:** base de datos en Neon y despliegue en Vercel, conectados con sus CLI.
+3. **Infraestructura:** base de datos en Neon y despliegue en Vercel, conectados con sus CLI. ✅ Ver
+   [web/README.md](web/README.md#infraestructura).
 4. **Especificaciones** a partir de la documentación, separadas en frontend, backend, base de datos y seguridad.
 5. **Auditoría de seguridad** de las especificaciones y del código.
 6. **Implementación** por especificación, con varios agentes trabajando en paralelo.
@@ -76,6 +77,7 @@ docs/                Documentación del proyecto (anonimizada)
   proyecto/          Formulación del proyecto, casos de uso
   entrevistas/       Relevamiento con un especialista
   img/               Diagramas
+web/                 v2: app Next.js (ver web/README.md)
 usuarios/ principal/ campos/ mapa/ suscripciones/ templates/ static/ policampo/
                      Código de la v1 (Django), como referencia
 ```
@@ -100,7 +102,9 @@ Hace falta Python 3.11 o superior y PostgreSQL.
    venv\Scripts\python manage.py runserver
    ```
 
-Las instrucciones de la v2 se agregan cuando se defina su stack.
+## Cómo ejecutar la v2 (Next.js)
+
+Ver [web/README.md](web/README.md).
 
 ## Datos personales
 

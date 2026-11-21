@@ -128,6 +128,8 @@ Se tomaron en la ronda de preguntas del 2026-11-21.
 En **Mi perfil**, el usuario ve su nombre de usuario (no editable) y su email, y puede:
 
 - **Cambiar nombre y apellido** (opcionales, hasta 60 caracteres cada uno).
+- **Resumen semanal por email:** casilla desactivada por defecto. La agrega el
+  [módulo 06](06-calendario-agroecologico.md#56-email-semanal).
 - **Cambiar la contraseña:**
   - pide la actual, la nueva y la repetición;
   - cierra las demás sesiones, pero no la actual;

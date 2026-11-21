@@ -43,11 +43,12 @@ Se tomaron en la ronda de preguntas del 2026-11-21.
 | Modelo de datos y migraciones | **Drizzle ORM** + `drizzle-kit`, sobre el driver de Neon | Liviano, en TypeScript, con migraciones SQL legibles versionadas en el repo (RD-08). |
 | Verificación de email | **Obligatoria**: no se puede ingresar hasta confirmar el email | Evita cuentas con emails ajenos o mal escritos y asegura que la recuperación llegue a quien corresponde. |
 | Envío de emails | **Resend** | Se integra fácil con Next.js y Vercel, y el plan gratis alcanza. |
-| Consentimiento | **Casilla obligatoria** de aceptación de la política de privacidad. Se guarda la fecha y la versión aceptada | Ley 25.326: consentimiento informado y demostrable. |
+| Consentimiento | **Casilla obligatoria** de aceptación de la política de privacidad, que incluye el **consentimiento expreso para que los datos se procesen en servicios de Estados Unidos** (Neon, Vercel y Resend). Se guarda la fecha y la versión aceptada | Ley 25.326: consentimiento informado y demostrable, y transferencia internacional (art. 12). [Auditoría](auditoria-seguridad.md) A-04. |
 | Eliminar cuenta | **Desde el perfil**, confirmando con la contraseña. Borra la cuenta y todos sus datos | Derecho de supresión de la Ley 25.326. |
 | Duración de la sesión | **30 días**, y se renueva mientras se usa | Uso en el campo desde el celular, sin tener que ingresar en cada visita. |
 | Datos al registrarse | **Solo** email, nombre de usuario y contraseña. Nombre y apellido son opcionales, en el perfil | Datos mínimos (RS-05). |
 | Protección del ingreso | **Límite por tiempo**: 5 intentos fallidos cada 15 minutos, por cuenta y por IP. Sin bloqueo permanente | Frena ataques sin permitir que un atacante deje al dueño sin acceso. |
+| Email ya registrado | El registro **dice en pantalla** "Ese email ya está registrado" | **Riesgo aceptado** por usabilidad ([auditoría](auditoria-seguridad.md) M-07). Mitigación: el límite de intentos del registro impide probar emails en masa. |
 | Contraseña | **8 caracteres o más**, distinta del usuario y del email, y **no filtrada** (consulta a Have I Been Pwned por k-anonimato) | Equilibrio entre seguridad y comodidad en el celular. |
 | Nombre de usuario | **3 a 30 caracteres**: letras sin acentos, números, `.` y `_`. Sin distinguir mayúsculas. No puede tener forma de email | No se confunde con un email al ingresar, y "Ana" y "ana" son el mismo usuario. |
 | Administradores | **Comando** `npm run crear-admin`. Pantalla de administración con la lista de usuarios y desactivar o reactivar | El registro público nunca crea administradores (RS-03). |
@@ -157,7 +158,8 @@ En **Mi perfil**, el usuario ve su nombre de usuario (no editable) y su email, y
   - búsqueda por usuario o email y paginación de a 20.
 - **Desactivar o reactivar cuenta:**
   - desactivar cierra todas sus sesiones e impide ingresar;
-  - un administrador no puede desactivarse a sí mismo;
+  - un administrador no puede desactivarse a sí mismo **ni desactivar a otro administrador**: eso solo se hace con
+    el comando del servidor (auditoría M-08);
   - queda registrado quién lo hizo y cuándo.
 
 ## 5. Frontend
@@ -215,6 +217,13 @@ Las páginas "solo sin sesión" redirigen a `/inicio` si ya hay sesión. Las pá
   - confirmación de email nuevo;
   - aviso al email anterior;
   - cuenta eliminada.
+- **Límites de intentos:** los contadores se guardan en la base de datos (almacenamiento `database` de Better Auth
+  y la tabla `limite_uso` para los demás módulos), nunca en memoria (RS-13).
+- **Orígenes confiables** (`trustedOrigins`): el dominio de producción y, en las vistas previas, solo la URL exacta
+  del despliegue (`VERCEL_URL`). **Nunca comodines** como `*.vercel.app` (auditoría M-09).
+- **Registro de eventos de seguridad** (auditoría B-02): ingresos fallidos, cambios de contraseña y de email,
+  desactivaciones y reactivaciones, borrados de cuenta, acciones de administración y envíos masivos se guardan en la
+  tabla `evento_seguridad`, con el id del usuario y sin datos personales.
 - **Páginas protegidas:** cada página y cada acción del servidor protegida **verifica la sesión y el rol en el
   servidor**. Un filtro previo de rutas puede redirigir antes, pero **no reemplaza** esta verificación (RS-02).
 
@@ -254,6 +263,8 @@ tabla `user`.
 | `session` | Lo de Better Auth: token, vencimiento, IP y agente del navegador | Se borra en cascada al borrar el usuario. |
 | `account` | Lo de Better Auth: hash de la contraseña | **Nunca** se expone ni se registra en los logs. |
 | `verification` | Tokens de verificación de email, recuperación y cambio de email | Vencen como se indica en la sección 4. |
+| `limite_uso` | `clave` (por ejemplo `diagnostico:<id-usuario>`), `ventana_inicio`, `cantidad` | Contadores de los límites de los módulos 04 a 07 (RS-13). Las filas viejas se limpian solas. |
+| `evento_seguridad` | `id`, `tipo`, `usuario_id` (FK **`ON DELETE SET NULL`**), `actor_id`, `fecha`, `detalle` (jsonb, sin datos personales) | Se conserva **90 días**. Solo inserción. |
 
 - **Migraciones:**
   - se generan con `drizzle-kit generate` y se versionan en `web/drizzle/`;
@@ -271,7 +282,7 @@ tabla `user`.
 | Robo de contraseñas de la base | Hash con el algoritmo por defecto de Better Auth (scrypt). Nunca se guardan ni se registran en claro. | RS-04 |
 | Fuerza bruta en el ingreso | Límite de 5 intentos cada 15 minutos por cuenta y por IP. Límites también en registro, recuperación y reenvío de emails. | RS-04 |
 | Contraseñas débiles o filtradas | Reglas de 6.2 + Have I Been Pwned. Solo se envían los primeros 5 caracteres del hash SHA-1, nunca la contraseña. | RS-04 |
-| Descubrir qué emails están registrados | Mensaje único al ingresar y en la recuperación. **A revisar en la auditoría:** el registro dice si el email o el usuario ya existen (hoy se acepta por usabilidad). | RS-05 |
+| Descubrir qué emails están registrados | Mensaje único al ingresar y en la recuperación. El registro **sí** dice si el email existe: **riesgo aceptado** (auditoría M-07), mitigado con el límite de intentos del registro. | RS-05 |
 | Robo de la sesión | Cookie `HttpOnly`, `Secure` (en producción) y `SameSite=Lax`. La sesión se renueva con el uso. Al cambiar la contraseña se cierran las demás sesiones. | RS-07 |
 | Peticiones falsificadas (CSRF) | Better Auth verifica el origen de las peticiones (`trustedOrigins` = URL del sitio). Los formularios del sitio usan acciones del servidor o el cliente de Better Auth. | RS-07 |
 | Acceso a datos ajenos | Toda operación verifica la sesión y el dueño en el servidor. `/admin/*` verifica el rol. Las rutas ajenas responden 404. | RS-02, RS-03 |
@@ -331,7 +342,8 @@ Cada criterio se cubre con al menos un test (RD-04).
   `/registro` redirigen a `/inicio`.
 - **CA-01-19** Un Usuario que abre `/admin/usuarios` o llama a sus acciones recibe 404.
 - **CA-01-20** `npm run crear-admin` crea o asciende un administrador. El administrador ve la lista de usuarios y puede
-  desactivar y reactivar cuentas, pero no la suya. La cuenta desactivada pierde sus sesiones y no puede ingresar.
+  desactivar y reactivar cuentas, pero no la suya. Ningún administrador puede desactivar a otro administrador. La cuenta desactivada pierde sus sesiones y no puede
+  ingresar.
 - **CA-01-21** La lista de usuarios nunca incluye hashes ni tokens.
 
 **Privacidad, frontend y logs**
@@ -364,4 +376,5 @@ Las tareas en orden. Las que dicen "en paralelo" pueden hacerlas personas o agen
 | Crear la cuenta de **Resend** y cargar `RESEND_API_KEY` en Vercel | Integrante 3 | Sin eso no se envían emails, ni la verificación ni la recuperación. |
 | **Dominio para enviar emails.** Sin un dominio propio verificado, Resend solo envía al email del dueño de la cuenta. Opciones: comprar un dominio, por ejemplo `policampo.com.ar` en NIC Argentina, o usar un dominio que el grupo ya tenga | Grupo | Hasta resolverlo, las pruebas de email solo funcionan con la cuenta del dueño de Resend. |
 | Texto de la **política de privacidad** (versión 1) y **email de contacto** | Grupo | La página `/privacidad` y el consentimiento los necesitan. |
-| Confirmar si el registro puede decir "ese email ya está registrado" (sección 8) | Auditoría de seguridad | Equilibrio entre usabilidad y no revelar qué emails usan el sistema. |
+| Consultar con la cátedra la **inscripción de la base ante la AAIP** antes de un uso real (auditoría A-04) | Grupo | Ley 25.326, art. 21. |
+| La política de privacidad tiene que nombrar **Neon, Vercel, Resend y Esri** y su país, y decir **qué queda después de borrar una cuenta** y por cuánto tiempo (logs, historial de envíos, ventana de restauración) (auditoría A-04 y M-10) | Grupo | Transparencia y consentimiento válido. |

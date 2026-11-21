@@ -17,6 +17,8 @@ nada sin una especificación aprobada** (regla RD-01).
 
 Quedan para más adelante: las encuestas de seguimiento y los pagos o suscripción.
 
+**[Auditoría de seguridad](auditoria-seguridad.md)** (2026-11-21): revisión de las 7 especificaciones y de la infraestructura. Agregó las reglas RS-11 a RS-18 y ajustes a las especificaciones 01, 02, 05 y 07.
+
 ## Estados
 
 - **Borrador para revisión:** escrito a partir de la ronda de preguntas. Falta que el grupo lo revise.

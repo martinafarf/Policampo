@@ -149,6 +149,8 @@ el informe sale igual.
   - 20 informes emitidos por hora por usuario;
   - 60 descargas por hora;
   - un máximo de 50 informes guardados por finca (para emitir más, hay que borrar alguno).
+- **Tope de tiempo** (auditoría B-01): generar el PDF tiene un máximo de **10 s**. Si se supera, responde "No se
+  pudo generar el PDF, probá de nuevo" y lo registra en el log, sin datos personales.
 
 ## 8. Base de datos
 

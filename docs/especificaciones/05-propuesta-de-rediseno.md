@@ -275,6 +275,9 @@ La propuesta se sigue mostrando tal cual se guardó, incluidas las especies reti
   sean candidatas (5.6) y los números.
 - **Guardado:** se hace en una transacción. **"Elegida":** única por finca, garantizada en la base.
 - **Límites:** 30 propuestas guardadas por finca; 1 MB por petición; 20 franjas por propuesta.
+- **Topes de cálculo** (auditoría B-01): la resolución del ancho hace 50 iteraciones como máximo, y generar las
+  alternativas y la mezcla tiene un tiempo máximo de **10 s**. Si se supera, responde "No se pudo generar la
+  propuesta; probá con menos franjas o corredores" sin guardar nada.
 
 ## 9. Base de datos
 

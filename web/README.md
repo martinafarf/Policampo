@@ -45,6 +45,38 @@ Hace falta Node.js 20 o superior.
 
 No se cambia la configuración de Neon ni de Vercel sin acordarlo con el grupo (ver [AGENTS.md](../AGENTS.md)).
 
+## Entornos (regla RS-11)
+
+| Entorno | Rama de Neon | Quién la usa |
+| --- | --- | --- |
+| Producción | `production` | Solo el despliegue de `main` en Vercel |
+| Desarrollo | `desarrollo` | Las vistas previas de Vercel y el `.env.local` de cada integrante |
+
+Nunca se usa la base de producción para probar ni se copian sus datos a desarrollo.
+
+## Respaldo antes de migrar (regla RS-16)
+
+1. Antes de migrar producción, crear la rama de respaldo:
+   ```bash
+   neonctl branches create --project-id <id> --name respaldo-AAAA-MM-DD --parent production
+   ```
+2. Aplicar la migración con el rol `policampo_migraciones` (RS-12).
+3. **Si algo sale mal:** restaurar `production` desde la rama de respaldo (consola de Neon → Branches → Restore) y
+   avisar al grupo.
+4. Borrar las ramas de respaldo de más de 30 días.
+
+## Rotación de secretos
+
+Se rotan **cuando alguien deja el grupo, cuando hay sospecha de filtración y una vez por cuatrimestre**:
+`BETTER_AUTH_SECRET`, `CRON_SECRET`, `EMAIL_BAJA_SECRET`, `RESEND_API_KEY` y las contraseñas de los roles de la
+base.
+
+1. Generar el valor nuevo: en Neon, restablecer la contraseña del rol; en Resend, crear una clave nueva; para los
+   secretos propios, un valor aleatorio de 32 bytes o más.
+2. Cargarlo en Vercel como secreto (`vercel env add … --sensitive`) y volver a desplegar.
+3. Revocar el valor viejo.
+4. Rotar `BETTER_AUTH_SECRET` cierra todas las sesiones: avisar a los usuarios.
+
 ## Estructura
 
 ```

@@ -262,6 +262,10 @@ carga con {método}" (RN-03).
   - en croquis y mapa, **el servidor ignora las superficies que envía el navegador** y las recalcula desde las
     geometrías;
   - en mapa, la superficie total es la del contorno.
+- **Sin pisar cambios ajenos** (RS-15): guardar sectores y datos generales envía la `version` del establecimiento
+  que se editó. Si en la base es otra, por ejemplo porque se guardó desde otro dispositivo, responde "La finca
+  cambió en otro dispositivo" y no guarda. El borrador local se conserva para no perder lo hecho. Cada guardado
+  exitoso suma 1 a `version` (auditoría M-04).
 - **Guardado atómico:** guardar sectores reemplaza **todos** los sectores del establecimiento en una sola transacción.
   Si algo falla, no queda nada a medias.
 - **Fecha de modificación:** toda acción que cambia el establecimiento o sus sectores actualiza
@@ -297,6 +301,7 @@ y cucurbitáceas, y hortícolas mixtas.
 | `superficie_total_ha` | numeric(12,4) | Nulo solo si el método es `mapa` y no hay contorno |
 | `metodo_caracterizacion` | enum `cuestionario`, `croquis`, `mapa` | |
 | `contorno` | jsonb | GeoJSON del contorno (mapa). Nulo en los otros métodos. |
+| `version` | entero | Empieza en 1 y suma 1 con cada guardado (RS-15) |
 
 **`sector`**
 
@@ -360,6 +365,8 @@ Restricciones `CHECK` de coherencia:
   servidor.
 - **CA-02-13** El croquis arma un plano cuadrado de lado √(ha × 10.000) m, y la superficie de un rectángulo dibujado
   coincide con su ancho × alto.
+- **CA-02-24** Si la finca se guardó desde otro dispositivo después de abrirla, guardar responde "La finca cambió
+  en otro dispositivo", no modifica nada y conserva el borrador local.
 - **CA-02-14** Guardar sectores reemplaza todos en una transacción. Si falla la validación de uno, no cambia ninguno.
 
 **Métodos y borradores**

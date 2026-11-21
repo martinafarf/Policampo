@@ -8,8 +8,8 @@ nada sin una especificación aprobada** (regla RD-01).
 | N.º | Módulo | Estado | Depende de |
 | --- | --- | --- | --- |
 | 01 | [Usuarios y autenticación](01-usuarios-y-autenticacion.md) (incluye landing y privacidad) | Borrador para revisión | — |
-| 02 | Establecimientos y sectores (cuestionario, croquis, mapa) | Pendiente | 01 |
-| 03 | Catálogo de especies y compatibilidades (backoffice) | Pendiente | 01 |
+| 02 | [Establecimientos y sectores](02-establecimientos-y-sectores.md) (cuestionario, croquis, mapa) | Borrador para revisión | 01 |
+| 03 | Catálogo de especies y compatibilidades (backoffice) | Pendiente | 01, 02 (tabla `cultivo`) |
 | 04 | Diagnóstico (regla del 20 %) | Pendiente | 02, 03 |
 | 05 | Propuesta de rediseño y plantas de servicio | Pendiente | 04 |
 | 06 | Calendario agroecológico | Pendiente | 05 |

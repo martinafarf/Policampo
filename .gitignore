@@ -20,7 +20,8 @@ Thumbs.db
 
 # Configuración local de herramientas (Claude Code)
 .claude/
-docs/
+# Originales de la documentación con datos personales (la versión anonimizada sí se sube)
+docs/privado/
 CLAUDE.md
 
 # Base de datos local

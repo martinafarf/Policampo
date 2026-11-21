@@ -42,7 +42,13 @@ especificaciones, en la interfaz y en el código. Así personas y agentes hablan
 | **Diagnóstico desactualizado** | Diagnóstico anterior a la última modificación de la finca. Se ofrece actualizarlo. | — | Esp. 04 |
 | **Alerta** | Aviso del diagnóstico con su explicación: monocultivo, sin flores, superficie sin asignar o cultivo sin datos en el catálogo. | `alertas` | Esp. 04 |
 | **Áreas aptas** | Zonas del predio donde conviene ubicar franjas florales, por ejemplo bordes perimetrales y cabeceras de lote. | `areas_aptas` | Doc. |
-| **Propuesta de rediseño** | Distribución propuesta de corredores y franjas florales dentro del terreno, con las plantas de servicio y las tareas a realizar. | `propuesta_rediseno` | Doc. |
+| **Propuesta de rediseño** | Ubicación de franjas y corredores florales dentro del terreno (o reparto en texto para fincas de cuestionario) más la mezcla de plantas de servicio, generada a partir de un diagnóstico. Se pueden guardar varias por finca; una es la **elegida**. | `propuesta` | Doc., Esp. 05 |
+| **Propuesta elegida** | La propuesta de la finca que usan el calendario y el informe. Hay una sola por finca. | `elegida` | Esp. 05 |
+| **Disposición** | Forma de ubicar las franjas: **usar la superficie libre**, **perimetral**, **corredores transversales**, **islas centrales** o **matriz** (perimetral + corredores). En el cuestionario, **texto**. | `disposicion` | v1 (mapa), Esp. 05 |
+| **Mezcla** | Combinación de 2 a 4 plantas de servicio, en partes iguales, que se siembra en las franjas. | `propuesta_especie` | Esp. 05 |
+| **Cobertura de floración** | Porcentaje de las semanas de floración de un cultivo en que también florece la mezcla. Tiene que superar el 80 % (RN-10). | `floracion` | Esp. 05 |
+| **Pérdida de cultivo** | Superficie de un sector de cultivo que queda bajo una franja propuesta. Se informa por cultivo para que el productor decida. | `perdida_por_cultivo` | Esp. 05 |
+| **Objetivo (%)** | Porcentaje de flores que busca la propuesta: 20 % por defecto, ajustable entre 10 % y 40 %. | `objetivo_pct` | Esp. 05 |
 | **Informe técnico** | Documento descargable e imprimible que consolida el diagnóstico, las especies elegidas y el rediseño. | `informe` | Doc. |
 | **Calendario agroecológico** | Cronograma de siembra, floración y corte de las plantas de servicio, coordinado con el cultivo principal. Tiene alertas. | `calendario` | Doc. |
 | **Encuesta de seguimiento** (o **post-cosecha**) | Preguntas breves y periódicas al usuario: tareas realizadas, avistamientos de polinizadores y resultados de la producción. Sirve para recalibrar las reglas. | `encuesta` | Doc. |

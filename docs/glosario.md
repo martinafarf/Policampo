@@ -50,7 +50,11 @@ especificaciones, en la interfaz y en el código. Así personas y agentes hablan
 | **Pérdida de cultivo** | Superficie de un sector de cultivo que queda bajo una franja propuesta. Se informa por cultivo para que el productor decida. | `perdida_por_cultivo` | Esp. 05 |
 | **Objetivo (%)** | Porcentaje de flores que busca la propuesta: 20 % por defecto, ajustable entre 10 % y 40 %. | `objetivo_pct` | Esp. 05 |
 | **Informe técnico** | Documento descargable e imprimible que consolida el diagnóstico, las especies elegidas y el rediseño. | `informe` | Doc. |
-| **Calendario agroecológico** | Cronograma de siembra, floración y corte de las plantas de servicio, coordinado con el cultivo principal. Tiene alertas. | `calendario` | Doc. |
+| **Calendario agroecológico** | Tareas con fechas generadas desde la propuesta elegida para una **temporada** de 12 meses: siembra, fecha límite de siembra, corte y no pulverizar, más períodos informativos (floración y cosecha). El usuario las marca como hechas. | `calendario`, `tarea` | Doc., Esp. 06 |
+| **Temporada** | Los 12 meses que cubre un calendario desde que se genera. Al terminar se genera la siguiente y la anterior queda en el historial. | `temporada_inicio`, `temporada_fin` | Esp. 06 |
+| **Fecha límite de siembra** | Último día para sembrar una planta y que florezca antes que el cultivo: inicio de la floración del cultivo − (1 + semanas que tarda en florecer) semanas. | `limite_siembra` | Prototipo de calendario, Esp. 06 |
+| **Estado de una tarea** | **Próxima**, **En curso**, **Hecha** o **Atrasada**. Solo "Hecha" se guarda; el resto se calcula con la fecha de hoy. | — | Esp. 06 |
+| **Resumen semanal** | Email opcional de los lunes con las tareas de las próximas 2 semanas y las atrasadas. Se activa en el perfil y se puede dar de baja desde el email. | `resumen_semanal` | Esp. 06 |
 | **Encuesta de seguimiento** (o **post-cosecha**) | Preguntas breves y periódicas al usuario: tareas realizadas, avistamientos de polinizadores y resultados de la producción. Sirve para recalibrar las reglas. | `encuesta` | Doc. |
 | **Motor de reglas** | Lógica **determinista** ("si se cumple esto, entonces aquello") que genera el diagnóstico y las recomendaciones a partir de reglas validadas por expertos. **No es IA generativa.** | `motor_reglas` | Doc. |
 | **Cultivo (catálogo)** | Lista de cultivos que se pueden elegir para un sector (tomate, durazno, palta…). La mantiene el administrador. Si falta, se elige "Otro" con texto libre, pero para ese cultivo no habrá recomendaciones. | `cultivo` | Esp. 02 |

@@ -264,6 +264,8 @@ carga con {método}" (RN-03).
   - en mapa, la superficie total es la del contorno.
 - **Guardado atómico:** guardar sectores reemplaza **todos** los sectores del establecimiento en una sola transacción.
   Si algo falla, no queda nada a medias.
+- **Fecha de modificación:** toda acción que cambia el establecimiento o sus sectores actualiza
+  `establecimiento.actualizado_en`. El módulo 04 la usa para marcar los diagnósticos desactualizados.
 - **Tamaño:** cada petición de guardado acepta hasta 1 MB y hasta 50 sectores por establecimiento.
 - **Límite de establecimientos:** 100 por usuario. Es un valor por defecto, a revisar.
 

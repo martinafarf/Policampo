@@ -33,8 +33,14 @@ especificaciones, en la interfaz y en el código. Así personas y agentes hablan
 | **Cuestionario** | Método de carga por formulario: datos del establecimiento y lista de sectores. | `cuestionario` | Doc., v1 |
 | **Croquis** | Método de carga dibujando los sectores en un **plano cuadrado a escala**, armado a partir de la superficie total (lado = √(ha × 10.000) m). No usa mapa. | `croquis` | Doc., v1, Esp. 02 |
 | **Mapa** | Método de carga dibujando el **contorno** del terreno y sus sectores sobre una imagen satelital (Leaflet + Esri). La superficie total sale del contorno. En la v1 tenía un paso 2 de propuesta: en la v2 eso es el módulo 05. | `mapa` | Doc., v1, Esp. 02 |
-| **Diagnóstico** | Evaluación del establecimiento: porcentaje actual de biodiversidad comparado con el 20 % recomendado, el déficit, el nivel de riesgo y las áreas aptas para intervenir. | `diagnostico` | Doc. |
-| **Nivel de riesgo** | Resultado del diagnóstico: **crítico**, **moderado** o **adecuado**, según el déficit de biodiversidad. Los umbrales los define la especificación del diagnóstico. | `nivel_riesgo` | Prototipo de diagnóstico |
+| **Diagnóstico** | Evaluación guardada del establecimiento: % con flores comparado con el 20 % recomendado, déficit, hectáreas a compensar, nivel de riesgo, áreas aptas y alertas. Cada pedido se guarda con sus datos de entrada y queda en un historial. | `diagnostico` | Doc., Esp. 04 |
+| **Nivel de riesgo** | Resultado del diagnóstico: **adecuado** (20 % o más con flores), **moderado** (de 10 % a menos de 20 %) o **crítico** (menos de 10 %). Umbrales a validar. | `nivel_riesgo` | Prototipo de diagnóstico, Esp. 04 |
+| **Déficit de biodiversidad** | Cuántos puntos porcentuales faltan para el 20 %: max(0, 20 − % con flores). | `deficit_pp` | Esp. 04 |
+| **Hectáreas a compensar** | Superficie de flores que falta para llegar al 20 %: max(0, 0,20 × superficie total − superficie de flores). | `hectareas_a_compensar` | Esp. 04 |
+| **Ancho de franja perimetral** | En croquis y mapa: cuántos metros de ancho tendría una franja de flores por todo el borde para cubrir las hectáreas a compensar (aproximado, sin descontar esquinas). | `ancho_franja_m` | Esp. 04 |
+| **Superficie libre** | Parte del contorno sin ningún sector dibujado. Se resalta en el diagnóstico como posible área apta. | `superficie_libre` | Esp. 04 |
+| **Diagnóstico desactualizado** | Diagnóstico anterior a la última modificación de la finca. Se ofrece actualizarlo. | — | Esp. 04 |
+| **Alerta** | Aviso del diagnóstico con su explicación: monocultivo, sin flores, superficie sin asignar o cultivo sin datos en el catálogo. | `alertas` | Esp. 04 |
 | **Áreas aptas** | Zonas del predio donde conviene ubicar franjas florales, por ejemplo bordes perimetrales y cabeceras de lote. | `areas_aptas` | Doc. |
 | **Propuesta de rediseño** | Distribución propuesta de corredores y franjas florales dentro del terreno, con las plantas de servicio y las tareas a realizar. | `propuesta_rediseno` | Doc. |
 | **Informe técnico** | Documento descargable e imprimible que consolida el diagnóstico, las especies elegidas y el rediseño. | `informe` | Doc. |

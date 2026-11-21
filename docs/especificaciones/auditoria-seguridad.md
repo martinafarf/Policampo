@@ -74,12 +74,12 @@ conviene resolver antes de producción; **Baja** = mejora recomendable.
 
 ## 4. Cambios de configuración pendientes
 
-Requieren acción sobre Vercel, Neon o GitHub. **No se ejecutaron** durante la auditoría.
+Requieren acción sobre Vercel, Neon o GitHub. No se ejecutaron durante la auditoría: los 1, 3 y 4 se aplicaron después, con aprobación.
 
 | N.º | Cambio | Hallazgo | Quién |
 | --- | --- | --- | --- |
-| 1 | Crear la rama de Neon `desarrollo` y apuntar el `DATABASE_URL` de *Preview* de Vercel a esa rama. *Production* sigue con la rama `production`. | A-01 | Claude, con aprobación de Integrante 3 |
+| 1 | **✅ Aplicado el 2026-11-21** (PR #10). Crear la rama de Neon `desarrollo` y apuntar el `DATABASE_URL` de *Preview* de Vercel a esa rama. *Production* sigue con la rama `production`. | A-01 | Claude, con aprobación de Integrante 3 |
 | 2 | Crear los roles `policampo_app` (solo datos) y `policampo_migraciones` en Neon, y usar `policampo_app` en Vercel. | A-02 | Al implementar T1 del módulo 01, porque las tablas todavía no existen |
-| 3 | Activar las alertas y las actualizaciones de seguridad de Dependabot. | M-03 | Claude, con aprobación |
-| 4 | Agregar el flujo de GitHub Actions (lint, tipos, tests y `npm audit`). | M-01 | Claude, con aprobación |
+| 3 | **✅ Aplicado el 2026-11-21.** Activar las alertas y las actualizaciones de seguridad de Dependabot. | M-03 | Claude, con aprobación |
+| 4 | **✅ Aplicado el 2026-11-21** (PR #10). Agregar el flujo de GitHub Actions (lint, tipos, tests y `npm audit`). | M-01 | Claude, con aprobación |
 | 5 | Pedir el GitHub Student Developer Pack y proteger `main`. | M-02 | Integrante 3 (con su cuenta y su email de la UNJu) |

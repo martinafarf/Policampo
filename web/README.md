@@ -34,13 +34,14 @@ Hace falta Node.js 20 o superior.
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Compila para producción (lo mismo que hace Vercel) |
 | `npm run lint` | Revisa el código con ESLint |
+| `npm run typecheck` | Genera los tipos de las rutas y chequea los tipos con TypeScript (lo corre la CI) |
 
 ## Infraestructura
 
 | Servicio | Proyecto | Detalle |
 | --- | --- | --- |
-| **Neon** (PostgreSQL) | `Policampo` | Región `aws-us-east-1`. Rama `production`, base `neondb`. |
-| **Vercel** | `policampo` | Carpeta raíz `web/`. Conectado al repo de GitHub: cada push a una rama crea una vista previa, y cada cambio en `main` despliega a producción. `DATABASE_URL` está cargada como secreto. **Pendiente** (regla RS-11): hoy las vistas previas también usan la rama `production`; tienen que pasar a la rama `desarrollo`. |
+| **Neon** (PostgreSQL) | `Policampo` | Región `aws-us-east-1`. Base `neondb`. Ramas: `production` (solo producción) y `desarrollo` (vistas previas y trabajo local). |
+| **Vercel** | `policampo` | Carpeta raíz `web/`. Conectado al repo de GitHub: cada push a una rama crea una vista previa, y cada cambio en `main` despliega a producción. `DATABASE_URL` está cargada como secreto: **Production** usa la rama `production` de Neon y **Preview**, la rama `desarrollo` (regla RS-11). |
 
 No se cambia la configuración de Neon ni de Vercel sin acordarlo con el grupo (ver [AGENTS.md](../AGENTS.md)).
 

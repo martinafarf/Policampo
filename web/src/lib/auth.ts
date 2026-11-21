@@ -8,6 +8,8 @@ import { admin, haveIBeenPwned, username } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultStatements } from "better-auth/plugins/admin/access";
 import { db } from "@/db";
+// Reglas del nombre de usuario (especificación 01, sección 6.2): una sola fuente, en el dominio.
+import { nombreDeUsuarioValido, USUARIO_MAX, USUARIO_MIN } from "@/dominio/usuarios/validaciones";
 import * as schema from "@/db/schema";
 import { enviarEmail } from "@/lib/email";
 import * as plantillas from "@/lib/email/plantillas";
@@ -35,13 +37,6 @@ function secretoDeAutenticacion(): string {
   if (process.env.NEXT_PHASE === "phase-production-build") return "solo-para-compilar-nunca-firma-nada-real";
   if (process.env.NODE_ENV === "test") return "secreto-de-tests-no-usar-en-otro-lado";
   throw new Error("Falta la variable de entorno BETTER_AUTH_SECRET (ver web/.env.example).");
-}
-
-// ─── Nombre de usuario (especificación 01, sección 6.2) ───
-const NOMBRES_RESERVADOS = new Set(["admin", "administrador", "policampo", "soporte"]);
-function nombreDeUsuarioValido(nombre: string): boolean {
-  // Letras sin acentos, números, punto y guion bajo. Sin "@": no puede confundirse con un email.
-  return /^[a-zA-Z0-9._]+$/.test(nombre) && !NOMBRES_RESERVADOS.has(nombre.toLowerCase());
 }
 
 // ─── Roles (regla RS-03) ───
@@ -131,8 +126,8 @@ export const auth = betterAuth({
 
   plugins: [
     username({
-      minUsernameLength: 3,
-      maxUsernameLength: 30,
+      minUsernameLength: USUARIO_MIN,
+      maxUsernameLength: USUARIO_MAX,
       usernameValidator: nombreDeUsuarioValido,
     }),
     admin({

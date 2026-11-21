@@ -99,6 +99,12 @@ src/app/api/salud/          GET /api/salud: estado de la app y de la base
 src/app/api/auth/[...all]/  Rutas de Better Auth (registro, ingreso, verificación…)
 src/lib/auth.ts             Configuración de Better Auth (especificación 01)
 src/lib/email/              Envío de emails con Resend y plantillas (simulado en la consola si no hay clave)
+src/lib/sesion.ts           requerirUsuario(), requerirAdministrador(), obtenerUsuario()
+src/lib/cuentas.ts          Registro, ingreso y reenvío de la verificación
+src/lib/limites.ts          Límites de intentos en la base (regla RS-13)
+src/dominio/usuarios/       Validaciones del registro y ruta segura (funciones puras)
+src/app/(cuentas)/          Pantallas de registro, verificación e ingreso
+src/componentes/            Piezas de pantalla reutilizables (ui/, cuentas/)
 src/lib/db.ts               Conexión simple a Neon (la usa /api/salud)
 src/db/                     Drizzle: conexión (index.ts) y esquema (schema/)
 drizzle/                    Migraciones SQL versionadas (regla RD-08)

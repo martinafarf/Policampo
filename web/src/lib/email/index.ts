@@ -1,21 +1,46 @@
-// Envío de emails (verificación, recuperación, avisos).
+// Envío de emails con Resend (especificación 01, tarea T2).
 //
-// T1 del módulo 01: todavía no hay servicio de email. En desarrollo y en los tests, el email se
-// "simula": se escribe un aviso en la consola. En producción, enviar un email falla a propósito
-// hasta que la T2 conecte Resend, para que nunca se pierdan emails en silencio.
+// - Con RESEND_API_KEY: se envía por Resend, desde EMAIL_REMITENTE.
+// - Sin RESEND_API_KEY:
+//     · en desarrollo y en los tests, el email se "simula": se escribe en la consola para poder
+//       probar los flujos (verificación, recuperación) sin mandar nada;
+//     · en producción es un error: nunca se pierden emails en silencio.
+// - Nunca se registran en los logs el destinatario ni el contenido (regla RS-05).
 import "server-only";
+import { Resend } from "resend";
+import type { ContenidoEmail } from "./plantillas";
 
-export type Email = {
-  para: string;
-  asunto: string;
-  texto: string;
-};
+// Hasta tener un dominio propio verificado en Resend, se usa su remitente de prueba. Con ese
+// remitente Resend solo entrega a la dirección dueña de la cuenta (pendiente de la especificación 01).
+const REMITENTE_DE_PRUEBA = "PoliCampo <onboarding@resend.dev>";
+
+export type Email = ContenidoEmail & { para: string };
+
+let cliente: Resend | undefined;
+function resend(): Resend {
+  cliente ??= new Resend(process.env.RESEND_API_KEY);
+  return cliente;
+}
 
 export async function enviarEmail(email: Email): Promise<void> {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("El envío de emails todavía no está configurado (módulo 01, tarea T2).");
+  if (!process.env.RESEND_API_KEY) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Falta la variable de entorno RESEND_API_KEY: no se puede enviar el email.");
+    }
+    console.info(`[email simulado] ${email.asunto}\n${email.texto}`);
+    return;
   }
-  // Solo en desarrollo: se muestra el asunto y el texto (con el enlace) para poder probar los flujos.
-  // La T2 reemplaza esto por Resend y no registra el contenido (regla RS-05).
-  console.info(`[email simulado] ${email.asunto}\n${email.texto}`);
+
+  const { error } = await resend().emails.send({
+    from: process.env.EMAIL_REMITENTE || REMITENTE_DE_PRUEBA,
+    to: email.para,
+    subject: email.asunto,
+    text: email.texto,
+    html: email.html,
+  });
+  if (error) {
+    // Solo el tipo de error: sin destinatario ni contenido (regla RS-05).
+    console.error(`No se pudo enviar el email "${email.asunto}": ${error.name}`);
+    throw new Error("No se pudo enviar el email. Probá de nuevo en unos minutos.");
+  }
 }

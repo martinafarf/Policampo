@@ -98,7 +98,7 @@ src/app/                    Pantallas y rutas (App Router)
 src/app/api/salud/          GET /api/salud: estado de la app y de la base
 src/app/api/auth/[...all]/  Rutas de Better Auth (registro, ingreso, verificación…)
 src/lib/auth.ts             Configuración de Better Auth (especificación 01)
-src/lib/email/              Envío de emails (simulado en desarrollo hasta la T2)
+src/lib/email/              Envío de emails con Resend y plantillas (simulado en la consola si no hay clave)
 src/lib/db.ts               Conexión simple a Neon (la usa /api/salud)
 src/db/                     Drizzle: conexión (index.ts) y esquema (schema/)
 drizzle/                    Migraciones SQL versionadas (regla RD-08)

@@ -16,6 +16,7 @@ en el proyecto.
 | [reglas-del-proyecto.md](reglas-del-proyecto.md) | Reglas del dominio, de privacidad y seguridad, de desarrollo y de documentación. |
 | [glosario.md](glosario.md) | Términos del dominio y del sistema, con su nombre en el código. |
 | [../AGENTS.md](../AGENTS.md) | Instrucciones para agentes de IA. |
+| [especificaciones/](especificaciones/README.md) | Especificaciones de los módulos de la v2. |
 
 ### `proyecto/`: formulación del proyecto
 

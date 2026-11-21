@@ -10,6 +10,7 @@ especificaciones, en la interfaz y en el código. Así personas y agentes hablan
   - **Ent.**: [entrevistas al Especialista 1](entrevistas/especialista-1-conceptos-del-dominio.md).
   - **v1**: decisiones del grupo aplicadas en el prototipo Django.
   - **Prototipo de diagnóstico**: rama `Diagnostico-Informe` (app `agroecologia`).
+  - **Esp. NN**: [especificación](especificaciones/README.md) número NN.
 
 ---
 
@@ -17,7 +18,11 @@ especificaciones, en la interfaz y en el código. Así personas y agentes hablan
 
 | Término | Definición | Nombre en el código | Fuente |
 | --- | --- | --- | --- |
-| **Usuario** | Productor o ingeniero agrónomo registrado. Ambos tienen **los mismos permisos**: el sistema no los distingue. | `usuario` | v1 |
+| **Usuario** | Productor o ingeniero agrónomo registrado. Ambos tienen **los mismos permisos**: el sistema no los distingue. En la base, la tabla de Better Auth se llama `user`. | `usuario` (tabla `user`) | v1, Esp. 01 |
+| **Cuenta verificada** | Cuenta cuyo email se confirmó con el enlace enviado al registrarse. Sin verificar no se puede ingresar. | `email_verified` | Esp. 01 |
+| **Cuenta desactivada** | Cuenta que un administrador bloqueó: no puede ingresar y se cierran sus sesiones. Se puede reactivar. | `banned` | Esp. 01 |
+| **Sesión** | Estado de "usuario ingresado" en un dispositivo. Dura 30 días y se renueva con el uso. | `session` | Esp. 01 |
+| **Consentimiento** | Aceptación de la política de privacidad al registrarse, con la versión y la fecha guardadas (Ley 25.326). | `politica_privacidad_version`, `politica_privacidad_aceptada_en` | Esp. 01 |
 | **Administrador** | Gestiona el sistema y el catálogo técnico (especies, reglas). No se registra desde la web: se crea aparte. | `administrador` | v1 |
 | **Establecimiento** (o **finca**, **predio**) | Terreno agrícola de un usuario. Tiene nombre, dirección, departamento, localidad, ecorregión y superficie total. **"Finca"** y **"predio"** son sinónimos en el uso diario; en el código se usa siempre `establecimiento`. | `establecimiento` | Doc., v1 |
 | **Superficie total** | Superficie del establecimiento, en hectáreas (ha). En el método mapa se calcula sola a partir del contorno dibujado. | `superficie_total_ha` | v1 |

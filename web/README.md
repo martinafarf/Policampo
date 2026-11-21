@@ -65,8 +65,8 @@ Nunca se usa la base de producción para probar ni se copian sus datos a desarro
 | `policampo_migraciones` | Cambiar el esquema (migraciones). Las tablas que crea quedan disponibles para `policampo_app`. | `DATABASE_URL_MIGRACIONES`, solo en la computadora de quien migra |
 | `neondb_owner` | Todo (dueño). | Solo para administrar roles. La app no lo usa. |
 
-Estado: los roles existen en `desarrollo`. En `production` se crean al aplicar la primera migración allí (con la
-rama de respaldo de RS-16).
+Estado: los roles existen en `desarrollo` y en `production` (creados el 2026-11-21, con la rama de respaldo
+`respaldo-2026-11-21`). En Vercel, Preview y Production usan `policampo_app`.
 
 ## Respaldo antes de migrar (regla RS-16)
 

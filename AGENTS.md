@@ -13,8 +13,10 @@ etc. Las personas del equipo también lo usan como guía. Leelo completo antes d
 - **Etapas del código:**
   - **v1** (este repositorio): prototipo en Django + PostgreSQL. **Es solo referencia.**
   - **v2** (carpeta `web/`): **Next.js 16** (React), **PostgreSQL en Neon** y despliegue en **Vercel**. Por ahora es
-    un esqueleto conectado a la base. Se construye a partir de especificaciones: la arquitectura interna (librerías,
-    autenticación, migraciones) se define en ellas y **no la asumas**. Next.js 16 cambió respecto de versiones
+    un esqueleto conectado a la base. Se construye a partir de las especificaciones de
+    [docs/especificaciones/](docs/especificaciones/README.md). Librerías ya decididas: **Better Auth**
+    (autenticación), **Drizzle ORM** (modelo de datos y migraciones) y **Resend** (emails). Cualquier otra
+    librería se propone y se aprueba antes de agregarla. Next.js 16 cambió respecto de versiones
     anteriores: antes de escribir código, leé [web/AGENTS.md](web/AGENTS.md) y la documentación en
     `web/node_modules/next/dist/docs/`.
 

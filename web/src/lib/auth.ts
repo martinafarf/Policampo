@@ -10,6 +10,7 @@ import { defaultStatements } from "better-auth/plugins/admin/access";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { enviarEmail } from "@/lib/email";
+import * as plantillas from "@/lib/email/plantillas";
 
 const MINUTO = 60;
 const HORA = 60 * MINUTO;
@@ -73,11 +74,11 @@ export const auth = betterAuth({
     resetPasswordTokenExpiresIn: HORA, // el enlace de recuperación vence en 1 hora
     revokeSessionsOnPasswordReset: true, // al recuperar la contraseña se cierran todas las sesiones
     sendResetPassword: async ({ user, url }) => {
-      await enviarEmail({
-        para: user.email,
-        asunto: "PoliCampo: crear una contraseña nueva",
-        texto: `Para crear una contraseña nueva, abrí este enlace (vence en 1 hora):\n${url}`,
-      });
+      await enviarEmail({ para: user.email, ...plantillas.recuperacion(url) });
+    },
+    // Después de recuperar la contraseña se avisa por email (especificación 01, flujo 4.5).
+    onPasswordReset: async ({ user }) => {
+      await enviarEmail({ para: user.email, ...plantillas.avisoCambioContrasena() });
     },
   },
   emailVerification: {
@@ -85,11 +86,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true, // al confirmar, se inicia la sesión
     expiresIn: DIA, // el enlace de verificación vence a las 24 horas
     sendVerificationEmail: async ({ user, url }) => {
-      await enviarEmail({
-        para: user.email,
-        asunto: "PoliCampo: confirmá tu cuenta",
-        texto: `Para confirmar tu cuenta, abrí este enlace (vence en 24 horas):\n${url}`,
-      });
+      await enviarEmail({ para: user.email, ...plantillas.verificacion(url) });
     },
   },
 

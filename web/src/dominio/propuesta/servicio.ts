@@ -282,6 +282,7 @@ export async function prepararGeneracionPropuesta(
   establecimientoId: string,
   usuarioId: string,
   objetivoPct: number = LIMITES_PROPUESTA.objetivoRecomendadoPct,
+  respetarCultivos: boolean = false,
 ): Promise<ResultadoPrepararPropuesta> {
   const ultimo = await obtenerUltimoDiagnostico(establecimientoId, usuarioId);
   if (!ultimo) return { estado: "no_encontrado" };
@@ -358,7 +359,9 @@ export async function prepararGeneracionPropuesta(
       };
     }
 
-    const alternativasEspaciales = generarAlternativasEspaciales(entradaEspacial);
+    const alternativasEspaciales = generarAlternativasEspaciales(entradaEspacial, {
+      respetarCultivos,
+    });
 
     return {
       estado: "listo",

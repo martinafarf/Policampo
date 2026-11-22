@@ -1,4 +1,7 @@
-// Dibujo SVG de una propuesta de rediseño: contorno, sectores existentes y franjas propuestas (Esp. 05 §7).
+"use client";
+
+// Dibujo SVG 2D y vista 3D interactiva de una propuesta de rediseño (Esp. 05 §7).
+import { useState } from "react";
 import type { SectorDibujable } from "@/app/fincas/[id]/VistaPreviaDibujo";
 import {
   crearContornoCroquis,
@@ -7,6 +10,7 @@ import {
   type Posicion2D,
 } from "@/dominio/establecimientos";
 import type { FranjaPropuesta, GeometriaFranja } from "@/dominio/propuesta";
+import { Vista3DPropuesta } from "./Vista3DPropuesta";
 
 interface Props {
   metodo: MetodoCaracterizacion;
@@ -38,6 +42,8 @@ export function VistaDibujoPropuesta({
   franjas,
   compacta = false,
 }: Props) {
+  const [modoVista, setModoVista] = useState<"2d" | "3d">("2d");
+
   if (metodo === "cuestionario") return null;
 
   const poligonoContorno =
@@ -92,49 +98,89 @@ export function VistaDibujoPropuesta({
   }
 
   return (
-    <figure className={compacta ? "w-full" : "flex flex-col gap-2 rounded-xl border border-stone-200 bg-white p-3"}>
-      <svg
-        viewBox={`0 0 ${anchoSvg} ${altoSvg}`}
-        role="img"
-        aria-label="Esquema espacial de la propuesta de franjas florales sobre la finca"
-        className={`w-full rounded-lg bg-stone-50 ${compacta ? "h-32" : "h-60"}`}
-      >
-        <path
-          d={pathDeGeometria(poligonoContorno)}
-          fill="#f5f5f4"
-          stroke="#57534e"
-          strokeWidth={compacta ? 1.5 : 2}
-          strokeDasharray={metodo === "croquis" ? "5 3" : undefined}
-        />
-
-        {sectoresConGeo.map((s, idx) => {
-          const esFlores = s.tipo === "sector_flores";
-          return (
-            <path
-              key={s.id ?? `sec-${idx}`}
-              d={pathDeGeometria(s.geometria)}
-              fill={esFlores ? "rgba(147, 51, 234, 0.25)" : "rgba(22, 163, 74, 0.25)"}
-              stroke={esFlores ? "#7e22ce" : "#15803d"}
-              strokeWidth={compacta ? 1 : 1.4}
+    <figure className={compacta ? "w-full" : "flex flex-col gap-2.5 rounded-xl border border-stone-200 bg-white p-3"}>
+      {!compacta ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-stone-700">Visualización de la propuesta</span>
+          <div className="inline-flex rounded-lg border border-stone-200 bg-stone-100 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setModoVista("2d")}
+              className={`rounded-md px-3 py-1 font-semibold transition ${
+                modoVista === "2d"
+                  ? "bg-white text-emerald-900 shadow-xs"
+                  : "text-stone-600 hover:text-stone-900"
+              }`}
             >
-              <title>{s.nombre ?? (esFlores ? "Flores existentes" : "Cultivo")}</title>
-            </path>
-          );
-        })}
+              Plano 2D
+            </button>
+            <button
+              type="button"
+              onClick={() => setModoVista("3d")}
+              className={`rounded-md px-3 py-1 font-semibold transition ${
+                modoVista === "3d"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              Vista 3D
+            </button>
+          </div>
+        </div>
+      ) : null}
 
-        {franjas.map((franja, idx) => (
+      {!compacta && modoVista === "3d" ? (
+        <Vista3DPropuesta
+          metodo={metodo}
+          superficieTotalHa={superficieTotalHa}
+          contorno={poligonoContorno}
+          sectores={sectoresConGeo}
+          franjas={franjas}
+        />
+      ) : (
+        <svg
+          viewBox={`0 0 ${anchoSvg} ${altoSvg}`}
+          role="img"
+          aria-label="Esquema espacial de la propuesta de franjas florales sobre la finca"
+          className={`w-full rounded-lg bg-stone-50 ${compacta ? "h-32" : "h-60"}`}
+        >
           <path
-            key={franja.id || `franja-${idx}`}
-            d={pathDeGeometria(franja.geometria)}
-            fill="rgba(219, 39, 119, 0.45)"
-            fillRule="evenodd"
-            stroke="#be185d"
-            strokeWidth={compacta ? 1.4 : 2}
-          >
-            <title>{franja.etiqueta}</title>
-          </path>
-        ))}
-      </svg>
+            d={pathDeGeometria(poligonoContorno)}
+            fill="#f5f5f4"
+            stroke="#57534e"
+            strokeWidth={compacta ? 1.5 : 2}
+            strokeDasharray={metodo === "croquis" ? "5 3" : undefined}
+          />
+
+          {sectoresConGeo.map((s, idx) => {
+            const esFlores = s.tipo === "sector_flores";
+            return (
+              <path
+                key={s.id ?? `sec-${idx}`}
+                d={pathDeGeometria(s.geometria)}
+                fill={esFlores ? "rgba(147, 51, 234, 0.25)" : "rgba(22, 163, 74, 0.25)"}
+                stroke={esFlores ? "#7e22ce" : "#15803d"}
+                strokeWidth={compacta ? 1 : 1.4}
+              >
+                <title>{s.nombre ?? (esFlores ? "Flores existentes" : "Cultivo")}</title>
+              </path>
+            );
+          })}
+
+          {franjas.map((franja, idx) => (
+            <path
+              key={franja.id || `franja-${idx}`}
+              d={pathDeGeometria(franja.geometria)}
+              fill="rgba(219, 39, 119, 0.45)"
+              fillRule="evenodd"
+              stroke="#be185d"
+              strokeWidth={compacta ? 1.4 : 2}
+            >
+              <title>{franja.etiqueta}</title>
+            </path>
+          ))}
+        </svg>
+      )}
 
       {!compacta ? (
         <figcaption className="flex flex-wrap items-center gap-4 px-1 text-xs text-stone-600">

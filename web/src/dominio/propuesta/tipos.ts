@@ -78,6 +78,7 @@ export interface ParametrosDisposicion {
   anguloGrados?: number;
   cantidadIslas?: number;
   anchoResultanteM?: number | null;
+  respetarCultivos?: boolean;
 }
 
 export interface PerdidaCultivoItem {

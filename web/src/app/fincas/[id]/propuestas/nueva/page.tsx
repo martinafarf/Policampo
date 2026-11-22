@@ -23,8 +23,14 @@ async function ContenidoNuevaPropuesta({ params, searchParams }: Props) {
   // Si viene de "Duplicar y editar" (?desde=<propuestaId>), cargamos sus parámetros iniciales (CA-05-17).
   const baseDuplicar = desde ? await obtenerDetallePropuesta(id, desde, usuario.id) : null;
   const objetivoInicial = baseDuplicar ? baseDuplicar.propuesta.objetivoPct : 20;
+  const respetarCultivosInicial = Boolean(baseDuplicar?.propuesta.parametros.respetarCultivos);
 
-  const prep = await prepararGeneracionPropuesta(id, usuario.id, objetivoInicial);
+  const prep = await prepararGeneracionPropuesta(
+    id,
+    usuario.id,
+    objetivoInicial,
+    respetarCultivosInicial,
+  );
 
   if (prep.estado === "no_encontrado") {
     notFound();
@@ -115,6 +121,7 @@ async function ContenidoNuevaPropuesta({ params, searchParams }: Props) {
           baseDuplicar?.propuesta.nombre ? `${baseDuplicar.propuesta.nombre} (copia)` : ""
         }
         disposicionInicial={baseDuplicar?.propuesta.disposicion}
+        respetarCultivosInicial={respetarCultivosInicial}
         especiesInicialesIds={baseDuplicar?.propuesta.especies.map((e) => e.plantaId)}
       />
     </div>

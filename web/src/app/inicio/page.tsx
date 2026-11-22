@@ -1,9 +1,9 @@
 // Inicio del usuario (especificación 01, 5.1): saludo, próximas tareas y accesos a los módulos.
-// Estética alineada con DESIGN.md (paleta bosque/hoja/menta/naranja, tarjetas 28 px, píldoras 48 px, íconos SVG).
+// Reutiliza el fondo con cielo menta y PaisajeIlustrado de la portada + AbejaCursor siempre visible.
 import Link from "next/link";
 import { Suspense, type ComponentType } from "react";
 import { BadgeEstadoTarea } from "@/componentes/calendario/BadgeEstadoTarea";
-import { AbejaCursor, DibujoAbeja } from "@/componentes/marca/AbejaCursor";
+import { AbejaCursor } from "@/componentes/marca/AbejaCursor";
 import {
   Hoja,
   IconoCalendario,
@@ -14,6 +14,7 @@ import {
   IconoGuia,
   IconoLupa,
 } from "@/componentes/marca/Iconos";
+import { PaisajeIlustrado } from "@/componentes/marca/PaisajeIlustrado";
 import { Aviso } from "@/componentes/ui/formulario";
 import { formatearFechaCortaEsAr } from "@/dominio/calendario";
 import { obtenerResumenTareasParaInicio } from "@/dominio/calendario/servicio";
@@ -81,30 +82,23 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
         </div>
       )}
 
-      <header className="relative flex min-h-32 flex-col justify-center gap-2 overflow-hidden py-3 sm:py-5">
-        <AbejaCursor reposo={{ x: 0.62, y: 0.44 }} />
-        <Hoja className="animar-flota pointer-events-none absolute right-10 top-3 hidden h-12 w-12 text-naranja/45 lg:block" />
-
-        <div className="relative z-20 flex items-center gap-3">
-          <h1 className="titulo-onda text-3xl font-bold text-bosque sm:text-4xl">
-            Hola, {usuario.nombreParaMostrar}
-          </h1>
-          <span className="animar-flota inline-block shrink-0 lg:hidden" aria-hidden="true">
-            <DibujoAbeja className="h-10 w-[52px] drop-shadow-[0_3px_5px_rgb(0_51_0/.2)]" />
-          </span>
-        </div>
-        <p className="relative z-20 max-w-[46ch] text-base text-tinta-suave">
+      <header className="relative flex flex-col gap-2 py-2 sm:py-4">
+        <Hoja className="animar-flota pointer-events-none absolute right-6 top-1 hidden h-12 w-12 text-naranja/45 sm:block" />
+        <h1 className="titulo-onda text-3xl font-bold text-bosque sm:text-4xl">
+          Hola, {usuario.nombreParaMostrar}
+        </h1>
+        <p className="max-w-[46ch] text-base text-tinta-suave">
           Elegí por dónde empezar para diagnosticar, rediseñar y seguir el calendario de tus fincas.
         </p>
       </header>
 
       {listaInicio.length > 0 ? (
-        <section className="mt-8 rounded-[28px] border-2 border-menta-fuerte bg-menta/70 p-5 sm:p-6">
+        <section className="mt-6 rounded-[28px] border-2 border-menta-fuerte bg-white/90 p-5 shadow-chica backdrop-blur-[2px] sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl font-bold text-bosque">Próximas tareas</h2>
             <Link
               href="/tareas"
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-hoja transition hover:bg-white/70 hover:text-hoja-oscura"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-hoja transition hover:bg-menta hover:text-hoja-oscura"
             >
               Ver todas ({resumenTareas.totalPendientes})
               <IconoFlecha className="h-4 w-4" />
@@ -114,7 +108,7 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
             {listaInicio.map((t) => (
               <li
                 key={t.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-[1.5px] border-borde bg-white px-4 py-3 text-sm"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-[1.5px] border-borde bg-papel px-4 py-3 text-sm"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <BadgeEstadoTarea estado={t.estado} />
@@ -140,36 +134,46 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
 
 export default function PaginaInicio({ searchParams }: PageProps<"/inicio">) {
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-12">
-      <Suspense fallback={<p className="text-tinta-suave">Cargando…</p>}>
-        <Saludo searchParams={searchParams as Promise<{ confirmada?: string }>} />
-      </Suspense>
+    <main className="relative flex flex-1 flex-col justify-between overflow-hidden bg-[linear-gradient(#d6f1e7,#eff9f5_60%)]">
+      {/* Abeja volando sobre todo el Inicio (arranca junto al saludo y sigue al cursor) */}
+      <AbejaCursor siempreVisible reposo={{ x: 0.68, y: 0.11 }} />
 
-      <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {MODULOS.map(({ titulo, Icono, texto, href }) => (
-          <li
-            key={titulo}
-            className="flex flex-col justify-between gap-5 rounded-[28px] border-2 border-borde bg-white p-6 transition hover:-translate-y-1 hover:shadow-suave"
-          >
-            <div className="flex flex-col gap-3">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-menta text-bosque">
-                <Icono className="h-6 w-6" />
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-8 pb-6 sm:pt-12">
+        <Suspense fallback={<p className="text-tinta-suave">Cargando…</p>}>
+          <Saludo searchParams={searchParams as Promise<{ confirmada?: string }>} />
+        </Suspense>
+
+        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {MODULOS.map(({ titulo, Icono, texto, href }) => (
+            <li
+              key={titulo}
+              className="flex flex-col justify-between gap-5 rounded-[28px] border-2 border-borde bg-white/95 p-6 shadow-chica backdrop-blur-[2px] transition hover:-translate-y-1 hover:shadow-suave"
+            >
+              <div className="flex flex-col gap-3">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-menta text-bosque">
+                  <Icono className="h-6 w-6" />
+                </div>
+                <h2 className="text-xl font-bold text-bosque">{titulo}</h2>
+                <p className="text-sm leading-relaxed text-tinta-suave">{texto}</p>
               </div>
-              <h2 className="text-xl font-bold text-bosque">{titulo}</h2>
-              <p className="text-sm leading-relaxed text-tinta-suave">{texto}</p>
-            </div>
-            <div>
-              <Link
-                href={href}
-                className="inline-flex min-h-12 items-center gap-2 rounded-full bg-hoja px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-hoja-oscura hover:shadow-chica"
-              >
-                Abrir
-                <IconoFlecha className="h-4 w-4" />
-              </Link>
-            </div>
-          </li>
-        ))}
-      </ul>
+              <div>
+                <Link
+                  href={href}
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full bg-hoja px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-hoja-oscura hover:shadow-chica"
+                >
+                  Abrir
+                  <IconoFlecha className="h-4 w-4" />
+                </Link>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Paisaje ilustrado de la portada (sin texto) como cierre/fondo inferior de Inicio */}
+      <div className="pointer-events-none relative z-0 -mt-4 w-full">
+        <PaisajeIlustrado />
+      </div>
     </main>
   );
 }

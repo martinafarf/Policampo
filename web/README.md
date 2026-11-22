@@ -76,7 +76,9 @@ Estado: los roles existen en `desarrollo` y en `production` (creados el 2026-11-
 
 1. aplica la migración en `desarrollo` (si falla, se detiene y `production` no se toca);
 2. crea la rama de respaldo `respaldo-AAAA-MM-DD-<commit>` de `production`;
-3. aplica la migración en `production`.
+3. aplica la migración en `production`;
+4. borra los respaldos que no estén entre los 2 más nuevos (el plan gratis de Neon admite 10 ramas) o que tengan
+   más de 30 días (lo promete la política de privacidad).
 
 Siempre con el rol `policampo_migraciones`. Si la acción falla, llega un email de GitHub y se ve en la pestaña
 **Actions**. Se puede volver a correr desde ahí (Run workflow).
@@ -84,7 +86,9 @@ Siempre con el rol `policampo_migraciones`. Si la acción falla, llega un email 
 **Si algo sale mal en production:** restaurar `production` desde la rama de respaldo (consola de Neon → Branches →
 Restore) y avisar al grupo.
 
-**Mantenimiento:** borrar las ramas de respaldo de más de 30 días.
+**Respaldos:** quedan como mucho los 2 más nuevos, y ninguno de más de 30 días. Si Neon avisa
+"Branch limit reached", hay ramas de más: borrar las que no sean `production`, `desarrollo`, `pruebas` ni los 2
+respaldos más nuevos.
 
 **Configuración** (Settings → Secrets and variables → Actions del repositorio):
 

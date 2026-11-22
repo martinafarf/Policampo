@@ -33,7 +33,7 @@ describe("página /privacidad (CA-01-22)", () => {
     vi.stubEnv("EMAIL_CONTACTO", "contacto@ejemplo.com");
     const html = renderToStaticMarkup(PaginaPrivacidad());
     expect(html).toContain(`Versión ${POLITICA_PRIVACIDAD_VERSION}`);
-    for (const servicio of ["Neon", "Vercel", "Resend", "Esri"]) expect(html).toContain(servicio);
+    for (const servicio of ["Neon", "Vercel", "Google", "Esri"]) expect(html).toContain(servicio);
     expect(html).toContain("mailto:contacto@ejemplo.com");
     expect(html).toContain("Cuando eliminás tu cuenta");
     vi.unstubAllEnvs();

@@ -1,46 +1,51 @@
-// Envío de emails con Resend (especificación 01, tarea T2).
+// Envío de emails por Gmail (SMTP) con nodemailer (especificación 01, tarea T2).
 //
-// - Con RESEND_API_KEY: se envía por Resend, desde EMAIL_REMITENTE.
-// - Sin RESEND_API_KEY:
+// - Con GMAIL_USUARIO y GMAIL_CLAVE_APP: se envía por Gmail (con una "contraseña de aplicación").
+// - Sin ellas:
 //     · en desarrollo y en los tests, el email se "simula": se escribe en la consola para poder
 //       probar los flujos (verificación, recuperación) sin mandar nada;
 //     · en producción es un error: nunca se pierden emails en silencio.
 // - Nunca se registran en los logs el destinatario ni el contenido (regla RS-05).
 import "server-only";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
 import type { ContenidoEmail } from "./plantillas";
-
-// Hasta tener un dominio propio verificado en Resend, se usa su remitente de prueba. Con ese
-// remitente Resend solo entrega a la dirección dueña de la cuenta (pendiente de la especificación 01).
-const REMITENTE_DE_PRUEBA = "PoliCampo <onboarding@resend.dev>";
 
 export type Email = ContenidoEmail & { para: string };
 
-let cliente: Resend | undefined;
-function resend(): Resend {
-  cliente ??= new Resend(process.env.RESEND_API_KEY);
-  return cliente;
+let transporte: Transporter | undefined;
+function gmail(): Transporter {
+  transporte ??= nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user: process.env.GMAIL_USUARIO, pass: process.env.GMAIL_CLAVE_APP },
+  });
+  return transporte;
 }
 
 export async function enviarEmail(email: Email): Promise<void> {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.GMAIL_CLAVE_APP || !process.env.GMAIL_USUARIO) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("Falta la variable de entorno RESEND_API_KEY: no se puede enviar el email.");
+      throw new Error("Faltan GMAIL_USUARIO y GMAIL_CLAVE_APP: no se puede enviar el email.");
     }
     console.info(`[email simulado] ${email.asunto}\n${email.texto}`);
     return;
   }
 
-  const { error } = await resend().emails.send({
-    from: process.env.EMAIL_REMITENTE || REMITENTE_DE_PRUEBA,
-    to: email.para,
-    subject: email.asunto,
-    text: email.texto,
-    html: email.html,
-  });
-  if (error) {
+  try {
+    await gmail().sendMail({
+      // Gmail obliga a que el remitente sea la propia cuenta.
+      from: `PoliCampo <${process.env.GMAIL_USUARIO}>`,
+      to: email.para,
+      subject: email.asunto,
+      text: email.texto,
+      html: email.html,
+    });
+  } catch (error) {
     // Solo el tipo de error: sin destinatario ni contenido (regla RS-05).
-    console.error(`No se pudo enviar el email "${email.asunto}": ${error.name}`);
+    const tipo = error instanceof Error ? error.name : "desconocido";
+    console.error(`No se pudo enviar el email "${email.asunto}": ${tipo}`);
     throw new Error("No se pudo enviar el email. Probá de nuevo en unos minutos.");
   }
 }

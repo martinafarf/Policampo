@@ -12,8 +12,8 @@ import {
   formatearSuperficieCompleta,
   type UbicacionRelativa,
 } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../_lib/consultas";
-import { exigirUsuarioActual } from "../_lib/sesion";
 import { MenuMasFicha } from "./MenuMasFicha";
 import { VistaPreviaDibujo } from "./VistaPreviaDibujo";
 
@@ -36,7 +36,7 @@ interface Props {
 
 async function ContenidoFicha({ params, searchParams }: Props) {
   const { id } = await params;
-  const usuario = await exigirUsuarioActual(`/fincas/${id}`);
+  const usuario = await requerirUsuario(`/fincas/${id}`);
   const [{ aviso }, finca] = await Promise.all([
     searchParams,
     obtenerEstablecimientoDelUsuario(id, usuario.id),
@@ -90,8 +90,8 @@ async function ContenidoFicha({ params, searchParams }: Props) {
       ) : null}
 
       <header className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1 break-words">
             <span className="inline-block rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
               Método: {etiquetaMetodo}
             </span>
@@ -103,14 +103,16 @@ async function ContenidoFicha({ params, searchParams }: Props) {
               Ecorregión: <strong className="text-stone-800">{obtenerNombreEcorregion(finca.ecorregion)}</strong>
             </p>
           </div>
-          <MenuMasFicha
-            establecimientoId={finca.id}
-            nombreEstablecimiento={finca.nombre}
-            metodoActual={finca.metodoCaracterizacion}
-            cantidadSectores={finca.sectores.length}
-            superficieTotalHa={finca.superficieTotalHa}
-            version={finca.version}
-          />
+          <div className="shrink-0">
+            <MenuMasFicha
+              establecimientoId={finca.id}
+              nombreEstablecimiento={finca.nombre}
+              metodoActual={finca.metodoCaracterizacion}
+              cantidadSectores={finca.sectores.length}
+              superficieTotalHa={finca.superficieTotalHa}
+              version={finca.version}
+            />
+          </div>
         </div>
 
         {/* Único botón de edición de sectores según el método (RN-03, CA-02-19) */}

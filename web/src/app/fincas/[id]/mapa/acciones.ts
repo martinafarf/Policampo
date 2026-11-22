@@ -13,8 +13,8 @@ import {
   validarSectoresConDibujo,
   type EntradaSectorConGeometria,
 } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 
 export interface PayloadGuardarMapa {
   version: number;
@@ -33,7 +33,7 @@ export async function guardarTerrenoMapa(
   establecimientoId: string,
   payload: PayloadGuardarMapa,
 ): Promise<ResultadoGuardarMapa> {
-  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}/mapa`);
+  const usuario = await requerirUsuario(`/fincas/${establecimientoId}/mapa`);
 
   if (!esUuidValido(establecimientoId)) {
     notFound();

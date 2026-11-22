@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 import { FormularioDatosGenerales } from "./FormularioDatosGenerales";
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 
 async function ContenidoEditarDatos({ params }: Props) {
   const { id } = await params;
-  const usuario = await exigirUsuarioActual(`/fincas/${id}/datos`);
+  const usuario = await requerirUsuario(`/fincas/${id}/datos`);
   const finca = await obtenerEstablecimientoDelUsuario(id, usuario.id);
 
   if (!finca) {

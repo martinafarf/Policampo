@@ -13,8 +13,8 @@ import {
   validarSectoresConDibujo,
   type EntradaSectorConGeometria,
 } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 
 export interface PayloadGuardarCroquis {
   version: number;
@@ -31,7 +31,7 @@ export async function guardarSectoresCroquis(
   establecimientoId: string,
   payload: PayloadGuardarCroquis,
 ): Promise<ResultadoGuardarCroquis> {
-  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}/croquis`);
+  const usuario = await requerirUsuario(`/fincas/${establecimientoId}/croquis`);
 
   if (!esUuidValido(establecimientoId)) {
     notFound();

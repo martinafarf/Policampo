@@ -1,10 +1,10 @@
 // Ruta /fincas/nueva: elegir método y crear un establecimiento (Esp. 02, 5.2).
 import { Suspense } from "react";
-import { exigirUsuarioActual } from "../_lib/sesion";
+import { requerirUsuario } from "@/lib/sesion";
 import { FormularioNuevaFinca } from "./FormularioNuevaFinca";
 
 async function ContenidoNuevaFinca() {
-  await exigirUsuarioActual("/fincas/nueva");
+  await requerirUsuario("/fincas/nueva");
   return <FormularioNuevaFinca />;
 }
 

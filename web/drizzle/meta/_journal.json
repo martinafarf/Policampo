@@ -15,6 +15,13 @@
       "when": 1795303189493,
       "tag": "0001_establecimientos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795313224611,
+      "tag": "0002_catalogo",
+      "breakpoints": true
     }
   ]
 }

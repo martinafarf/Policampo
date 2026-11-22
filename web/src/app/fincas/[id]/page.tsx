@@ -5,8 +5,10 @@ import { Suspense } from "react";
 import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
 import { BotonSolicitarDiagnostico } from "@/componentes/diagnostico/BotonSolicitarDiagnostico";
 import { obtenerNombreEcorregion } from "@/datos/jujuy";
-import { evaluarRequisitosDiagnostico } from "@/dominio/diagnostico";
+import { evaluarRequisitosDiagnostico, formatearNumeroEsAr } from "@/dominio/diagnostico";
 import { obtenerResumenDiagnosticosPorEstablecimientos } from "@/dominio/diagnostico/entrada";
+import { ETIQUETAS_DISPOSICION } from "@/dominio/propuesta";
+import { obtenerPropuestaElegidaDeFinca } from "@/dominio/propuesta/servicio";
 import {
   BOTON_EDICION_METODO,
   ETIQUETAS_METODO,
@@ -58,10 +60,11 @@ async function ContenidoFicha({ params, searchParams }: Props) {
   const rutaMetodo = `/fincas/${finca.id}/${RUTA_EDICION_METODO[finca.metodoCaracterizacion]}`;
   const etiquetaMetodo = ETIQUETAS_METODO[finca.metodoCaracterizacion];
 
-  const [resumenesDiag] = await Promise.all([
+  const [resumenesDiag, propuestaElegida] = await Promise.all([
     obtenerResumenDiagnosticosPorEstablecimientos([
       { id: finca.id, actualizadoEn: finca.actualizadoEn },
     ]),
+    obtenerPropuestaElegidaDeFinca(finca.id),
   ]);
   const resumenDiag = resumenesDiag.get(finca.id) ?? null;
   const requisitosDiag = evaluarRequisitosDiagnostico({
@@ -329,6 +332,56 @@ async function ContenidoFicha({ params, searchParams }: Props) {
               texto="🔍 Solicitar diagnóstico"
             />
           )}
+        </div>
+      </section>
+
+      {/* Bloque de Propuestas de rediseño (Esp. 05 §6.1 y §6.2) */}
+      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-bold text-stone-900">Propuesta de rediseño</h2>
+            {propuestaElegida ? (
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+                ★ Elegida: {propuestaElegida.nombre ?? ETIQUETAS_DISPOSICION[propuestaElegida.disposicion]}
+              </span>
+            ) : null}
+          </div>
+          {propuestaElegida ? (
+            <p className="text-sm text-stone-600">
+              {ETIQUETAS_DISPOSICION[propuestaElegida.disposicion]} · Logra{" "}
+              <strong>{formatearNumeroEsAr(propuestaElegida.porcentajeLogrado, 1, 1)} %</strong>{" "}
+              con flores (objetivo {formatearNumeroEsAr(propuestaElegida.objetivoPct, 1, 0)} %).
+            </p>
+          ) : (
+            <p className="text-sm text-stone-600">
+              Generá alternativas de franjas florales y una mezcla de plantas de servicio para esta
+              finca.
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+          {propuestaElegida ? (
+            <Link
+              href={`/fincas/${finca.id}/propuestas/${propuestaElegida.id}`}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            >
+              Ver elegida →
+            </Link>
+          ) : (
+            <Link
+              href={`/fincas/${finca.id}/propuestas/nueva`}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            >
+              🌼 Generar propuesta
+            </Link>
+          )}
+          <Link
+            href={`/fincas/${finca.id}/propuestas`}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+          >
+            Ver todas
+          </Link>
         </div>
       </section>
     </div>

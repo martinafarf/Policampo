@@ -112,6 +112,35 @@ async function ContenidoResumenCatalogo() {
           </section>
         ))}
       </div>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs">
+          <div>
+            <h2 className="text-base font-bold text-stone-900">Historial de cambios</h2>
+            <p className="text-xs text-stone-600">
+              Auditoría completa de altas, ediciones, publicaciones y retiros (RN-13).
+            </p>
+          </div>
+          <Link
+            href="/admin/catalogo/historial"
+            className="inline-flex min-h-10 shrink-0 items-center rounded-lg border border-stone-300 px-3.5 py-1.5 text-sm font-semibold text-stone-800 hover:bg-stone-50"
+          >
+            Ver historial →
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs">
+          <div>
+            <h2 className="text-base font-bold text-stone-900">Importar y exportar CSV</h2>
+            <p className="text-xs text-stone-600">
+              Carga masiva con vista previa en Borrador y exportación segura.
+            </p>
+          </div>
+          <span className="inline-flex min-h-10 shrink-0 items-center rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-500">
+            Próxima etapa (T5)
+          </span>
+        </div>
+      </section>
     </div>
   );
 }

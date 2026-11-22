@@ -19,6 +19,12 @@ const MODULOS: readonly {
     texto: "Cargá tus fincas y cómo está distribuido el terreno.",
     href: "/fincas",
   },
+  {
+    titulo: "Guía de especies",
+    icono: "🌿",
+    texto: "Consultá plantas de servicio, períodos de floración y compatibilidades publicadas.",
+    href: "/guia-especies",
+  },
   { titulo: "Diagnóstico", icono: "🔍", texto: "Mirá cuánta superficie tiene flores frente al 20 % recomendado." },
   { titulo: "Rediseño", icono: "🌼", texto: "Dónde ubicar franjas florales y qué plantas sembrar." },
   { titulo: "Informes", icono: "📄", texto: "Descargá el informe técnico de cada finca." },

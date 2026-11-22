@@ -86,6 +86,30 @@ export function validarContrasena(
   return errores;
 }
 
+export const NOMBRE_MAX = 60;
+export type ErroresNombre = { nombre?: string; apellido?: string };
+export type ResultadoNombre =
+  | { ok: true; datos: { nombre: string | null; apellido: string | null } }
+  | { ok: false; errores: ErroresNombre };
+
+/**
+ * Nombre y apellido del perfil (especificación 01, sección 6.2): opcionales, hasta 60 caracteres y
+ * sin etiquetas HTML. Vacíos se guardan como null (se muestra el nombre de usuario).
+ */
+export function validarNombreYApellido(entrada: { nombre: string; apellido: string }): ResultadoNombre {
+  const errores: ErroresNombre = {};
+  const limpiar = (valor: string, campo: keyof ErroresNombre, etiqueta: string) => {
+    const texto = valor.trim().replace(/\s+/g, " ");
+    if (texto.length > NOMBRE_MAX) errores[campo] = `${etiqueta} puede tener hasta ${NOMBRE_MAX} caracteres.`;
+    else if (/[<>]/.test(texto)) errores[campo] = `${etiqueta} no puede tener los signos < ni >.`;
+    return texto || null;
+  };
+  const nombre = limpiar(entrada.nombre, "nombre", "El nombre");
+  const apellido = limpiar(entrada.apellido, "apellido", "El apellido");
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { nombre, apellido } };
+}
+
 export function emailValido(email: string): boolean {
   return email.length <= EMAIL_MAX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }

@@ -1,4 +1,4 @@
-// Menú del encabezado: con sesión muestra Inicio y Cerrar sesión; sin sesión, Ingresar y Registrarse.
+// Menú del encabezado: con sesión muestra Inicio, Mi perfil y Cerrar sesión; sin sesión, Ingresar y Registrarse.
 import Link from "next/link";
 import { obtenerUsuario } from "@/lib/sesion";
 import { BotonCerrarSesion } from "./boton-cerrar-sesion";
@@ -21,6 +21,9 @@ export async function MenuUsuario() {
     <nav className="flex items-center gap-2 text-sm">
       <Link href="/inicio" className="rounded-lg px-3 py-2 font-medium text-campo-oscuro hover:bg-campo-claro">
         Inicio
+      </Link>
+      <Link href="/perfil" className="rounded-lg px-3 py-2 font-medium text-campo-oscuro hover:bg-campo-claro">
+        Mi perfil
       </Link>
       <BotonCerrarSesion />
     </nav>

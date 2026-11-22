@@ -1,14 +1,20 @@
 // Página principal provisoria. La landing completa (qué es, beneficios, cómo funciona) es la T7.
 import Link from "next/link";
 import { Suspense } from "react";
+import { LimpiarBorradores } from "@/componentes/cuentas/limpiar-borradores";
 import { Aviso } from "@/componentes/ui/formulario";
 
-async function AvisoSesionCerrada({ searchParams }: { searchParams: Promise<{ sesion?: string }> }) {
-  const { sesion } = await searchParams;
-  if (sesion !== "cerrada") return null;
+type Busqueda = { sesion?: string; cuenta?: string };
+
+/** Avisos al llegar desde "Cerrar sesión" (?sesion=cerrada) o "Eliminar mi cuenta" (?cuenta=eliminada). */
+async function AvisoSesionCerrada({ searchParams }: { searchParams: Promise<Busqueda> }) {
+  const { sesion, cuenta } = await searchParams;
+  const mensaje = cuenta === "eliminada" ? "Tu cuenta fue eliminada." : sesion === "cerrada" ? "Cerraste sesión." : null;
+  if (!mensaje) return null;
   return (
     <div className="mb-6 w-full max-w-md">
-      <Aviso tipo="exito">Cerraste sesión.</Aviso>
+      {cuenta === "eliminada" && <LimpiarBorradores />}
+      <Aviso tipo="exito">{mensaje}</Aviso>
     </div>
   );
 }
@@ -17,7 +23,7 @@ export default function Inicio({ searchParams }: PageProps<"/">) {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center">
       <Suspense fallback={null}>
-        <AvisoSesionCerrada searchParams={searchParams as Promise<{ sesion?: string }>} />
+        <AvisoSesionCerrada searchParams={searchParams as Promise<Busqueda>} />
       </Suspense>
       <h1 className="text-3xl font-semibold text-campo-oscuro">PoliCampo</h1>
       <p className="max-w-md text-tinta-suave">

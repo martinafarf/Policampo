@@ -29,7 +29,8 @@ export const LIMITE_INGRESO = { ventana: 15 * MINUTO, maximo: 5 };
 const LIMITE_REGISTRO_IP = { ventana: HORA, maximo: 10 };
 const LIMITE_REENVIO = { ventana: MINUTO, maximo: 1 };
 
-function codigoDeError(error: unknown): string | undefined {
+/** El código de error de Better Auth (por ejemplo "INVALID_PASSWORD"), o undefined si no es suyo. */
+export function codigoDeError(error: unknown): string | undefined {
   if (error instanceof APIError) return (error.body as { code?: string } | undefined)?.code;
   return undefined;
 }

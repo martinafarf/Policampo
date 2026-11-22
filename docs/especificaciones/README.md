@@ -7,7 +7,7 @@ nada sin una especificación aprobada** (regla RD-01).
 
 | N.º | Módulo | Estado | Depende de |
 | --- | --- | --- | --- |
-| 01 | [Usuarios y autenticación](01-usuarios-y-autenticacion.md) (incluye landing y privacidad) | Aprobada · en implementación (T1 a T4 hechas) | — |
+| 01 | [Usuarios y autenticación](01-usuarios-y-autenticacion.md) (incluye landing y privacidad) | Aprobada · en implementación (T1 a T5 hechas) | — |
 | 02 | [Establecimientos y sectores](02-establecimientos-y-sectores.md) (cuestionario, croquis, mapa) | Implementada (T1 a T7; pendientes de dominio en sección 12) | 01 |
 | 03 | [Catálogo de especies y compatibilidades](03-catalogo-de-especies.md) (backoffice y Guía de especies) | Implementada (T1 a T6; pendientes de contenido en sección 12) | 01, 02 (tabla `cultivo`) |
 | 04 | [Diagnóstico](04-diagnostico.md) (regla del 20 %, nivel de riesgo, áreas aptas, alertas) | Borrador para revisión | 02, 03 |

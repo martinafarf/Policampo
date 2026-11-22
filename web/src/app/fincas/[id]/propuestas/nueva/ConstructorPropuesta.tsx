@@ -50,6 +50,7 @@ interface Props {
   mezclaInicial: ResultadoMezcla;
   nombreInicial?: string;
   disposicionInicial?: DisposicionPropuesta;
+  respetarCultivosInicial?: boolean;
   especiesInicialesIds?: readonly string[];
 }
 
@@ -72,9 +73,11 @@ export function ConstructorPropuesta({
   mezclaInicial,
   nombreInicial = "",
   disposicionInicial,
+  respetarCultivosInicial = false,
   especiesInicialesIds,
 }: Props) {
   const [objetivoPct, setObjetivoPct] = useState<number>(objetivoInicialPct);
+  const [respetarCultivos, setRespetarCultivos] = useState<boolean>(respetarCultivosInicial);
   const [superficieAAgregarHa, setSuperficieAAgregarHa] = useState<number>(
     superficieAAgregarInicialHa,
   );
@@ -171,8 +174,9 @@ export function ConstructorPropuesta({
     }
   }
 
-  function aplicarObjetivo(nuevoObjetivo: number) {
+  function aplicarObjetivo(nuevoObjetivo: number, nuevoRespetar: boolean = respetarCultivos) {
     setObjetivoPct(nuevoObjetivo);
+    setRespetarCultivos(nuevoRespetar);
     setErrores([]);
     if (
       nuevoObjetivo < LIMITES_PROPUESTA.objetivoMinPct ||
@@ -185,7 +189,11 @@ export function ConstructorPropuesta({
     }
 
     iniciarCalculo(async () => {
-      const res = await recalcularAlternativasPorObjetivoAccion(establecimientoId, nuevoObjetivo);
+      const res = await recalcularAlternativasPorObjetivoAccion(
+        establecimientoId,
+        nuevoObjetivo,
+        nuevoRespetar,
+      );
       if (!res.ok) {
         setErrores([res.error]);
         return;
@@ -219,7 +227,10 @@ export function ConstructorPropuesta({
         establecimientoId,
         objetivoPct,
         alternativaActual.disposicion,
-        nuevosParametros,
+        {
+          ...nuevosParametros,
+          ...(respetarCultivos ? { respetarCultivos: true } : { respetarCultivos: undefined }),
+        },
       );
       if (!res.ok) {
         setErrores([res.error]);
@@ -403,13 +414,30 @@ export function ConstructorPropuesta({
         </section>
       ) : (
         <section className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
-          <div>
-            <h2 className="text-base font-bold text-stone-900">
-              2. Elegí una alternativa de disposición
-            </h2>
-            <p className="text-xs text-stone-600">
-              Ordenadas por menor pérdida de superficie cultivada (primero la superficie libre).
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-base font-bold text-stone-900">
+                2. Elegí una alternativa de disposición
+              </h2>
+              <p className="text-xs text-stone-600">
+                Ordenadas por menor pérdida de superficie cultivada (primero la superficie libre).
+              </p>
+            </div>
+            <label className="inline-flex cursor-pointer items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-950">
+              <input
+                type="checkbox"
+                checked={respetarCultivos}
+                disabled={pendienteCalc}
+                onChange={(e) => aplicarObjetivo(objetivoPct, e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-emerald-700"
+              />
+              <span>
+                <strong className="block">Respetar cultivos (sin superponer)</strong>
+                <span className="text-[11px] text-emerald-900/80">
+                  Las flores acompañan solo en bordes y espacios libres (0 ha cedidas).
+                </span>
+              </span>
+            </label>
           </div>
 
           {/* Carrusel horizontal en celular / grilla en desktop */}

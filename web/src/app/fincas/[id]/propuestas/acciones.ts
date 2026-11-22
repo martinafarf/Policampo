@@ -23,6 +23,7 @@ import { requerirUsuario } from "@/lib/sesion";
 export async function recalcularAlternativasPorObjetivoAccion(
   establecimientoId: string,
   objetivoPct: number,
+  respetarCultivos: boolean = false,
 ): Promise<
   | {
       ok: true;
@@ -34,7 +35,12 @@ export async function recalcularAlternativasPorObjetivoAccion(
   | { ok: false; error: string }
 > {
   const usuario = await requerirUsuario(`/fincas/${establecimientoId}/propuestas/nueva`);
-  const res = await prepararGeneracionPropuesta(establecimientoId, usuario.id, objetivoPct);
+  const res = await prepararGeneracionPropuesta(
+    establecimientoId,
+    usuario.id,
+    objetivoPct,
+    respetarCultivos,
+  );
 
   if (res.estado === "no_encontrado") notFound();
   if (res.estado === "requiere_diagnostico_vigente") {

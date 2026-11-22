@@ -313,4 +313,51 @@ describe("Diseño espacial de propuestas de rediseño (Esp. 05 T1)", () => {
       expect(resOk.alternativa.superficieFranjasHa).toBe(0.2);
     }
   });
+
+  it("en modo respetarCultivos acompaña solo por espacios libres y nunca pisa cultivos (0 ha cedidas)", () => {
+    const contorno = crearContornoCroquis(4); // 200x200 (4 ha)
+    const cultivoCentro: PoligonoGeoJson = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [20, 20],
+          [180, 20],
+          [180, 180],
+          [20, 180],
+          [20, 20],
+        ],
+      ],
+    }; // 160x160 = 2,56 ha -> quedan 1,44 ha libres en el perímetro (36 %)
+
+    const entrada: EntradaEspacialPropuesta = {
+      metodo: "croquis",
+      superficieTotalHa: 4,
+      superficieFloresActualHa: 0,
+      objetivoPct: 20,
+      contorno,
+      sectores: [
+        {
+          id: "cult-1",
+          nombre: "Lote Tomate",
+          tipo: "cultivo",
+          cultivoNombre: "Tomate",
+          superficieHa: 2.56,
+          geometria: cultivoCentro,
+        },
+      ],
+    };
+
+    const alts = generarAlternativasEspaciales(entrada, { respetarCultivos: true });
+    expect(alts.length).toBeGreaterThanOrEqual(4);
+
+    for (const alt of alts) {
+      expect(alt.perdidaTotalCultivoHa).toBe(0);
+      expect(alt.perdidaPorCultivo).toHaveLength(0);
+      expect(alt.parametros.respetarCultivos).toBe(true);
+    }
+
+    const perim = alts.find((a) => a.disposicion === "perimetral");
+    expect(perim).toBeDefined();
+    expect(perim?.porcentajeLogrado).toBeGreaterThanOrEqual(19.5);
+  });
 });

@@ -475,6 +475,33 @@ function verificarDeadline(inicioMs: number, limiteMs: number) {
   }
 }
 
+// Recorta las franjas propuestas contra los sectores de cultivo para acompañar sin superponer.
+function recortarFranjasSinCultivos(
+  geos: readonly GeometriaFranja[],
+  sectoresCultivo: readonly SectorEspacialEntrada[],
+  sistema: SistemaGeometria,
+): GeometriaFranja[] {
+  if (sectoresCultivo.length === 0 || geos.length === 0) return [...geos];
+
+  const resultado: GeometriaFranja[] = [];
+  for (const geo of geos) {
+    let actual: Feature<GeometriaFranja> | null = featureDesdeGeometria(geo);
+    for (const cult of sectoresCultivo) {
+      if (!actual) break;
+      try {
+        const diff = difference(featureCollection([actual, turfPolygon(cult.geometria.coordinates)]));
+        actual = diff ?? null;
+      } catch {
+        // Si dos geometrías son tangentes degeneradas, conservamos la actual.
+      }
+    }
+    if (actual && areaM2(actual.geometry, sistema) > 1) {
+      resultado.push(actual.geometry);
+    }
+  }
+  return resultado;
+}
+
 function empaquetarAlternativa(params: {
   disposicion: Exclude<DisposicionPropuesta, "texto">;
   parametros: ParametrosDisposicion;
@@ -527,7 +554,9 @@ function empaquetarAlternativa(params: {
   if (!llegaAlObjetivo) {
     avisos.push({
       codigo: "no_llega_objetivo",
-      mensaje: `Esta disposición alcanza ${porcentajeLogrado.toLocaleString("es-AR")} % y no llega al objetivo del ${entrada.objetivoPct.toLocaleString("es-AR")} %.`,
+      mensaje: params.parametros.respetarCultivos
+        ? `Respetando todos los cultivos (0 ha cedidas), esta disposición alcanza ${porcentajeLogrado.toLocaleString("es-AR")} % y no llega al objetivo del ${entrada.objetivoPct.toLocaleString("es-AR")} %.`
+        : `Esta disposición alcanza ${porcentajeLogrado.toLocaleString("es-AR")} % y no llega al objetivo del ${entrada.objetivoPct.toLocaleString("es-AR")} %.`,
     });
   }
   if (anchoFueraDeRango && anchoRedondeado !== null) {
@@ -609,6 +638,11 @@ export function generarUnaDisposicionEspacial(
   const aSistema = (geos: GeometriaFranja[]) =>
     geos.map((g) => proyectarGeometria(g, proy.aSistema));
 
+  const respetarCultivos = Boolean(parametros.respetarCultivos);
+  const paramRespeto: ParametrosDisposicion = respetarCultivos ? { respetarCultivos: true } : {};
+  const filtrarCultivos = (geos: GeometriaFranja[]) =>
+    respetarCultivos ? recortarFranjasSinCultivos(geos, sectoresCultivo, entrada.metodo) : geos;
+
   // 1. USAR LA SUPERFICIE LIBRE (solo si alcanza para cubrir lo que falta — §4.2, CA-05-03)
   if (disposicion === "superficie_libre") {
     const libreGeo =
@@ -660,7 +694,7 @@ export function generarUnaDisposicionEspacial(
 
     return empaquetarAlternativa({
       disposicion: "superficie_libre",
-      parametros: {},
+      parametros: paramRespeto,
       franjas: [
         {
           id: "franja-libre-1",
@@ -681,7 +715,7 @@ export function generarUnaDisposicionEspacial(
   if (disposicion === "perimetral") {
     let lo = 0.5;
     let hi = Math.max(1, dimMinM * 0.49);
-    let mejorFranja: GeometriaFranja | null = null;
+    let mejoresFranjas: GeometriaFranja[] = [];
     let mejorAncho = 0;
     let mejorErr = Infinity;
 
@@ -693,12 +727,12 @@ export function generarUnaDisposicionEspacial(
         hi = mid;
         continue;
       }
-      const enSistema = proyectarGeometria(res.franja, proy.aSistema);
-      const nuevaM2 = calcularAreaNuevaFloresM2([enSistema], sectoresFlores, entrada.metodo);
+      const enSistema = filtrarCultivos([proyectarGeometria(res.franja, proy.aSistema)]);
+      const nuevaM2 = calcularAreaNuevaFloresM2(enSistema, sectoresFlores, entrada.metodo);
       const err = Math.abs(nuevaM2 - areaAAgregarM2);
-      if (err < mejorErr) {
+      if (enSistema.length > 0 && err < mejorErr) {
         mejorErr = err;
-        mejorFranja = enSistema;
+        mejoresFranjas = enSistema;
         mejorAncho = mid;
       }
       if (err <= areaAAgregarM2 * 0.0002) break;
@@ -706,20 +740,18 @@ export function generarUnaDisposicionEspacial(
       else hi = mid;
     }
 
-    const franjas: FranjaPropuesta[] = mejorFranja
-      ? [
-          {
-            id: "franja-perimetral-1",
-            etiqueta: "Cerco perimetral floral",
-            subtipo: "perimetral",
-            geometria: mejorFranja,
-          },
-        ]
-      : [];
+    const franjas: FranjaPropuesta[] = mejoresFranjas.map((geo, idx) => ({
+      id: `franja-perimetral-${idx + 1}`,
+      etiqueta: respetarCultivos
+        ? "Cerco perimetral (acompañando cultivos)"
+        : "Cerco perimetral floral",
+      subtipo: "perimetral",
+      geometria: geo,
+    }));
 
     return empaquetarAlternativa({
       disposicion: "perimetral",
-      parametros: {},
+      parametros: paramRespeto,
       franjas,
       anchoResultanteM: mejorAncho || null,
       entrada,
@@ -747,7 +779,7 @@ export function generarUnaDisposicionEspacial(
       verificarDeadline(inicioMs, limiteMs);
       const mid = (lo + hi) / 2;
       const geosM = construirTransversalesMetros(contornoMetros, cantidadCorredores, anguloGrados, mid);
-      const geosS = aSistema(geosM);
+      const geosS = filtrarCultivos(aSistema(geosM));
       const nuevaM2 = calcularAreaNuevaFloresM2(geosS, sectoresFlores, entrada.metodo);
       const err = Math.abs(nuevaM2 - areaAAgregarM2);
       if (geosS.length > 0 && err < mejorErr) {
@@ -762,7 +794,7 @@ export function generarUnaDisposicionEspacial(
 
     return empaquetarAlternativa({
       disposicion: "transversal",
-      parametros: { cantidadCorredores, anguloGrados },
+      parametros: { cantidadCorredores, anguloGrados, ...paramRespeto },
       franjas: mejores.map((g, idx) => ({
         id: `franja-transversal-${idx + 1}`,
         etiqueta: `Corredor transversal #${idx + 1}`,
@@ -793,7 +825,7 @@ export function generarUnaDisposicionEspacial(
       verificarDeadline(inicioMs, limiteMs);
       const mid = (lo + hi) / 2;
       const geosM = construirIslasMetros(contornoMetros, cantidadIslas, mid);
-      const geosS = aSistema(geosM);
+      const geosS = filtrarCultivos(aSistema(geosM));
       const nuevaM2 = calcularAreaNuevaFloresM2(geosS, sectoresFlores, entrada.metodo);
       const err = Math.abs(nuevaM2 - areaAAgregarM2);
       if (geosS.length > 0 && err < mejorErr) {
@@ -807,7 +839,7 @@ export function generarUnaDisposicionEspacial(
 
     return empaquetarAlternativa({
       disposicion: "islas",
-      parametros: { cantidadIslas },
+      parametros: { cantidadIslas, ...paramRespeto },
       franjas: mejores.map((g, idx) => ({
         id: `franja-isla-${idx + 1}`,
         etiqueta: `Isla de biodiversidad #${idx + 1}`,
@@ -845,8 +877,8 @@ export function generarUnaDisposicionEspacial(
       hiP = mid;
       continue;
     }
-    const enS = proyectarGeometria(res.franja, proy.aSistema);
-    const nuevaM2 = calcularAreaNuevaFloresM2([enS], sectoresFlores, entrada.metodo);
+    const enS = filtrarCultivos([proyectarGeometria(res.franja, proy.aSistema)]);
+    const nuevaM2 = calcularAreaNuevaFloresM2(enS, sectoresFlores, entrada.metodo);
     const e = Math.abs(nuevaM2 - objetivoMitadM2);
     if (e < errP) {
       errP = e;
@@ -861,13 +893,15 @@ export function generarUnaDisposicionEspacial(
   const franjasMatriz: FranjaPropuesta[] = [];
   let cubiertoPerimM2 = 0;
   if (mejorPerim) {
-    const perimS = proyectarGeometria(mejorPerim.franja, proy.aSistema);
-    cubiertoPerimM2 = calcularAreaNuevaFloresM2([perimS], sectoresFlores, entrada.metodo);
-    franjasMatriz.push({
-      id: "franja-matriz-perimetro",
-      etiqueta: "Cerco perimetral (matriz)",
-      subtipo: "perimetral",
-      geometria: perimS,
+    const perimsS = filtrarCultivos([proyectarGeometria(mejorPerim.franja, proy.aSistema)]);
+    cubiertoPerimM2 = calcularAreaNuevaFloresM2(perimsS, sectoresFlores, entrada.metodo);
+    perimsS.forEach((g, idx) => {
+      franjasMatriz.push({
+        id: idx === 0 ? "franja-matriz-perimetro" : `franja-matriz-perimetro-${idx + 1}`,
+        etiqueta: "Cerco perimetral (matriz)",
+        subtipo: "perimetral",
+        geometria: g,
+      });
     });
 
     const restanteM2 = Math.max(0, areaAAgregarM2 - cubiertoPerimM2);
@@ -891,7 +925,7 @@ export function generarUnaDisposicionEspacial(
           anguloGrados,
           mid,
         );
-        const geosS = aSistema(geosM);
+        const geosS = filtrarCultivos(aSistema(geosM));
         const nuevaM2 = calcularAreaNuevaFloresM2(geosS, sectoresFlores, entrada.metodo);
         const e = Math.abs(nuevaM2 - restanteM2);
         if (geosS.length > 0 && e < errC) {
@@ -916,7 +950,7 @@ export function generarUnaDisposicionEspacial(
 
   return empaquetarAlternativa({
     disposicion: "matriz",
-    parametros: { cantidadCorredores, anguloGrados },
+    parametros: { cantidadCorredores, anguloGrados, ...paramRespeto },
     franjas: franjasMatriz,
     anchoResultanteM: anchoPerim || null,
     entrada,
@@ -929,11 +963,15 @@ export function generarUnaDisposicionEspacial(
 // Genera todas las alternativas aplicables y las ordena por menor pérdida de cultivo y menor perímetro (CA-05-02, 03).
 export function generarAlternativasEspaciales(
   entrada: EntradaEspacialPropuesta,
+  opciones?: { respetarCultivos?: boolean },
 ): AlternativaEspacial[] {
   const validObj = validarObjetivoPct(entrada.objetivoPct);
   if (!validObj.valido) {
     throw new Error(validObj.error);
   }
+
+  const respetarCultivos = Boolean(opciones?.respetarCultivos);
+  const baseParam: ParametrosDisposicion = respetarCultivos ? { respetarCultivos: true } : {};
 
   const aAgregarHa = calcularSuperficieAAgregarHa(
     entrada.superficieTotalHa,
@@ -943,16 +981,24 @@ export function generarAlternativasEspaciales(
 
   // CA-05-01: si ya llega al objetivo, devolvemos una única alternativa sin franjas nuevas.
   if (aAgregarHa <= 0) {
-    const unica = generarUnaDisposicionEspacial(entrada, "perimetral");
+    const unica = generarUnaDisposicionEspacial(entrada, "perimetral", baseParam);
     return unica ? [unica] : [];
   }
 
   const candidatas: (AlternativaEspacial | null)[] = [
-    generarUnaDisposicionEspacial(entrada, "superficie_libre"),
-    generarUnaDisposicionEspacial(entrada, "perimetral"),
-    generarUnaDisposicionEspacial(entrada, "transversal", { cantidadCorredores: 2, anguloGrados: 0 }),
-    generarUnaDisposicionEspacial(entrada, "islas", { cantidadIslas: 4 }),
-    generarUnaDisposicionEspacial(entrada, "matriz", { cantidadCorredores: 2, anguloGrados: 0 }),
+    generarUnaDisposicionEspacial(entrada, "superficie_libre", baseParam),
+    generarUnaDisposicionEspacial(entrada, "perimetral", baseParam),
+    generarUnaDisposicionEspacial(entrada, "transversal", {
+      cantidadCorredores: 2,
+      anguloGrados: 0,
+      ...baseParam,
+    }),
+    generarUnaDisposicionEspacial(entrada, "islas", { cantidadIslas: 4, ...baseParam }),
+    generarUnaDisposicionEspacial(entrada, "matriz", {
+      cantidadCorredores: 2,
+      anguloGrados: 0,
+      ...baseParam,
+    }),
   ];
 
   const validas = candidatas.filter((a): a is AlternativaEspacial => a !== null);

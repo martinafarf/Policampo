@@ -1,6 +1,6 @@
 // Tests de integración en PostgreSQL para la consulta del motor de reglas (Esp. 03, T4, CA-03-10, RN-08).
-import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, it } from "vitest";
+import { and, eq } from "drizzle-orm";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/db";
 import {
   compatibilidad,
@@ -45,6 +45,26 @@ async function publicarPlanta(clave: string) {
 
 beforeEach(async () => {
   // Volver a borrador cualquier registro publicado en tests anteriores para aislar cada caso.
+  await db.update(compatibilidad).set({ estado: "borrador" });
+  await db.update(plantaServicio).set({ estado: "borrador" });
+  await db.update(cultivo).set({ estado: "borrador" });
+});
+
+afterAll(async () => {
+  // Dejar la base compartida con los datos iniciales en borrador para no afectar otros archivos de test.
+  const [pimiento] = await db.select().from(cultivo).where(eq(cultivo.clave, "pimiento")).limit(1);
+  const [calendula] = await db
+    .select()
+    .from(plantaServicio)
+    .where(eq(plantaServicio.clave, "calendula"))
+    .limit(1);
+  if (pimiento && calendula) {
+    await db
+      .delete(compatibilidad)
+      .where(
+        and(eq(compatibilidad.cultivoId, pimiento.id), eq(compatibilidad.plantaId, calendula.id)),
+      );
+  }
   await db.update(compatibilidad).set({ estado: "borrador" });
   await db.update(plantaServicio).set({ estado: "borrador" });
   await db.update(cultivo).set({ estado: "borrador" });

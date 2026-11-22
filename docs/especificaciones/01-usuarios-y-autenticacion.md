@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| **Estado** | Aprobada (Integrante 3, 2026-11-21). En implementación: T1 y T2 hechas |
+| **Estado** | Aprobada (Integrante 3, 2026-11-21). En implementación: T1 a T4 hechas |
 | **Fecha** | 2026-11-21 |
 | **Responsable** | Integrante 3 |
 | **Depende de** | Infraestructura de la v2 (`web/`, Neon, Vercel), ya hecha |

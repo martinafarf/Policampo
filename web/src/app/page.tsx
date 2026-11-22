@@ -17,6 +17,7 @@ import {
   IconoFlor,
   IconoLupa,
 } from "@/componentes/marca/Iconos";
+import { AbejaCursor } from "@/componentes/marca/AbejaCursor";
 import { Onda } from "@/componentes/marca/Onda";
 import { PaisajeIlustrado } from "@/componentes/marca/PaisajeIlustrado";
 import { Revelar } from "@/componentes/marca/Revelar";
@@ -179,6 +180,8 @@ export default function Landing({ searchParams }: PageProps<"/">) {
         <InsigniaHabitat />
         <Hoja className="animar-flota absolute top-[24%] left-[54%] hidden h-12 w-12 text-naranja md:block" />
         <Onda color="#fff" lado="abajo" doble />
+        {/* Abeja que persigue el cursor dentro de la portada (solo en computadora) */}
+        <AbejaCursor />
       </section>
 
       <Suspense fallback={null}>

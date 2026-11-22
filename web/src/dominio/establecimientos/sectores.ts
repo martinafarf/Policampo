@@ -1,4 +1,5 @@
-// Validación pura de sectores para cuestionario y atributos comunes de sector (RN-02, RN-06, CA-02-06 a 09).
+// Validación pura de sectores para cuestionario, croquis y mapa (RN-02, RN-05, RN-06, CA-02-06 a 13).
+import { validarYRecalcularDibujo, type SistemaGeometria } from "./geometrias";
 import { generarNombresSectores, validarNombreSector } from "./nombres";
 import { redondearHectareas, validarSumaSuperficies } from "./superficies";
 import {
@@ -6,6 +7,7 @@ import {
   SUBTIPOS_FLORES,
   TIPOS_SECTOR,
   UBICACIONES_RELATIVAS,
+  type PoligonoGeoJson,
   type SubtipoFlores,
   type TipoSector,
   type UbicacionRelativa,
@@ -265,6 +267,196 @@ export function validarSectoresCuestionario(
       nombre: nombres[indice],
       superficieHa: s.superficieHa,
       ubicacionRelativa: s.ubicacionRelativa,
+      orden: indice,
+    })),
+  };
+}
+
+export interface EntradaSectorConGeometria {
+  tipo: string;
+  cultivoId?: string | null;
+  cultivoOtro?: string | null;
+  subtipoFlores?: string | null;
+  nombrePersonalizado?: string | null;
+  geometria: unknown;
+  // Ignorada en el servidor: se recalcula desde la geometría (RN-05, CA-02-10).
+  superficieHaIgnorada?: number;
+}
+
+export interface SectorDibujoValidado {
+  tipo: TipoSector;
+  cultivoId: string | null;
+  cultivoOtro: string | null;
+  subtipoFlores: SubtipoFlores | null;
+  nombre: string;
+  superficieHa: number;
+  geometria: PoligonoGeoJson;
+  orden: number;
+}
+
+export type ResultadoValidacionSectoresDibujo =
+  | {
+      valido: true;
+      superficieTotalHa: number;
+      contornoValidado: PoligonoGeoJson;
+      sectores: SectorDibujoValidado[];
+    }
+  | { valido: false; errores: string[] };
+
+// Valida metadatos de sectores + geometrías y recalcula superficies en el servidor para croquis y mapa.
+export function validarSectoresConDibujo(
+  entrada: {
+    metodo: SistemaGeometria;
+    superficieTotalHa?: number | null;
+    contorno?: unknown;
+    sectores: readonly EntradaSectorConGeometria[];
+  },
+  cultivosPermitidos: ReadonlyMap<string, CultivoCatalogoItem>,
+): ResultadoValidacionSectoresDibujo {
+  const erroresMetadatos: string[] = [];
+  const metadatos: {
+    tipo: TipoSector;
+    cultivoId: string | null;
+    cultivoOtro: string | null;
+    nombreCultivoBase: string | null;
+    subtipoFlores: SubtipoFlores | null;
+    nombrePersonalizado: string | null;
+  }[] = [];
+
+  for (let i = 0; i < entrada.sectores.length; i += 1) {
+    const s = entrada.sectores[i];
+    const numero = i + 1;
+
+    if (!esTipoSectorValido(s.tipo)) {
+      erroresMetadatos.push(`Sector ${numero}: elegí si es Cultivo o Sector de flores.`);
+      continue;
+    }
+
+    const tipo = s.tipo;
+    let cultivoId: string | null = null;
+    let cultivoOtro: string | null = null;
+    let nombreCultivoBase: string | null = null;
+    let subtipoFlores: SubtipoFlores | null = null;
+
+    if (tipo === "cultivo") {
+      if (s.subtipoFlores && s.subtipoFlores.trim().length > 0) {
+        erroresMetadatos.push(`Sector ${numero}: un sector de cultivo no lleva subtipo de flores.`);
+        continue;
+      }
+
+      const idLimpio = s.cultivoId?.trim() || "";
+      const otroLimpio = s.cultivoOtro?.trim() || "";
+
+      if (idLimpio && otroLimpio) {
+        erroresMetadatos.push(`Sector ${numero}: elegí un cultivo del catálogo o «Otro», no ambos.`);
+        continue;
+      }
+
+      if (idLimpio) {
+        if (!esUuidValido(idLimpio)) {
+          erroresMetadatos.push(`Sector ${numero}: el cultivo elegido no es válido.`);
+          continue;
+        }
+        const cultivoCatalogo = cultivosPermitidos.get(idLimpio);
+        if (!cultivoCatalogo) {
+          erroresMetadatos.push(`Sector ${numero}: el cultivo elegido no existe o no está disponible.`);
+          continue;
+        }
+        cultivoId = cultivoCatalogo.id;
+        nombreCultivoBase = cultivoCatalogo.nombre;
+      } else if (otroLimpio) {
+        if (
+          otroLimpio.length < LARGO_MIN_CULTIVO_OTRO ||
+          otroLimpio.length > LARGO_MAX_CULTIVO_OTRO
+        ) {
+          erroresMetadatos.push(
+            `Sector ${numero}: el nombre del cultivo («Otro») debe tener entre ${LARGO_MIN_CULTIVO_OTRO} y ${LARGO_MAX_CULTIVO_OTRO} caracteres.`,
+          );
+          continue;
+        }
+        cultivoOtro = otroLimpio;
+        nombreCultivoBase = otroLimpio;
+      } else {
+        erroresMetadatos.push(`Sector ${numero}: elegí un cultivo del catálogo o ingresá «Otro».`);
+        continue;
+      }
+    } else {
+      if (s.cultivoId?.trim() || s.cultivoOtro?.trim()) {
+        erroresMetadatos.push(`Sector ${numero}: un sector de flores no lleva cultivo.`);
+        continue;
+      }
+      const subtipoLimpio = s.subtipoFlores?.trim() || "";
+      if (subtipoLimpio) {
+        if (!esSubtipoFloresValido(subtipoLimpio)) {
+          erroresMetadatos.push(`Sector ${numero}: el subtipo de flores elegido no es válido.`);
+          continue;
+        }
+        subtipoFlores = subtipoLimpio;
+      }
+    }
+
+    const nombrePersonalizado = s.nombrePersonalizado?.trim() || null;
+    if (nombrePersonalizado !== null) {
+      const chequeoNombre = validarNombreSector(nombrePersonalizado);
+      if (!chequeoNombre.valido) {
+        erroresMetadatos.push(`Sector ${numero}: ${chequeoNombre.error}`);
+        continue;
+      }
+    }
+
+    metadatos.push({
+      tipo,
+      cultivoId,
+      cultivoOtro,
+      nombreCultivoBase,
+      subtipoFlores,
+      nombrePersonalizado,
+    });
+  }
+
+  if (erroresMetadatos.length > 0) {
+    return { valido: false, errores: erroresMetadatos };
+  }
+
+  const resultadoDibujo = validarYRecalcularDibujo({
+    metodo: entrada.metodo,
+    superficieTotalHa: entrada.superficieTotalHa,
+    contorno: entrada.contorno,
+    sectores: entrada.sectores.map((s) => ({
+      geometria: s.geometria,
+      superficieHaIgnorada: s.superficieHaIgnorada,
+    })),
+  });
+
+  if (
+    !resultadoDibujo.valido ||
+    resultadoDibujo.superficieTotalHa === undefined ||
+    !resultadoDibujo.contornoValidado ||
+    !resultadoDibujo.sectoresCalculados
+  ) {
+    return { valido: false, errores: resultadoDibujo.errores };
+  }
+
+  const nombres = generarNombresSectores(
+    metadatos.map((m) => ({
+      tipo: m.tipo,
+      nombreCultivo: m.nombreCultivoBase,
+      nombrePersonalizado: m.nombrePersonalizado,
+    })),
+  );
+
+  return {
+    valido: true,
+    superficieTotalHa: resultadoDibujo.superficieTotalHa,
+    contornoValidado: resultadoDibujo.contornoValidado,
+    sectores: metadatos.map((m, indice) => ({
+      tipo: m.tipo,
+      cultivoId: m.cultivoId,
+      cultivoOtro: m.cultivoOtro,
+      subtipoFlores: m.subtipoFlores,
+      nombre: nombres[indice],
+      superficieHa: resultadoDibujo.sectoresCalculados![indice].superficieHa,
+      geometria: resultadoDibujo.sectoresCalculados![indice].geometria,
       orden: indice,
     })),
   };

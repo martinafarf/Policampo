@@ -67,6 +67,7 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  serverExternalPackages: ["@react-pdf/renderer"],
   turbopack: {
     rules: {
       "*.css": {

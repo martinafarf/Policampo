@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
 import { BotonSolicitarDiagnostico } from "@/componentes/diagnostico/BotonSolicitarDiagnostico";
+import { BotonEmitirInforme } from "@/componentes/informe/BotonEmitirInforme";
 import { obtenerNombreEcorregion } from "@/datos/jujuy";
 import { evaluarRequisitosDiagnostico, formatearNumeroEsAr } from "@/dominio/diagnostico";
 import { obtenerResumenDiagnosticosPorEstablecimientos } from "@/dominio/diagnostico/entrada";
+import { obtenerRequisitosEmisionInforme } from "@/dominio/informe/foto";
 import { ETIQUETAS_DISPOSICION } from "@/dominio/propuesta";
 import { obtenerPropuestaElegidaDeFinca } from "@/dominio/propuesta/servicio";
 import {
@@ -60,11 +62,12 @@ async function ContenidoFicha({ params, searchParams }: Props) {
   const rutaMetodo = `/fincas/${finca.id}/${RUTA_EDICION_METODO[finca.metodoCaracterizacion]}`;
   const etiquetaMetodo = ETIQUETAS_METODO[finca.metodoCaracterizacion];
 
-  const [resumenesDiag, propuestaElegida] = await Promise.all([
+  const [resumenesDiag, propuestaElegida, requisitosInforme] = await Promise.all([
     obtenerResumenDiagnosticosPorEstablecimientos([
       { id: finca.id, actualizadoEn: finca.actualizadoEn },
     ]),
     obtenerPropuestaElegidaDeFinca(finca.id),
+    obtenerRequisitosEmisionInforme(finca.id, usuario.id),
   ]);
   const resumenDiag = resumenesDiag.get(finca.id) ?? null;
   const requisitosDiag = evaluarRequisitosDiagnostico({
@@ -403,6 +406,35 @@ async function ContenidoFicha({ params, searchParams }: Props) {
           </Link>
         </section>
       ) : null}
+
+      {/* Bloque de Informe técnico PDF (Esp. 07 §5.1, CA-07-01, CA-07-03) */}
+      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-bold text-stone-900">Informe técnico PDF</h2>
+            <p className="text-sm text-stone-600">
+              Generá un documento A4 descargable con código único y la foto fija del diagnóstico, la
+              propuesta elegida y el calendario.
+            </p>
+          </div>
+          <Link
+            href={`/fincas/${finca.id}/informes`}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+          >
+            Ver informes
+          </Link>
+        </div>
+        {requisitosInforme ? (
+          <div>
+            <BotonEmitirInforme
+              establecimientoId={finca.id}
+              cumpleRequisitos={requisitosInforme.cumple}
+              mensajeFaltante={requisitosInforme.mensajeFaltante}
+              nombrePerfilCompleto={requisitosInforme.nombrePerfilCompleto}
+            />
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }

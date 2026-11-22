@@ -6,3 +6,4 @@ export * from "./establecimientos";
 export * from "./catalogo";
 export * from "./diagnostico";
 export * from "./propuesta";
+export * from "./calendario";

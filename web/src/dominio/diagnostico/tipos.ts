@@ -110,3 +110,48 @@ export interface ResultadoDiagnostico {
   superficieLibre: GeometriaLibreGeoJson | null;
   alertas: AlertaDiagnostico[];
 }
+
+export interface EvaluacionRequisitosDiagnostico {
+  cumple: boolean;
+  faltaSuperficieTotal: boolean;
+  faltaCultivo: boolean;
+  mensajeFaltante: string | null;
+}
+
+// Regla de requisitos previos al diagnóstico (Esp. 04, sección 5.1 y CA-04-08):
+// exige superficie total > 0 y al menos un sector de tipo "cultivo".
+export function evaluarRequisitosDiagnostico(params: {
+  superficieTotalHa: number | string | null | undefined;
+  cantidadSectoresCultivo: number;
+}): EvaluacionRequisitosDiagnostico {
+  const sup =
+    params.superficieTotalHa === null || params.superficieTotalHa === undefined
+      ? NaN
+      : Number(params.superficieTotalHa);
+  const faltaSuperficieTotal = !Number.isFinite(sup) || sup <= 0;
+  const faltaCultivo = params.cantidadSectoresCultivo < 1;
+
+  if (faltaSuperficieTotal) {
+    return {
+      cumple: false,
+      faltaSuperficieTotal: true,
+      faltaCultivo,
+      mensajeFaltante: "Cargá la superficie total",
+    };
+  }
+  if (faltaCultivo) {
+    return {
+      cumple: false,
+      faltaSuperficieTotal: false,
+      faltaCultivo: true,
+      mensajeFaltante: "Cargá al menos un sector de cultivo",
+    };
+  }
+
+  return {
+    cumple: true,
+    faltaSuperficieTotal: false,
+    faltaCultivo: false,
+    mensajeFaltante: null,
+  };
+}

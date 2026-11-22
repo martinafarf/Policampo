@@ -32,3 +32,7 @@ __pycache__/
 *.pyc
 venv/
 env/
+# Skills de diseño instaladas con impeccable (copias para GitHub Copilot, no son del proyecto)
+.github/skills/
+.github/agents/
+.github/hooks/

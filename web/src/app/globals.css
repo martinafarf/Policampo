@@ -197,7 +197,8 @@
    la vista. Las pantallas de cuentas no tienen esta barra (EncabezadoSitio no la muestra ahí). En el
    resto de la app sigue como antes: arriba, sin quedar fijo (ahí hay mapas y barras fijas propias que
    quedarían tapadas). */
-.encabezado-sitio[data-pagina="landing"] {
+.encabezado-sitio[data-pagina="landing"],
+.encabezado-sitio[data-pagina="app"] {
   position: fixed;
   inset-inline: 0;
   top: 0;
@@ -206,43 +207,53 @@
     background-color 0.3s var(--ease-salida),
     box-shadow 0.3s var(--ease-salida);
 }
+/* En la app la barra ocupa su lugar (no tapa el contenido) y acompaña al scroll. */
+.encabezado-sitio[data-pagina="app"] {
+  position: sticky;
+}
 /* Al bajar (más de 24 px): fondo verde bosque y sombra suave. Es oscuro a propósito: una barra blanca se
    confundía con las secciones blancas de la página. */
-.encabezado-sitio[data-pagina="landing"][data-desplazado] {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"])[data-desplazado] {
   background-color: rgb(0 51 0 / 0.97);
   box-shadow: 0 8px 24px -12px rgb(0 51 0 / 0.6);
 }
 
 /* El logo y los menús no tienen fondo. Por defecto van en verde bosque (clases de cada componente).
    En la landing pasan a blanco: primero van sobre la foto y, al bajar, sobre la barra verde. */
-.encabezado-sitio[data-pagina="landing"] .texto-encabezado {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .texto-encabezado {
   color: #fff;
 }
 /* Sobre la foto, además, una sombra suave para que se lea sobre cualquier parte de la imagen. */
-.encabezado-sitio[data-pagina="landing"]:not([data-desplazado]) .texto-encabezado {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]):not([data-desplazado]) .texto-encabezado {
   text-shadow: 0 1px 10px rgb(0 0 0 / 0.4);
 }
-.encabezado-sitio[data-pagina="landing"] .borde-encabezado {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .borde-encabezado {
   border-color: rgb(255 255 255 / 0.7);
 }
-.encabezado-sitio[data-pagina="landing"] .hover-encabezado:hover {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .hover-encabezado:hover {
   background-color: rgb(255 255 255 / 0.15);
 }
 /* "Registrarse": naranja con texto bosque (como "Crear cuenta"), porque el oliva se pierde contra el verde. */
-.encabezado-sitio[data-pagina="landing"] .boton-registro-encabezado {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .boton-registro-encabezado {
   background-color: var(--color-naranja);
   color: var(--color-bosque);
 }
-.encabezado-sitio[data-pagina="landing"] .fondo-icono-menu {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .fondo-icono-menu {
   background-color: rgb(255 255 255 / 0.18);
   color: #fff;
 }
-.encabezado-sitio[data-pagina="landing"] .nombre-seccion::after {
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .nombre-seccion::after {
   background: var(--color-naranja); /* sobre la foto y sobre la barra verde, el naranja resalta */
 }
 /* ── Navegación por secciones de la landing (componente NavegacionLanding) ──
    Pantallas anchas: enlaces con subrayado deslizante. Celular: menú desplegable que reemplaza a la
    píldora de cuenta (sus opciones van adentro del desplegable). Fuera de la landing, nada de esto. */
+/* En la landing en pantallas anchas ya hay un subrayado por sección: "Inicio" no repite el suyo. */
+@media (min-width: 64rem) {
+  .encabezado-sitio[data-pagina="landing"] .subrayado-principal {
+    display: none;
+  }
+}
 .enlaces-landing,
 .menu-movil-landing {
   display: none;

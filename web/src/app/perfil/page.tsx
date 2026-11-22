@@ -35,7 +35,7 @@ function AvisoCambioEmail({ busqueda }: { busqueda: Busqueda }) {
 }
 
 async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) {
-  const usuario = await requerirUsuario("/perfil");
+  const usuario = await requerirUsuario("/perfil", { sinConsentimiento: true });
   const perfil = await datosDelPerfil(usuario.id);
   if (!perfil) notFound();
   const busqueda = await searchParams;

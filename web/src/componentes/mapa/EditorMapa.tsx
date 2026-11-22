@@ -9,14 +9,15 @@ import type * as LeafletTipo from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { BannerBorrador } from "@/componentes/borrador/BannerBorrador";
+import { useBorradorFinca } from "@/componentes/borrador/useBorradorFinca";
 import { DEPARTAMENTOS_JUJUY, NOMBRES_DEPARTAMENTOS_JUJUY } from "@/datos/jujuy";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   LIMITES_ESTABLECIMIENTO,
   SUBTIPOS_FLORES,
   calcularAreaGeograficaHa,
-  claveBorradorLocal,
   formatearHectareas,
   formatearSuperficieCompleta,
   generarNombresSectores,
@@ -65,6 +66,7 @@ interface Props {
   establecimientoId: string;
   nombreEstablecimiento: string;
   versionInicial: number;
+  actualizadoEnIso: string;
   centroInicial: { lat: number; lng: number; zoom: number };
   contornoInicial: PoligonoGeoJson | null;
   cultivos: readonly CultivoCatalogoItem[];
@@ -80,6 +82,7 @@ export function EditorMapa({
   establecimientoId,
   nombreEstablecimiento,
   versionInicial,
+  actualizadoEnIso,
   centroInicial,
   contornoInicial,
   cultivos,
@@ -143,6 +146,39 @@ export function EditorMapa({
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false);
   const [mapaListo, setMapaListo] = useState(false);
   const [guardando, iniciarTransicion] = useTransition();
+
+  const datosBorradorMapa = useMemo(
+    () => ({ contorno, sectores }),
+    [contorno, sectores],
+  );
+
+  const onRecuperarBorrador = useCallback(
+    (datos: { contorno: PoligonoGeoJson | null; sectores: SectorLocalMapa[] }) => {
+      setContorno(datos.contorno);
+      setSectores(datos.sectores);
+      setSiguienteId((n) => n + datos.sectores.length + 1);
+      setIndiceSeleccionado(null);
+      if (datos.contorno) {
+        setModo("dibujar_sector");
+      }
+    },
+    [],
+  );
+
+  const {
+    borradorPendiente,
+    ultimoAutoguardado,
+    recuperarBorrador,
+    descartarBorrador,
+    guardarBorradorAhora,
+    limpiarBorrador,
+  } = useBorradorFinca<{ contorno: PoligonoGeoJson | null; sectores: SectorLocalMapa[] }>({
+    establecimientoId,
+    metodo: "mapa",
+    actualizadoEnIso,
+    datosActuales: datosBorradorMapa,
+    onRecuperar: onRecuperarBorrador,
+  });
 
   const mapaCultivos = useMemo(() => new Map(cultivos.map((c) => [c.id, c])), [cultivos]);
 
@@ -492,16 +528,13 @@ export function EditorMapa({
           return;
         }
 
-        try {
-          window.localStorage.removeItem(claveBorradorLocal(establecimientoId));
-        } catch {
-          // Modo privado.
-        }
+        limpiarBorrador();
 
         router.push(`/fincas/${establecimientoId}?aviso=sectores-guardados`);
       } catch {
+        guardarBorradorAhora();
         setErroresServidor([
-          "No se pudo guardar. Tus cambios siguen acá; probá de nuevo cuando tengas señal.",
+          "No se pudo guardar. Tus cambios siguen en este dispositivo; probá de nuevo cuando tengas señal.",
         ]);
       }
     });
@@ -573,6 +606,15 @@ export function EditorMapa({
           dibujando sobre el fondo liso y guardar normalmente.
         </div>
       ) : null}
+
+      <div className="px-4 sm:px-0">
+        <BannerBorrador
+          fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+          ultimoAutoguardadoIso={ultimoAutoguardado}
+          onRecuperar={recuperarBorrador}
+          onDescartar={descartarBorrador}
+        />
+      </div>
 
       {/* Mapa a todo lo ancho (RD-03, CA-02-22) */}
       <div className="relative w-full border-y border-stone-300 bg-stone-200 sm:overflow-hidden sm:rounded-xl sm:border">

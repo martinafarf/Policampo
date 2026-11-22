@@ -36,6 +36,7 @@ async function ContenidoCuestionario({ params }: Props) {
       nombreEstablecimiento={finca.nombre}
       superficieTotalHa={finca.superficieTotalHa ?? 0}
       versionInicial={finca.version}
+      actualizadoEnIso={finca.actualizadoEn.toISOString()}
       cultivos={cultivos}
       sectoresIniciales={finca.sectores.map((s) => ({
         tipo: s.tipo,

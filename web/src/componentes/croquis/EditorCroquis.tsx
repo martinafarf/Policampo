@@ -5,14 +5,15 @@
 // paleta compartida y recálculo de superficies en el servidor al guardar.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
+import { BannerBorrador } from "@/componentes/borrador/BannerBorrador";
+import { useBorradorFinca } from "@/componentes/borrador/useBorradorFinca";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   LIMITES_ESTABLECIMIENTO,
   SUBTIPOS_FLORES,
   calcularAreaPlanaHa,
   calcularLadoCroquisMetros,
-  claveBorradorLocal,
   crearContornoCroquis,
   formatearHectareas,
   formatearSuperficieCompleta,
@@ -64,6 +65,7 @@ interface Props {
   nombreEstablecimiento: string;
   superficieTotalHa: number;
   versionInicial: number;
+  actualizadoEnIso: string;
   cultivos: readonly CultivoCatalogoItem[];
   sectoresIniciales: readonly SectorInicialCroquis[];
 }
@@ -109,6 +111,7 @@ export function EditorCroquis({
   nombreEstablecimiento,
   superficieTotalHa,
   versionInicial,
+  actualizadoEnIso,
   cultivos,
   sectoresIniciales,
 }: Props) {
@@ -160,6 +163,27 @@ export function EditorCroquis({
   const [avisoDibujo, setAvisoDibujo] = useState<string | null>(null);
   const [erroresServidor, setErroresServidor] = useState<string[]>([]);
   const [guardando, iniciarTransicion] = useTransition();
+
+  const onRecuperarBorrador = useCallback((datos: SectorLocalCroquis[]) => {
+    setSectores(datos);
+    setSiguienteId((n) => n + datos.length + 1);
+    setIndiceSeleccionado(null);
+  }, []);
+
+  const {
+    borradorPendiente,
+    ultimoAutoguardado,
+    recuperarBorrador,
+    descartarBorrador,
+    guardarBorradorAhora,
+    limpiarBorrador,
+  } = useBorradorFinca<SectorLocalCroquis[]>({
+    establecimientoId,
+    metodo: "croquis",
+    actualizadoEnIso,
+    datosActuales: sectores,
+    onRecuperar: onRecuperarBorrador,
+  });
 
   const mapaCultivos = new Map(cultivos.map((c) => [c.id, c]));
 
@@ -375,16 +399,13 @@ export function EditorCroquis({
           return;
         }
 
-        try {
-          window.localStorage.removeItem(claveBorradorLocal(establecimientoId));
-        } catch {
-          // Modo privado.
-        }
+        limpiarBorrador();
 
         router.push(`/fincas/${establecimientoId}?aviso=sectores-guardados`);
       } catch {
+        guardarBorradorAhora();
         setErroresServidor([
-          "No se pudo guardar. Tus cambios siguen acá; probá de nuevo cuando tengas señal.",
+          "No se pudo guardar. Tus cambios siguen en este dispositivo; probá de nuevo cuando tengas señal.",
         ]);
       }
     });
@@ -431,6 +452,13 @@ export function EditorCroquis({
           </div>
         </div>
       </aside>
+
+      <BannerBorrador
+        fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+        ultimoAutoguardadoIso={ultimoAutoguardado}
+        onRecuperar={recuperarBorrador}
+        onDescartar={descartarBorrador}
+      />
 
       <PaletaSectores cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
 

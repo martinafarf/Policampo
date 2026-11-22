@@ -103,7 +103,14 @@ async function ContenidoFicha({ params, searchParams }: Props) {
               Ecorregión: <strong className="text-stone-800">{obtenerNombreEcorregion(finca.ecorregion)}</strong>
             </p>
           </div>
-          <MenuMasFicha establecimientoId={finca.id} nombreEstablecimiento={finca.nombre} />
+          <MenuMasFicha
+            establecimientoId={finca.id}
+            nombreEstablecimiento={finca.nombre}
+            metodoActual={finca.metodoCaracterizacion}
+            cantidadSectores={finca.sectores.length}
+            superficieTotalHa={finca.superficieTotalHa}
+            version={finca.version}
+          />
         </div>
 
         {/* Único botón de edición de sectores según el método (RN-03, CA-02-19) */}

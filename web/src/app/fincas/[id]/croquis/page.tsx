@@ -48,6 +48,7 @@ async function ContenidoCroquis({ params }: Props) {
       nombreEstablecimiento={finca.nombre}
       superficieTotalHa={finca.superficieTotalHa ?? 1}
       versionInicial={finca.version}
+      actualizadoEnIso={finca.actualizadoEn.toISOString()}
       cultivos={cultivos}
       sectoresIniciales={sectoresIniciales}
     />

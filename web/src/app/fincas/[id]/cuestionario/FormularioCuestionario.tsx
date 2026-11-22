@@ -5,12 +5,13 @@
 // - Tarjetas plegables para uso cómodo en el celular (desde 360 px).
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
+import { BannerBorrador } from "@/componentes/borrador/BannerBorrador";
+import { useBorradorFinca } from "@/componentes/borrador/useBorradorFinca";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   LIMITES_ESTABLECIMIENTO,
   SUBTIPOS_FLORES,
-  claveBorradorLocal,
   formatearHectareas,
   formatearSuperficieCompleta,
   generarNombresSectores,
@@ -65,6 +66,7 @@ interface Props {
   nombreEstablecimiento: string;
   superficieTotalHa: number;
   versionInicial: number;
+  actualizadoEnIso: string;
   cultivos: readonly CultivoCatalogoItem[];
   sectoresIniciales: readonly SectorInicialCuestionario[];
 }
@@ -105,6 +107,7 @@ export function FormularioCuestionario({
   nombreEstablecimiento,
   superficieTotalHa,
   versionInicial,
+  actualizadoEnIso,
   cultivos,
   sectoresIniciales,
 }: Props) {
@@ -114,6 +117,26 @@ export function FormularioCuestionario({
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
   const [erroresPorIndice, setErroresPorIndice] = useState<Map<number, string>>(new Map());
   const [guardando, iniciarTransicion] = useTransition();
+
+  const onRecuperarBorrador = useCallback((datos: FilaSector[]) => {
+    setFilas(datos);
+    setSiguienteId((n) => n + datos.length + 1);
+  }, []);
+
+  const {
+    borradorPendiente,
+    ultimoAutoguardado,
+    recuperarBorrador,
+    descartarBorrador,
+    guardarBorradorAhora,
+    limpiarBorrador,
+  } = useBorradorFinca<FilaSector[]>({
+    establecimientoId,
+    metodo: "cuestionario",
+    actualizadoEnIso,
+    datosActuales: filas,
+    onRecuperar: onRecuperarBorrador,
+  });
 
   const mapaCultivos = new Map(cultivos.map((c) => [c.id, c]));
 
@@ -216,16 +239,13 @@ export function FormularioCuestionario({
         }
 
         // Limpiar borrador local al guardar con éxito (RS-08, CA-02-17).
-        try {
-          window.localStorage.removeItem(claveBorradorLocal(establecimientoId));
-        } catch {
-          // Ignorar en modo privado.
-        }
+        limpiarBorrador();
 
         router.push(`/fincas/${establecimientoId}?aviso=sectores-guardados`);
       } catch {
+        guardarBorradorAhora();
         setErrorGeneral(
-          "No se pudo guardar. Revisá tu conexión e intentá de nuevo cuando tengas señal.",
+          "No se pudo guardar. Tus cambios siguen en este dispositivo; probá de nuevo cuando tengas señal.",
         );
       }
     });
@@ -274,6 +294,13 @@ export function FormularioCuestionario({
           </p>
         ) : null}
       </aside>
+
+      <BannerBorrador
+        fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+        ultimoAutoguardadoIso={ultimoAutoguardado}
+        onRecuperar={recuperarBorrador}
+        onDescartar={descartarBorrador}
+      />
 
       {errorGeneral ? (
         <div

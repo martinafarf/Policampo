@@ -57,6 +57,7 @@ async function ContenidoMapa({ params }: Props) {
       establecimientoId={finca.id}
       nombreEstablecimiento={finca.nombre}
       versionInicial={finca.version}
+      actualizadoEnIso={finca.actualizadoEn.toISOString()}
       centroInicial={centroInicial}
       contornoInicial={finca.contorno}
       cultivos={cultivos}

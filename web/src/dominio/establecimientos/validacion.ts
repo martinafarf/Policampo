@@ -204,3 +204,61 @@ export function coincideNombreParaBorrar(
 ): boolean {
   return textoConfirmacion.trim() === nombreEstablecimiento.trim();
 }
+
+export type ResultadoValidacionCambioMetodo =
+  | { valido: true; nuevoMetodo: MetodoCaracterizacion; nuevaSuperficieTotalHa: number | null }
+  | { valido: false; error: string };
+
+// Reglas de "Cargar de nuevo con otro método" (Esp. 02, 5.5, RN-03, CA-02-16):
+// - El nuevo método debe ser distinto al actual.
+// - Si el nuevo método es "mapa", la superficie total queda vacía hasta dibujar el contorno.
+// - Si se pasa a cuestionario o croquis desde mapa (o sin superficie), exige superficie total válida.
+export function validarCambioMetodo(entrada: {
+  metodoActual: MetodoCaracterizacion;
+  nuevoMetodo: string;
+  superficieActualHa: number | null;
+  superficieNuevaTexto?: string | null;
+}): ResultadoValidacionCambioMetodo {
+  if (!esMetodoCaracterizacionValido(entrada.nuevoMetodo)) {
+    return { valido: false, error: "Elegí un método de carga válido." };
+  }
+
+  if (entrada.nuevoMetodo === entrada.metodoActual) {
+    return { valido: false, error: "Elegí un método distinto al que ya usa esta finca." };
+  }
+
+  if (entrada.nuevoMetodo === "mapa") {
+    return {
+      valido: true,
+      nuevoMetodo: "mapa",
+      nuevaSuperficieTotalHa: null,
+    };
+  }
+
+  // Si pasa a cuestionario o croquis desde mapa (o sin superficie previa), exige superficie total.
+  const texto = entrada.superficieNuevaTexto?.trim() ?? "";
+  if (entrada.metodoActual === "mapa" || entrada.superficieActualHa === null || texto.length > 0) {
+    const numero = parsearNumeroDecimal(texto);
+    if (
+      numero === null ||
+      numero < LIMITES_ESTABLECIMIENTO.superficieMinHa ||
+      numero > LIMITES_ESTABLECIMIENTO.superficieMaxHa
+    ) {
+      return {
+        valido: false,
+        error: `Ingresá una superficie total entre ${LIMITES_ESTABLECIMIENTO.superficieMinHa.toLocaleString("es-AR")} y ${LIMITES_ESTABLECIMIENTO.superficieMaxHa.toLocaleString("es-AR")} ha.`,
+      };
+    }
+    return {
+      valido: true,
+      nuevoMetodo: entrada.nuevoMetodo,
+      nuevaSuperficieTotalHa: redondearHectareas(numero),
+    };
+  }
+
+  return {
+    valido: true,
+    nuevoMetodo: entrada.nuevoMetodo,
+    nuevaSuperficieTotalHa: redondearHectareas(entrada.superficieActualHa),
+  };
+}

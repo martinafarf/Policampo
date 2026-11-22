@@ -59,7 +59,29 @@ export const ROLES = {
 // Las usan solo nuestras acciones del servidor (src/lib/perfil.ts), que antes validan lo que la
 // especificación pide y la librería no: los límites de intentos, escribir ELIMINAR, que el nombre
 // de usuario no cambie (CA-01-14), etc. Llamadas como auth.api.xxx() desde el servidor sí funcionan.
-const RUTAS_SOLO_DEL_SERVIDOR = ["/update-user", "/change-password", "/change-email", "/delete-user", "/delete-user/callback"];
+// Las de administración (T6) también: desde afuera, un administrador podría desactivar a otro
+// administrador o cambiar roles; src/lib/administracion.ts lo impide (auditoría M-08).
+const RUTAS_SOLO_DEL_SERVIDOR = [
+  "/update-user",
+  "/change-password",
+  "/change-email",
+  "/delete-user",
+  "/delete-user/callback",
+  "/admin/set-role",
+  "/admin/get-user",
+  "/admin/create-user",
+  "/admin/update-user",
+  "/admin/list-users",
+  "/admin/list-user-sessions",
+  "/admin/ban-user",
+  "/admin/unban-user",
+  "/admin/impersonate-user",
+  "/admin/stop-impersonating",
+  "/admin/revoke-user-session",
+  "/admin/revoke-user-sessions",
+  "/admin/remove-user",
+  "/admin/set-user-password",
+];
 
 /**
  * Cambio de email (especificación 01, flujo 4.6): cuando la persona abre el enlace que llegó al

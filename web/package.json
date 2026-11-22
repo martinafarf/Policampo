@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "db:generar": "drizzle-kit generate",
-    "db:migrar": "drizzle-kit migrate"
+    "db:migrar": "drizzle-kit migrate",
+    "crear-admin": "tsx --conditions=react-server scripts/crear-admin.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.1",
@@ -41,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.1"
   }

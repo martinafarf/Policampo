@@ -17,7 +17,12 @@ export type TipoEvento =
   | "contrasena_cambiada"
   | "cambio_email_pedido"
   | "email_cambiado"
-  | "cuenta_eliminada";
+  | "cuenta_eliminada"
+  // Administración (T6)
+  | "cuenta_desactivada"
+  | "cuenta_reactivada"
+  | "administrador_creado"
+  | "administrador_ascendido";
 
 export async function registrarEvento(
   tipo: TipoEvento,

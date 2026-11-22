@@ -10,6 +10,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { politicaVigenteAceptada } from "@/lib/privacidad";
 
 export type UsuarioActual = {
   id: string;
@@ -17,7 +18,22 @@ export type UsuarioActual = {
   nombreParaMostrar: string;
   usuario: string;
   rol: "usuario" | "administrador";
+  /** Si aceptó la versión vigente de la política de privacidad. */
+  politicaAceptada: boolean;
 };
+
+/**
+ * Si falta aceptar la versión vigente de la política de privacidad, se pide antes de seguir
+ * (especificación 01, sección 8). `sinConsentimiento` lo saltea: lo usan /privacidad/aceptar y
+ * /perfil, para que la persona pueda aceptar, cerrar sesión o eliminar su cuenta.
+ */
+type Opciones = { sinConsentimiento?: boolean };
+
+function exigirConsentimiento(actual: UsuarioActual, volver: string, opciones: Opciones) {
+  if (!actual.politicaAceptada && !opciones.sinConsentimiento) {
+    redirect(`/privacidad/aceptar?volver=${encodeURIComponent(volver)}`);
+  }
+}
 
 export async function obtenerUsuario(): Promise<UsuarioActual | null> {
   const sesion = await auth.api.getSession({ headers: await headers() });
@@ -28,6 +44,7 @@ export async function obtenerUsuario(): Promise<UsuarioActual | null> {
     displayUsername?: string | null;
     username?: string | null;
     role?: string | null;
+    politicaPrivacidadVersion?: string | null;
   };
   const usuario = u.displayUsername || u.username || u.name;
   const nombreReal = [u.nombre, u.apellido].filter(Boolean).join(" ");
@@ -36,12 +53,14 @@ export async function obtenerUsuario(): Promise<UsuarioActual | null> {
     nombreParaMostrar: nombreReal || usuario,
     usuario,
     rol: u.role === "administrador" ? "administrador" : "usuario",
+    politicaAceptada: politicaVigenteAceptada(u.politicaPrivacidadVersion),
   };
 }
 
-export async function requerirUsuario(volver: string): Promise<UsuarioActual> {
+export async function requerirUsuario(volver: string, opciones: Opciones = {}): Promise<UsuarioActual> {
   const actual = await obtenerUsuario();
   if (!actual) redirect(`/ingresar?volver=${encodeURIComponent(volver)}`);
+  exigirConsentimiento(actual, volver, opciones);
   return actual;
 }
 
@@ -49,6 +68,7 @@ export async function requerirAdministrador(): Promise<UsuarioActual> {
   const actual = await obtenerUsuario();
   // Sin sesión o sin rol: para un no administrador, las rutas de administración no existen (CA-01-19).
   if (!actual || actual.rol !== "administrador") notFound();
+  exigirConsentimiento(actual, "/inicio", {});
   return actual;
 }
 

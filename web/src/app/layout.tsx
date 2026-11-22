@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col font-sans">
         <header className="border-b border-borde bg-white">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-            <Link href="/" className="text-xl font-bold whitespace-nowrap text-campo-oscuro">
+            <Link href="/" className="inline-flex min-h-11 items-center text-xl font-bold whitespace-nowrap text-campo-oscuro">
               🌼 PoliCampo
             </Link>
             {/* El menú depende de la sesión: se lee en el pedido, por eso va dentro de Suspense. */}

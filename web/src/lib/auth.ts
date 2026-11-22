@@ -15,6 +15,7 @@ import * as schema from "@/db/schema";
 import { enviarAvisoSinInterrumpir, enviarEmail } from "@/lib/email";
 import * as plantillas from "@/lib/email/plantillas";
 import { registrarEvento } from "@/lib/eventos";
+import { registrarDeBetterAuth } from "@/lib/logs";
 
 const MINUTO = 60;
 const HORA = 60 * MINUTO;
@@ -110,6 +111,8 @@ export const auth = betterAuth({
   secret: secretoDeAutenticacion(),
   trustedOrigins: ORIGENES_CONFIABLES,
   disabledPaths: RUTAS_SOLO_DEL_SERVIDOR,
+  // Sus mensajes pasan por src/lib/logs.ts: sin emails, IPs ni tokens (RS-05, CA-01-24).
+  logger: { level: "warn", log: registrarDeBetterAuth },
 
   database: drizzleAdapter(db, { provider: "pg", schema }),
 

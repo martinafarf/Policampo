@@ -122,7 +122,7 @@ export default function PaginaInicio({ searchParams }: PageProps<"/inicio">) {
             {modulo.href ? (
               <Link
                 href={modulo.href}
-                className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-campo px-4 py-2 text-sm font-semibold text-white hover:bg-campo-oscuro"
+                className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-campo px-4 py-2 text-sm font-semibold text-white hover:bg-campo-oscuro"
               >
                 Abrir →
               </Link>

@@ -81,4 +81,58 @@ describe("Validación completa de sectores con dibujo (croquis y mapa)", () => {
       expect(res.errores[0]).toMatch(/no lleva cultivo/i);
     }
   });
+
+  it("en mapa recalcula la superficie total desde el contorno y cada sector con Turf.js (CA-02-11, CA-02-12)", () => {
+    const contornoPerico: PoligonoGeoJson = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-65.1258, -24.3872],
+          [-65.1235, -24.387],
+          [-65.1232, -24.3883],
+          [-65.1243, -24.3885],
+          [-65.1242, -24.3891],
+          [-65.1259, -24.3889],
+          [-65.1258, -24.3872],
+        ],
+      ],
+    };
+
+    const sectorDentro: PoligonoGeoJson = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-65.1257, -24.3873],
+          [-65.1236, -24.3871],
+          [-65.1234, -24.3879],
+          [-65.1257, -24.3879],
+          [-65.1257, -24.3873],
+        ],
+      ],
+    };
+
+    const res = validarSectoresConDibujo(
+      {
+        metodo: "mapa",
+        contorno: contornoPerico,
+        sectores: [
+          {
+            tipo: "cultivo",
+            cultivoId: ID_TOMATE,
+            geometria: sectorDentro,
+            superficieHaIgnorada: 999,
+          },
+        ],
+      },
+      CATALOGO,
+    );
+
+    expect(res.valido).toBe(true);
+    if (res.valido) {
+      expect(res.superficieTotalHa).toBeGreaterThan(3);
+      expect(res.sectores[0].nombre).toBe("Tomate");
+      expect(res.sectores[0].superficieHa).toBeGreaterThan(1);
+      expect(res.sectores[0].superficieHa).toBeLessThan(res.superficieTotalHa);
+    }
+  });
 });

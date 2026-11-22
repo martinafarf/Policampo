@@ -23,8 +23,10 @@ export default function LayoutCuentas({ children }: LayoutProps<"/">) {
         <BordeOndulado />
       </aside>
       <div className="relative flex flex-col px-4 pt-4 pb-14 md:px-8 md:py-8">
-        {/* Suspense: el botón lee la ruta (usePathname); Next lo exige en páginas con partes dinámicas. */}
-        <div className="flex min-h-11 justify-end">
+        {/* Suspense: el botón lee la ruta (usePathname); Next lo exige en páginas con partes dinámicas.
+            Solo en pantallas anchas: en el celular ocupaba lugar arriba del formulario, y cada pantalla
+            ya tiene abajo su enlace al otro camino ("¿No tenés cuenta? Registrate", etc.). */}
+        <div className="hidden min-h-11 justify-end md:flex">
           <Suspense fallback={null}>
             <AccesoAlternativo />
           </Suspense>

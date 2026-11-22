@@ -143,6 +143,18 @@
   }
 }
 
+/* Alas de la abeja que persigue el cursor (AbejaCursor): se achican y agrandan muy rápido. */
+@keyframes aletea {
+  to {
+    transform: scaleY(0.35);
+  }
+}
+.ala-abeja {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: aletea 0.09s ease-in-out infinite alternate;
+}
+
 @utility animar-ola {
   animation: ola 18s linear infinite;
 }

@@ -130,10 +130,9 @@ async function crearFincaConCultivo(usuarioId: string, nombre: string) {
       direccion: "Ruta 9 km 14",
       departamento: "Dr. Manuel Belgrano",
       localidad: "San Salvador de Jujuy",
-      ecorregion: "valles",
+      ecorregion: "valles_templados",
       metodoCaracterizacion: "croquis",
-      superficieTotalHa: "4",
-      contorno,
+      superficieTotalHa: "4.0000",
     })
     .returning();
 
@@ -142,19 +141,8 @@ async function crearFincaConCultivo(usuarioId: string, nombre: string) {
     nombre: "Lote Tomate",
     tipo: "cultivo",
     cultivoId: tomateId,
-    superficieHa: "3.6",
-    geometria: {
-      type: "Polygon",
-      coordinates: [
-        [
-          [0, 0],
-          [180, 0],
-          [180, 200],
-          [0, 200],
-          [0, 0],
-        ],
-      ],
-    },
+    superficieHa: "3.0000",
+    geometria: contorno,
   });
 
   return finca;

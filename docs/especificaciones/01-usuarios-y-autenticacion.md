@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| **Estado** | Aprobada (Integrante 3, 2026-11-21). En implementación: T1 a T7 hechas |
+| **Estado** | Implementada (T1 a T8, 2026-11-22). Pendientes del grupo en la sección 11 |
 | **Fecha** | 2026-11-21 |
 | **Responsable** | Integrante 3 |
 | **Depende de** | Infraestructura de la v2 (`web/`, Neon, Vercel), ya hecha |

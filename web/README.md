@@ -102,6 +102,17 @@ neonctl branches create --name respaldo-AAAA-MM-DD --parent production
 npm run db:migrar
 ```
 
+## Limpieza diaria (cron de Vercel)
+
+`web/vercel.json` programa una llamada diaria (07:00 UTC) a `/api/cron/limpieza`, que borra:
+- los registros de seguridad de más de 90 días (lo promete la política de privacidad);
+- los contadores de límites de intentos vencidos;
+- los enlaces y las sesiones vencidos.
+
+La ruta exige el encabezado `Authorization: Bearer <CRON_SECRET>`, que Vercel manda solo. **`CRON_SECRET` tiene que
+estar cargado en Vercel** (Production, como secreto); sin él, la ruta responde 401 y no borra nada. Las ejecuciones
+se ven en el panel de Vercel → Settings → Cron Jobs.
+
 ## Rotación de secretos
 
 Se rotan **cuando alguien deja el grupo, cuando hay sospecha de filtración y una vez por cuatrimestre**:

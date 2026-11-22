@@ -11,19 +11,24 @@ type PropsCampo = InputHTMLAttributes<HTMLInputElement> & {
   ayuda?: string;
 };
 
-export function Campo({ etiqueta, nombre, error, ayuda, type = "text", ...resto }: PropsCampo) {
+/**
+ * `id` es opcional: por defecto es igual a `nombre`. Hay que pasarlo cuando dos formularios de la
+ * misma página tienen un campo con el mismo nombre (por ejemplo "contrasena" en Mi perfil): los id
+ * no se pueden repetir, o la etiqueta queda asociada al campo equivocado (accesibilidad).
+ */
+export function Campo({ etiqueta, nombre, id = nombre, error, ayuda, type = "text", ...resto }: PropsCampo) {
   const [mostrar, setMostrar] = useState(false);
   const esContrasena = type === "password";
-  const idError = `${nombre}-error`;
-  const idAyuda = `${nombre}-ayuda`;
+  const idError = `${id}-error`;
+  const idAyuda = `${id}-ayuda`;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={nombre} className="text-sm font-medium">
+      <label htmlFor={id} className="text-sm font-medium">
         {etiqueta}
       </label>
       <div className="flex gap-2">
         <input
-          id={nombre}
+          id={id}
           name={nombre}
           type={esContrasena && mostrar ? "text" : type}
           aria-invalid={error ? true : undefined}

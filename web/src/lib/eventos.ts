@@ -11,7 +11,13 @@ export type TipoEvento =
   | "ingreso_bloqueado"
   | "verificacion_reenviada"
   | "sesion_cerrada"
-  | "contrasena_restablecida";
+  | "contrasena_restablecida"
+  // Perfil (T5)
+  | "perfil_actualizado"
+  | "contrasena_cambiada"
+  | "cambio_email_pedido"
+  | "email_cambiado"
+  | "cuenta_eliminada";
 
 export async function registrarEvento(
   tipo: TipoEvento,

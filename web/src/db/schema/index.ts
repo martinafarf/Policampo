@@ -3,3 +3,4 @@ export * from "./auth";
 export * from "./seguridad";
 export * from "./cultivos";
 export * from "./establecimientos";
+export * from "./catalogo";

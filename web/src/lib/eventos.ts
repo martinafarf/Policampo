@@ -10,7 +10,8 @@ export type TipoEvento =
   | "ingreso_fallido"
   | "ingreso_bloqueado"
   | "verificacion_reenviada"
-  | "sesion_cerrada";
+  | "sesion_cerrada"
+  | "contrasena_restablecida";
 
 export async function registrarEvento(
   tipo: TipoEvento,

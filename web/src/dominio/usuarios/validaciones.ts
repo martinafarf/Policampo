@@ -39,7 +39,7 @@ export function validarRegistro(entrada: DatosRegistro): ResultadoValidacion {
   const errores: ErroresRegistro = {};
 
   if (!email) errores.email = "Ingresá tu email.";
-  else if (email.length > EMAIL_MAX || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errores.email = "El email no es válido.";
+  else if (!emailValido(email)) errores.email = "El email no es válido.";
 
   if (!usuario) errores.usuario = "Elegí un nombre de usuario.";
   else if (usuario.length < USUARIO_MIN || usuario.length > USUARIO_MAX)
@@ -48,24 +48,46 @@ export function validarRegistro(entrada: DatosRegistro): ResultadoValidacion {
   else if (!nombreDeUsuarioValido(usuario))
     errores.usuario = "Usá solo letras sin acentos, números, punto (.) y guion bajo (_).";
 
+  Object.assign(errores, validarContrasena(contrasena, repetirContrasena, { usuario, email }));
+
+  if (!aceptaPrivacidad) errores.aceptaPrivacidad = "Para registrarte tenés que aceptar la política de privacidad.";
+
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  return { ok: true, datos: { email, usuario, contrasena, repetirContrasena, aceptaPrivacidad } };
+}
+
+export type ErroresContrasena = { contrasena?: string; repetirContrasena?: string };
+
+/**
+ * Reglas de la contraseña (especificación 01, sección 6.2), compartidas por el registro, la
+ * recuperación y el cambio de contraseña: de 8 a 128 caracteres, distinta del usuario y del email,
+ * y repetida igual. Que no esté filtrada lo controla Better Auth (Have I Been Pwned).
+ */
+export function validarContrasena(
+  contrasena: string,
+  repetirContrasena: string,
+  cuenta: { usuario: string; email: string },
+): ErroresContrasena {
+  const errores: ErroresContrasena = {};
+  const minuscula = contrasena.toLowerCase();
+  const email = cuenta.email.toLowerCase();
   if (!contrasena) errores.contrasena = "Elegí una contraseña.";
   else if (contrasena.length < CONTRASENA_MIN)
     errores.contrasena = `La contraseña tiene que tener al menos ${CONTRASENA_MIN} caracteres.`;
   else if (contrasena.length > CONTRASENA_MAX)
     errores.contrasena = `La contraseña puede tener hasta ${CONTRASENA_MAX} caracteres.`;
   else if (
-    contrasena.toLowerCase() === usuario.toLowerCase() ||
-    contrasena.toLowerCase() === email ||
-    contrasena.toLowerCase() === email.split("@")[0]
+    (cuenta.usuario && minuscula === cuenta.usuario.toLowerCase()) ||
+    (email && (minuscula === email || minuscula === email.split("@")[0]))
   )
     errores.contrasena = "La contraseña no puede ser igual a tu usuario ni a tu email.";
 
   if (!errores.contrasena && repetirContrasena !== contrasena) errores.repetirContrasena = "Las contraseñas no coinciden.";
+  return errores;
+}
 
-  if (!aceptaPrivacidad) errores.aceptaPrivacidad = "Para registrarte tenés que aceptar la política de privacidad.";
-
-  if (Object.keys(errores).length > 0) return { ok: false, errores };
-  return { ok: true, datos: { email, usuario, contrasena, repetirContrasena, aceptaPrivacidad } };
+export function emailValido(email: string): boolean {
+  return email.length <= EMAIL_MAX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 /** "ana@ejemplo.com" → "a…@ejemplo.com", para mostrar sin exponer el email completo. */

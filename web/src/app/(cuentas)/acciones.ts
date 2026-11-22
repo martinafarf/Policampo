@@ -3,10 +3,17 @@
 // Reciben el formulario, llaman al servicio de cuentas (src/lib/cuentas.ts) y deciden adónde ir.
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { ErroresRegistro } from "@/dominio/usuarios/validaciones";
+import type { ErroresContrasena, ErroresRegistro } from "@/dominio/usuarios/validaciones";
 import { rutaInternaSegura } from "@/dominio/usuarios/ruta-segura";
 import { auth } from "@/lib/auth";
-import { ingresar, reenviarVerificacion, registrarCuenta, type MotivoIngresoFallido } from "@/lib/cuentas";
+import {
+  crearNuevaContrasena,
+  ingresar,
+  pedirRecuperacion,
+  reenviarVerificacion,
+  registrarCuenta,
+  type MotivoIngresoFallido,
+} from "@/lib/cuentas";
 import { registrarEvento } from "@/lib/eventos";
 import { ipDelPedido, obtenerUsuario } from "@/lib/sesion";
 
@@ -87,4 +94,34 @@ export async function cerrarSesion(): Promise<void> {
   await auth.api.signOut({ headers: await headers() });
   if (usuario) await registrarEvento("sesion_cerrada", { usuarioId: usuario.id });
   redirect("/?sesion=cerrada");
+}
+
+// ─── Recuperación de contraseña (T4) ───
+
+export type EstadoRecuperacion = { enviado?: boolean; error?: string; email?: string };
+
+export async function pedirRecuperacionAccion(_previo: EstadoRecuperacion, formulario: FormData): Promise<EstadoRecuperacion> {
+  const email = texto(formulario, "email");
+  const resultado = await pedirRecuperacion(email, await ipDelPedido());
+  if (!resultado.ok) return { error: resultado.error, email };
+  return { enviado: true };
+}
+
+export type EstadoNuevaContrasena = {
+  enlaceInvalido?: boolean;
+  errores?: ErroresContrasena;
+  general?: string;
+};
+
+export async function crearNuevaContrasenaAccion(
+  _previo: EstadoNuevaContrasena,
+  formulario: FormData,
+): Promise<EstadoNuevaContrasena> {
+  const resultado = await crearNuevaContrasena(
+    texto(formulario, "token"),
+    texto(formulario, "contrasena"),
+    texto(formulario, "repetirContrasena"),
+  );
+  if (!resultado.ok) return resultado;
+  redirect("/ingresar?contrasena=cambiada");
 }

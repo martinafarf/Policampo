@@ -136,9 +136,12 @@ async function ContenidoResumenCatalogo() {
               Carga masiva con vista previa en Borrador y exportación segura.
             </p>
           </div>
-          <span className="inline-flex min-h-10 shrink-0 items-center rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-500">
-            Próxima etapa (T5)
-          </span>
+          <Link
+            href="/admin/catalogo/importar"
+            className="inline-flex min-h-10 shrink-0 items-center rounded-lg border border-stone-300 px-3.5 py-1.5 text-sm font-semibold text-stone-800 hover:bg-stone-50"
+          >
+            Importar / Exportar →
+          </Link>
         </div>
       </section>
     </div>

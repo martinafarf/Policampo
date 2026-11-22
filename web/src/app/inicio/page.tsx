@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Suspense, type ComponentType } from "react";
 import { BadgeEstadoTarea } from "@/componentes/calendario/BadgeEstadoTarea";
+import { AbejaCursor, DibujoAbeja } from "@/componentes/marca/AbejaCursor";
 import {
+  Hoja,
   IconoCalendario,
   IconoDocumento,
   IconoFinca,
@@ -79,11 +81,19 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
         </div>
       )}
 
-      <header className="flex flex-col gap-2">
-        <h1 className="titulo-onda text-3xl font-bold text-bosque sm:text-4xl">
-          Hola, {usuario.nombreParaMostrar}
-        </h1>
-        <p className="max-w-[46ch] text-base text-tinta-suave">
+      <header className="relative flex min-h-32 flex-col justify-center gap-2 overflow-hidden py-3 sm:py-5">
+        <AbejaCursor reposo={{ x: 0.62, y: 0.44 }} />
+        <Hoja className="animar-flota pointer-events-none absolute right-10 top-3 hidden h-12 w-12 text-naranja/45 lg:block" />
+
+        <div className="relative z-20 flex items-center gap-3">
+          <h1 className="titulo-onda text-3xl font-bold text-bosque sm:text-4xl">
+            Hola, {usuario.nombreParaMostrar}
+          </h1>
+          <span className="animar-flota inline-block shrink-0 lg:hidden" aria-hidden="true">
+            <DibujoAbeja className="h-10 w-[52px] drop-shadow-[0_3px_5px_rgb(0_51_0/.2)]" />
+          </span>
+        </div>
+        <p className="relative z-20 max-w-[46ch] text-base text-tinta-suave">
           Elegí por dónde empezar para diagnosticar, rediseñar y seguir el calendario de tus fincas.
         </p>
       </header>

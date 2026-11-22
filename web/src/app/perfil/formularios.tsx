@@ -153,7 +153,7 @@ function BotonEliminar() {
     <button
       type="submit"
       disabled={pending}
-      className="min-h-11 w-full rounded-lg bg-error px-4 font-semibold text-white hover:opacity-90 disabled:opacity-60"
+      className="min-h-12 w-full rounded-full bg-error px-6 font-semibold text-white transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-chica disabled:opacity-55"
     >
       {pending ? "Eliminando…" : "Eliminar mi cuenta para siempre"}
     </button>

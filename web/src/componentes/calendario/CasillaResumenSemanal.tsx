@@ -23,24 +23,26 @@ export function CasillaResumenSemanal({ inicial }: { inicial: boolean }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="inline-flex min-h-11 cursor-pointer items-start gap-3 text-sm text-stone-800">
+      <label className="inline-flex min-h-12 cursor-pointer items-start gap-3 text-sm text-tinta">
         <input
           type="checkbox"
           checked={activo}
           disabled={pendiente}
           onChange={(e) => alCambiar(e.target.checked)}
-          className="mt-1 h-4 w-4 accent-emerald-700"
+          className="mt-1 h-4 w-4 accent-hoja"
         />
         <span>
-          <strong>Quiero recibir los lunes un resumen de mis tareas por email.</strong>
-          <span className="mt-0.5 block text-xs text-stone-600">
+          <strong className="text-bosque">
+            Quiero recibir los lunes un resumen de mis tareas por email.
+          </strong>
+          <span className="mt-0.5 block text-xs text-tinta-suave">
             Solo se envía si tenés tareas atrasadas o en las próximas 2 semanas. Podés darte de baja
             en cualquier momento desde acá o con el enlace al pie de cada correo.
           </span>
         </span>
       </label>
       {guardado ? (
-        <p role="status" className="text-xs font-semibold text-emerald-800">
+        <p role="status" className="text-xs font-semibold text-hoja-oscura">
           {activo
             ? "Resumen semanal activado."
             : "Resumen semanal desactivado."}

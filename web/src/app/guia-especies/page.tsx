@@ -1,8 +1,9 @@
 // Ruta /guia-especies: Guía de especies publicadas para usuarios con sesión (Esp. 03, 5.6, CA-03-17, 19).
-// Nunca expone borradores, retirados ni historial (RS-02).
+// Nunca expone borradores, retirados ni historial (RS-02). Estética alineada con DESIGN.md.
 import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { Suspense } from "react";
+import { IconoFlecha, IconoInfo, IconoVolver } from "@/componentes/marca/Iconos";
 import {
   ECORREGIONES,
   esEcorregionValida,
@@ -32,6 +33,9 @@ interface Props {
     funcion?: string;
   }>;
 }
+
+const CLASE_SELECT =
+  "min-h-12 rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-sm text-tinta transition focus:border-hoja focus:bg-white focus:outline-none";
 
 async function ContenidoGuiaEspecies({ searchParams }: Props) {
   await requerirUsuario("/guia-especies");
@@ -69,7 +73,6 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
   }[] = [];
 
   if (cultivoFiltroId) {
-    // Recorrer ecorregiones seleccionadas (una o todas las 5) y deduplicar conservando el mayor grado.
     const ecorregionesABuscar: ClaveEcorregion[] = ecorregionFiltro
       ? [ecorregionFiltro]
       : ECORREGIONES.map((e) => e.clave);
@@ -111,25 +114,31 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <Link href="/inicio" className="text-sm font-semibold text-emerald-800 hover:underline">
-          ← Volver a Inicio
+    <div className="flex flex-col gap-7">
+      <header className="flex flex-col gap-2">
+        <Link
+          href="/inicio"
+          className="inline-flex items-center gap-1.5 self-start text-sm font-semibold text-hoja hover:text-hoja-oscura hover:underline"
+        >
+          <IconoVolver />
+          Volver a Inicio
         </Link>
-        <h1 className="mt-1 text-2xl font-bold text-stone-900">Guía de especies</h1>
-        <p className="text-sm text-stone-600">
+        <h1 className="titulo-onda mt-1 text-3xl font-bold text-bosque sm:text-4xl">
+          Guía de especies
+        </h1>
+        <p className="max-w-[56ch] text-base text-tinta-suave">
           Plantas de servicio validadas para atraer polinizadores, favorecer el control biológico y
           proteger el suelo en Jujuy.
         </p>
       </header>
 
       {/* Filtros responsive (360 px) */}
-      <form className="grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <form className="grid grid-cols-1 gap-3 rounded-[28px] border-2 border-borde bg-white p-5 sm:grid-cols-2 lg:grid-cols-4">
         <select
           name="ecorregion"
           defaultValue={ecorregionFiltro ?? ""}
           aria-label="Filtrar por ecorregión"
-          className="min-h-11 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
+          className={CLASE_SELECT}
         >
           <option value="">Todas las ecorregiones</option>
           {ECORREGIONES.map((eco) => (
@@ -143,7 +152,7 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
           name="cultivo"
           defaultValue={cultivoFiltroId ?? ""}
           aria-label="Filtrar por cultivo compatible"
-          className="min-h-11 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
+          className={CLASE_SELECT}
         >
           <option value="">Todos los cultivos</option>
           {cultivosPublicados.map((c) => (
@@ -157,7 +166,7 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
           name="funcion"
           defaultValue={funcionFiltro ?? ""}
           aria-label="Filtrar por función"
-          className="min-h-11 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
+          className={CLASE_SELECT}
         >
           <option value="">Todas las funciones</option>
           {FUNCIONES_PLANTA.map((f) => (
@@ -169,43 +178,43 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
 
         <button
           type="submit"
-          className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          className="min-h-12 rounded-full bg-hoja px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-hoja-oscura hover:shadow-chica"
         >
           Aplicar filtros
         </button>
       </form>
 
       {tarjetas.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-600">
+        <section className="rounded-[28px] border-2 border-dashed border-borde bg-white p-10 text-center text-sm text-tinta-suave">
           Todavía no hay plantas publicadas que coincidan con esos filtros.
         </section>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {tarjetas.map((planta) => (
             <li
               key={planta.clave}
-              className="flex flex-col justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs"
+              className="flex flex-col justify-between gap-4 rounded-[28px] border-2 border-borde bg-white p-6 transition hover:-translate-y-1 hover:shadow-suave"
             >
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 break-words">
-                    <h2 className="text-lg font-bold text-stone-900">{planta.nombreComun}</h2>
+                    <h2 className="text-xl font-bold text-bosque">{planta.nombreComun}</h2>
                     {planta.nombreCientifico ? (
-                      <p className="text-xs italic text-stone-600">{planta.nombreCientifico}</p>
+                      <p className="text-sm italic text-tinta-suave">{planta.nombreCientifico}</p>
                     ) : null}
                   </div>
                   {planta.grado !== undefined ? (
-                    <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+                    <span className="shrink-0 rounded-full bg-turquesa px-3 py-1 text-xs font-bold text-bosque">
                       Compatibilidad +{planta.grado}
                     </span>
                   ) : null}
                 </div>
 
-                <div className="mt-1 flex flex-wrap gap-1.5">
+                <div className="mt-1 flex flex-wrap gap-2">
                   {planta.funciones.map((f) => (
                     <span
                       key={f}
-                      className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-700"
+                      className="rounded-full bg-menta px-3 py-1 text-xs font-semibold text-bosque"
                     >
                       {ETIQUETAS_FUNCION_PLANTA[f]}
                     </span>
@@ -213,17 +222,18 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
                 </div>
 
                 {planta.justificacion ? (
-                  <p className="mt-1 rounded-lg bg-emerald-50/70 px-3 py-2 text-xs text-emerald-950">
+                  <p className="mt-1 rounded-2xl bg-menta/60 px-4 py-3 text-sm text-bosque">
                     {planta.justificacion}
                   </p>
                 ) : null}
 
-                <p className="mt-1 text-xs text-stone-600">
-                  Ciclo: <strong>{ETIQUETAS_CICLO_PLANTA[planta.ciclo]}</strong> · Agua:{" "}
-                  <strong>{ETIQUETAS_NIVEL_AGUA[planta.necesidadAgua]}</strong> · Riesgo maleza:{" "}
-                  <strong>{ETIQUETAS_RIESGO_MALEZA[planta.riesgoMaleza]}</strong>
+                <p className="mt-1 text-sm text-tinta-suave">
+                  Ciclo: <strong className="text-tinta">{ETIQUETAS_CICLO_PLANTA[planta.ciclo]}</strong>{" "}
+                  · Agua: <strong className="text-tinta">{ETIQUETAS_NIVEL_AGUA[planta.necesidadAgua]}</strong>{" "}
+                  · Riesgo maleza:{" "}
+                  <strong className="text-tinta">{ETIQUETAS_RIESGO_MALEZA[planta.riesgoMaleza]}</strong>
                 </p>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-tinta-suave">
                   {[
                     planta.esEspontanea ? "Flora espontánea" : null,
                     planta.enMercadoLocal ? "Disponible en mercado local" : null,
@@ -235,9 +245,10 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
 
               <Link
                 href={`/guia-especies/${planta.clave}`}
-                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-hoja px-6 text-sm font-semibold text-hoja transition hover:-translate-y-0.5 hover:bg-menta/50 hover:shadow-chica"
               >
                 Ver ficha y calendario
+                <IconoFlecha className="h-4 w-4" />
               </Link>
             </li>
           ))}
@@ -245,8 +256,9 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
       )}
 
       {/* Aviso fijo obligatorio (Esp. 03, 5.6, CA-03-18) */}
-      <aside className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs text-stone-700">
-        Información orientativa. Consultá con un ingeniero agrónomo antes de implementar.
+      <aside className="flex items-start gap-3 rounded-[28px] bg-menta p-5 text-sm text-bosque">
+        <IconoInfo className="mt-0.5 h-5 w-5 shrink-0 text-hoja" />
+        <p>Información orientativa. Consultá con un ingeniero agrónomo antes de implementar.</p>
       </aside>
     </div>
   );
@@ -254,8 +266,8 @@ async function ContenidoGuiaEspecies({ searchParams }: Props) {
 
 export default function PaginaGuiaEspecies(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando Guía de especies…</p>}>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-12">
+      <Suspense fallback={<p className="text-sm text-tinta-suave">Cargando Guía de especies…</p>}>
         <ContenidoGuiaEspecies searchParams={props.searchParams} />
       </Suspense>
     </main>

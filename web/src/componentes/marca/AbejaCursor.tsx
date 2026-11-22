@@ -10,17 +10,21 @@
 //   re-renderizar 60 veces por segundo.
 // - Solo con mouse y pantalla ancha, nunca con "reducir movimiento"; y solo anima mientras la
 //   portada está en pantalla. Es decorativa: aria-hidden y no bloquea los clics (pointer-events: none).
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { sinAnimaciones } from "./movimiento";
 
-/** Punto de reposo, en proporción del ancho y alto de la portada (cerca de la hoja que flota). */
-const REPOSO = { x: 0.6, y: 0.3 };
+/** Punto de reposo por defecto, en proporción del ancho y alto del contenedor (cerca de la hoja que flota). */
+const REPOSO_DEFECTO = { x: 0.6, y: 0.3 };
 /** Para que la abeja quede al costado del cursor y no lo tape. */
 const DESFASE = { x: -38, y: -30 };
 /** Qué fracción de la distancia que falta recorre en cada cuadro (más alto = más rápida). */
 const SUAVIDAD = 0.07;
 
-export function AbejaCursor() {
+export function AbejaCursor({
+  reposo: puntoReposo = REPOSO_DEFECTO,
+}: {
+  reposo?: { x: number; y: number };
+} = {}) {
   const capa = useRef<HTMLDivElement>(null);
   const abeja = useRef<HTMLDivElement>(null);
 
@@ -32,7 +36,7 @@ export function AbejaCursor() {
     if (!conMouse.matches || sinAnimaciones()) return;
 
     const caja = () => contenedor.getBoundingClientRect();
-    const reposo = () => ({ x: caja().width * REPOSO.x, y: caja().height * REPOSO.y });
+    const reposo = () => ({ x: caja().width * puntoReposo.x, y: caja().height * puntoReposo.y });
 
     let pos = reposo();
     let objetivo = { ...pos };
@@ -95,7 +99,7 @@ export function AbejaCursor() {
       contenedor.removeEventListener("pointermove", alMover);
       contenedor.removeEventListener("pointerleave", alSalir);
     };
-  }, []);
+  }, [puntoReposo.x, puntoReposo.y]);
 
   return (
     <div ref={capa} className="pointer-events-none absolute inset-0 z-10 overflow-hidden" aria-hidden="true">
@@ -113,16 +117,18 @@ export function AbejaCursor() {
  * Colores de la paleta: contorno y rayas bosque, cuerpo naranja, alas blancas.
  * Las alas aletean con CSS (clase ala-abeja, en globals.css).
  */
-function DibujoAbeja() {
+export function DibujoAbeja({
+  className = "h-[54px] w-[70px] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_3px_5px_rgb(0_0_0/.3)]",
+}: {
+  className?: string;
+} = {}) {
+  const clipId = useId();
   const TRAZO = { stroke: "var(--color-bosque)", strokeWidth: 3.2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
   return (
-    <svg
-      viewBox="0 0 70 54"
-      className="h-[54px] w-[70px] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_3px_5px_rgb(0_0_0/.3)]"
-    >
+    <svg viewBox="0 0 70 54" className={className} aria-hidden="true">
       <defs>
         {/* Las rayas se recortan con la forma del cuerpo para que no se salgan del contorno */}
-        <clipPath id="cuerpo-abeja">
+        <clipPath id={clipId}>
           <ellipse cx="38" cy="33" rx="17" ry="13" transform="rotate(-18 38 33)" />
         </clipPath>
       </defs>
@@ -139,7 +145,7 @@ function DibujoAbeja() {
       {/* Cuerpo naranja, inclinado */}
       <ellipse cx="38" cy="33" rx="17" ry="13" transform="rotate(-18 38 33)" fill="var(--color-naranja)" />
       {/* Dos rayas gruesas */}
-      <g clipPath="url(#cuerpo-abeja)" stroke="var(--color-bosque)" strokeWidth="5.5">
+      <g clipPath={`url(#${clipId})`} stroke="var(--color-bosque)" strokeWidth="5.5">
         <path d="M30 16 37 50" />
         <path d="M40 13 47 47" />
       </g>

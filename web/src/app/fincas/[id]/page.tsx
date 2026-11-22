@@ -2,7 +2,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
+import { BotonSolicitarDiagnostico } from "@/componentes/diagnostico/BotonSolicitarDiagnostico";
 import { obtenerNombreEcorregion } from "@/datos/jujuy";
+import { evaluarRequisitosDiagnostico } from "@/dominio/diagnostico";
+import { obtenerResumenDiagnosticosPorEstablecimientos } from "@/dominio/diagnostico/entrada";
 import {
   BOTON_EDICION_METODO,
   ETIQUETAS_METODO,
@@ -53,6 +57,17 @@ async function ContenidoFicha({ params, searchParams }: Props) {
 
   const rutaMetodo = `/fincas/${finca.id}/${RUTA_EDICION_METODO[finca.metodoCaracterizacion]}`;
   const etiquetaMetodo = ETIQUETAS_METODO[finca.metodoCaracterizacion];
+
+  const [resumenesDiag] = await Promise.all([
+    obtenerResumenDiagnosticosPorEstablecimientos([
+      { id: finca.id, actualizadoEn: finca.actualizadoEn },
+    ]),
+  ]);
+  const resumenDiag = resumenesDiag.get(finca.id) ?? null;
+  const requisitosDiag = evaluarRequisitosDiagnostico({
+    superficieTotalHa: finca.superficieTotalHa,
+    cantidadSectoresCultivo: finca.sectores.filter((s) => s.tipo === "cultivo").length,
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -244,23 +259,76 @@ async function ContenidoFicha({ params, searchParams }: Props) {
         )}
       </section>
 
-      {/* Bloque "Solicitar diagnóstico" desactivado hasta el módulo 04 (CA-02-19) */}
-      <section className="flex flex-col gap-2 rounded-xl border border-stone-200 bg-stone-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-bold text-stone-800">Diagnóstico agroecológico</h2>
-          <p className="text-sm text-stone-600">
-            Evaluá el déficit de biodiversidad y recibí recomendaciones de franjas florales.
-          </p>
+      {/* Bloque "Solicitar diagnóstico" activado (Esp. 04, §5.1, CA-04-08, CA-04-09, CA-04-10) */}
+      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-bold text-stone-900">Diagnóstico agroecológico</h2>
+            {resumenDiag ? (
+              <BadgeNivelDiagnostico
+                nivel={resumenDiag.nivelRiesgo}
+                desactualizado={resumenDiag.desactualizado}
+              />
+            ) : null}
+          </div>
+          {!requisitosDiag.cumple ? (
+            <p className="text-sm text-amber-800">
+              Para pedir el diagnóstico: <strong>{requisitosDiag.mensajeFaltante}</strong>.{" "}
+              <Link href={rutaMetodo} className="font-semibold underline hover:text-amber-950">
+                Ir a {etiquetaMetodo.toLowerCase()} →
+              </Link>
+            </p>
+          ) : resumenDiag && !resumenDiag.desactualizado ? (
+            <p className="text-sm text-stone-600">
+              Tu diagnóstico está al día con los datos actuales de esta finca.
+            </p>
+          ) : resumenDiag && resumenDiag.desactualizado ? (
+            <p className="text-sm text-amber-800">
+              La finca cambió después del último diagnóstico. Actualizalo para ver el estado actual.
+            </p>
+          ) : (
+            <p className="text-sm text-stone-600">
+              Evaluá cuánta superficie tiene flores frente al 20 % recomendado y dónde intervenir.
+            </p>
+          )}
         </div>
-        <div className="flex flex-col items-start gap-1 sm:items-end">
-          <button
-            type="button"
-            disabled
-            className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg bg-stone-300 px-4 py-2 text-sm font-semibold text-stone-600"
-          >
-            Solicitar diagnóstico
-          </button>
-          <span className="text-xs font-medium text-stone-500">Disponible próximamente</span>
+
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+          {!requisitosDiag.cumple ? (
+            <button
+              type="button"
+              disabled
+              className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg bg-stone-200 px-4 py-2 text-sm font-semibold text-stone-500"
+            >
+              {requisitosDiag.mensajeFaltante}
+            </button>
+          ) : resumenDiag && !resumenDiag.desactualizado ? (
+            <Link
+              href={`/fincas/${finca.id}/diagnostico`}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            >
+              Ver diagnóstico →
+            </Link>
+          ) : resumenDiag && resumenDiag.desactualizado ? (
+            <>
+              <Link
+                href={`/fincas/${finca.id}/diagnostico`}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              >
+                Ver último
+              </Link>
+              <BotonSolicitarDiagnostico
+                establecimientoId={finca.id}
+                texto="Actualizar diagnóstico"
+                variante="alerta"
+              />
+            </>
+          ) : (
+            <BotonSolicitarDiagnostico
+              establecimientoId={finca.id}
+              texto="🔍 Solicitar diagnóstico"
+            />
+          )}
         </div>
       </section>
     </div>

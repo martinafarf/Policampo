@@ -1,13 +1,24 @@
 // Inicio del usuario (versión mínima de la T3; la T7 la completa).
-// Accesos a los módulos, marcados "Próximamente" mientras no existan.
+// Accesos a los módulos: "Mis fincas" activado (especificación 02, sección 5.1); el resto "Próximamente".
+import Link from "next/link";
 import { Suspense } from "react";
 import { Aviso } from "@/componentes/ui/formulario";
 import { requerirUsuario } from "@/lib/sesion";
 
 export const metadata = { title: "Inicio · PoliCampo" };
 
-const MODULOS = [
-  { titulo: "Mis fincas", icono: "🌾", texto: "Cargá tus fincas y cómo está distribuido el terreno." },
+const MODULOS: readonly {
+  titulo: string;
+  icono: string;
+  texto: string;
+  href?: string;
+}[] = [
+  {
+    titulo: "Mis fincas",
+    icono: "🌾",
+    texto: "Cargá tus fincas y cómo está distribuido el terreno.",
+    href: "/fincas",
+  },
   { titulo: "Diagnóstico", icono: "🔍", texto: "Mirá cuánta superficie tiene flores frente al 20 % recomendado." },
   { titulo: "Rediseño", icono: "🌼", texto: "Dónde ubicar franjas florales y qué plantas sembrar." },
   { titulo: "Informes", icono: "📄", texto: "Descargá el informe técnico de cada finca." },
@@ -42,9 +53,18 @@ export default function PaginaInicio({ searchParams }: PageProps<"/inicio">) {
             </p>
             <h2 className="mt-2 text-lg font-semibold">{modulo.titulo}</h2>
             <p className="mt-1 text-sm text-tinta-suave">{modulo.texto}</p>
-            <span className="mt-3 inline-block rounded-full bg-campo-claro px-3 py-1 text-xs font-medium text-campo-oscuro">
-              Próximamente
-            </span>
+            {modulo.href ? (
+              <Link
+                href={modulo.href}
+                className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-campo px-4 py-2 text-sm font-semibold text-white hover:bg-campo-oscuro"
+              >
+                Abrir →
+              </Link>
+            ) : (
+              <span className="mt-3 inline-block rounded-full bg-campo-claro px-3 py-1 text-xs font-medium text-campo-oscuro">
+                Próximamente
+              </span>
+            )}
           </li>
         ))}
       </ul>

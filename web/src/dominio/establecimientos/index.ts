@@ -4,3 +4,4 @@ export * from "./nombres";
 export * from "./superficies";
 export * from "./geometrias";
 export * from "./validacion";
+export * from "./sectores";

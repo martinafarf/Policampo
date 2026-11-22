@@ -71,6 +71,15 @@ async function ContenidoFicha({ params, searchParams }: Props) {
         </div>
       ) : null}
 
+      {aviso === "sectores-guardados" ? (
+        <div
+          role="status"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900"
+        >
+          Se guardaron los sectores de la finca.
+        </div>
+      ) : null}
+
       {aviso === "metodo-distinto" ? (
         <div
           role="status"
@@ -94,7 +103,14 @@ async function ContenidoFicha({ params, searchParams }: Props) {
               Ecorregión: <strong className="text-stone-800">{obtenerNombreEcorregion(finca.ecorregion)}</strong>
             </p>
           </div>
-          <MenuMasFicha establecimientoId={finca.id} nombreEstablecimiento={finca.nombre} />
+          <MenuMasFicha
+            establecimientoId={finca.id}
+            nombreEstablecimiento={finca.nombre}
+            metodoActual={finca.metodoCaracterizacion}
+            cantidadSectores={finca.sectores.length}
+            superficieTotalHa={finca.superficieTotalHa}
+            version={finca.version}
+          />
         </div>
 
         {/* Único botón de edición de sectores según el método (RN-03, CA-02-19) */}

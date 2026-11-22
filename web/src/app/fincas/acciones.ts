@@ -12,6 +12,7 @@ import {
   RUTA_EDICION_METODO,
   coincideNombreParaBorrar,
   esUuidValido,
+  validarCambioMetodo,
   validarDatosEstablecimiento,
   validarSumaSuperficies,
   type ErroresDatosEstablecimiento,
@@ -335,4 +336,98 @@ export async function borrarEstablecimiento(
 
   revalidatePath("/fincas");
   return { eliminado: true, nombreEliminado: actual.nombre };
+}
+
+export interface EstadoCambioMetodo {
+  error?: string;
+  cambiado?: boolean;
+  rutaDestino?: string;
+}
+
+// "Cargar de nuevo con otro método" (Esp. 02, 5.5, RN-03, CA-02-16, RS-15).
+// Conserva los datos generales, borra sectores y contorno en una transacción, y cambia el método.
+export async function cambiarMetodoEstablecimiento(
+  establecimientoId: string,
+  _estadoPrevio: EstadoCambioMetodo,
+  formData: FormData,
+): Promise<EstadoCambioMetodo> {
+  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}`);
+
+  if (!esUuidValido(establecimientoId)) {
+    notFound();
+  }
+
+  const [actual] = await db
+    .select()
+    .from(establecimiento)
+    .where(
+      and(eq(establecimiento.id, establecimientoId), eq(establecimiento.usuarioId, usuario.id)),
+    )
+    .limit(1);
+
+  if (!actual) {
+    notFound();
+  }
+
+  const versionEnviada = Number.parseInt(leerTexto(formData, "version"), 10);
+  if (!Number.isInteger(versionEnviada) || versionEnviada < 1) {
+    return {
+      error: "La finca cambió en otro dispositivo. Recargá la página e intentá de nuevo.",
+    };
+  }
+
+  const validacion = validarCambioMetodo({
+    metodoActual: actual.metodoCaracterizacion,
+    nuevoMetodo: leerTexto(formData, "nuevoMetodo"),
+    superficieActualHa: actual.superficieTotalHa !== null ? Number(actual.superficieTotalHa) : null,
+    superficieNuevaTexto: leerTexto(formData, "superficieTotalHa"),
+  });
+
+  if (!validacion.valido) {
+    return { error: validacion.error };
+  }
+
+  const resultadoTx = await db.transaction(async (tx) => {
+    const actualizados = await tx
+      .update(establecimiento)
+      .set({
+        metodoCaracterizacion: validacion.nuevoMetodo,
+        superficieTotalHa:
+          validacion.nuevaSuperficieTotalHa !== null
+            ? validacion.nuevaSuperficieTotalHa.toFixed(4)
+            : null,
+        contorno: null,
+        version: versionEnviada + 1,
+        actualizadoEn: new Date(),
+      })
+      .where(
+        and(
+          eq(establecimiento.id, actual.id),
+          eq(establecimiento.usuarioId, usuario.id),
+          eq(establecimiento.version, versionEnviada),
+        ),
+      )
+      .returning({ id: establecimiento.id });
+
+    if (actualizados.length === 0) {
+      return { conflictoVersion: true as const };
+    }
+
+    await tx.delete(sector).where(eq(sector.establecimientoId, actual.id));
+    return { conflictoVersion: false as const };
+  });
+
+  if (resultadoTx.conflictoVersion) {
+    return {
+      error: "La finca cambió en otro dispositivo. Recargá la página para ver la versión actual.",
+    };
+  }
+
+  revalidatePath("/fincas");
+  revalidatePath(`/fincas/${actual.id}`);
+
+  return {
+    cambiado: true,
+    rutaDestino: `/fincas/${actual.id}/${RUTA_EDICION_METODO[validacion.nuevoMetodo]}`,
+  };
 }

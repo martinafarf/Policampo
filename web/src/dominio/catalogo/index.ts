@@ -4,3 +4,4 @@ export * from "./semanas";
 export * from "./publicacion";
 export * from "./historial";
 export * from "./validacion-planta";
+export * from "./validacion-cultivo-compat";

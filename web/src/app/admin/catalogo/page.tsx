@@ -38,14 +38,14 @@ async function ContenidoResumenCatalogo() {
       descripcion: "Dependencia de polinización y semanas de floración/cosecha.",
       conteo: contarPorEstado(cultivos),
       href: "/admin/catalogo/cultivos",
-      disponible: false,
+      disponible: true,
     },
     {
       titulo: "Compatibilidades",
       descripcion: "Matriz cultivo–planta (−5 a +5) con justificación agronómica.",
       conteo: contarPorEstado(compatibilidades),
       href: "/admin/catalogo/compatibilidades",
-      disponible: false,
+      disponible: true,
     },
   ];
 

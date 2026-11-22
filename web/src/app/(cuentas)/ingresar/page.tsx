@@ -27,17 +27,17 @@ export default function PaginaIngresar({ searchParams }: PageProps<"/ingresar">)
       <Suspense fallback={null}>
         <SoloSinSesion />
       </Suspense>
-      <h1 className="mb-6 text-2xl font-bold text-campo-oscuro">Iniciar sesión</h1>
+      <h1 className="mb-6 text-3xl font-extrabold text-bosque sm:text-4xl">Iniciar sesión</h1>
       <Suspense fallback={<p>Cargando…</p>}>
         <Formulario searchParams={searchParams as Promise<{ volver?: string; contrasena?: string }>} />
       </Suspense>
       <div className="mt-6 flex flex-col gap-2 text-center text-sm">
-        <Link href="/recuperar" className="font-medium text-campo-oscuro underline">
+        <Link href="/recuperar" className="font-semibold text-hoja underline hover:text-hoja-oscura">
           ¿Olvidaste tu contraseña?
         </Link>
         <p>
           ¿No tenés cuenta?{" "}
-          <Link href="/registro" className="font-medium text-campo-oscuro underline">
+          <Link href="/registro" className="font-semibold text-hoja underline hover:text-hoja-oscura">
             Registrate
           </Link>
         </p>

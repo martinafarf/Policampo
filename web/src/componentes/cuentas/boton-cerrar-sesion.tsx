@@ -13,12 +13,15 @@ export function borrarBorradoresLocales() {
   }
 }
 
-export function BotonCerrarSesion() {
+/** `enEncabezado`: en la barra de arriba toma los colores del encabezado (blanco sobre la foto de la landing). */
+export function BotonCerrarSesion({ enEncabezado = false }: { enEncabezado?: boolean }) {
   return (
     <form action={cerrarSesion} onSubmit={borrarBorradoresLocales}>
       <button
         type="submit"
-        className="rounded-lg border border-borde px-2 py-2 font-medium whitespace-nowrap text-tinta hover:bg-campo-claro sm:px-3"
+        className={`inline-flex min-h-10 items-center rounded-full border-2 border-borde px-3 font-semibold whitespace-nowrap text-tinta hover:bg-menta ${
+          enEncabezado ? "texto-encabezado borde-encabezado hover-encabezado" : ""
+        }`}
       >
         Cerrar sesión
       </button>

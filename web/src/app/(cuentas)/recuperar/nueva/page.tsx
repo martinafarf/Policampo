@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 function EnlaceInvalido() {
   return (
     <>
-      <h1 className="mb-3 text-2xl font-bold text-campo-oscuro">El enlace venció o ya fue usado</h1>
+      <h1 className="mb-3 text-3xl font-extrabold text-bosque sm:text-4xl">El enlace venció o ya fue usado</h1>
       <p className="mb-6">Los enlaces para crear una contraseña nueva vencen en 1 hora y sirven una sola vez.</p>
       <Link
         href="/recuperar"
@@ -32,7 +32,7 @@ async function Contenido({ searchParams }: { searchParams: Promise<{ token?: str
   if (error || !token || !(await cuentaDelEnlaceDeRecuperacion(token))) return <EnlaceInvalido />;
   return (
     <>
-      <h1 className="mb-1 text-2xl font-bold text-campo-oscuro">Crear una contraseña nueva</h1>
+      <h1 className="mb-1 text-3xl font-extrabold text-bosque sm:text-4xl">Crear una contraseña nueva</h1>
       <p className="mb-6 text-sm text-tinta-suave">Al guardarla, se cierran las sesiones abiertas en todos tus dispositivos.</p>
       <FormularioNuevaContrasena token={token} />
     </>

@@ -1,0 +1,53 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "docs/diseno/mockup/landing.html"
+        ],
+        "createdAt": "2026-11-22T17:01:17.656Z",
+        "reason": "Claude: the only looping translate is the decorative wave edge SVG (no content scrolls); it is the reference-driven ondulado motion and stops under prefers-reduced-motion"
+      },
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "docs/diseno/mockup/ingresar.html"
+        ],
+        "createdAt": "2026-11-22T17:01:17.775Z",
+        "reason": "Claude: the only looping translate is the decorative wave edge SVG (no content scrolls); it is the reference-driven ondulado motion and stops under prefers-reduced-motion"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "1.875rem)/1.3 \"bricolage grotesque\", system-ui, sans-serif",
+        "files": [
+          "docs/diseno/mockup/landing.html"
+        ],
+        "createdAt": "2026-11-22T17:40:28.455Z",
+        "reason": "Claude: Bricolage Grotesque is the documented title face; the detector read a font shorthand fragment in the reference-only mockup"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "2.25rem)/1.2 \"bricolage grotesque\", system-ui, sans-serif",
+        "files": [
+          "docs/diseno/mockup/ingresar.html"
+        ],
+        "createdAt": "2026-11-22T17:40:28.567Z",
+        "reason": "Claude: Bricolage Grotesque is the documented title face; the detector read a font shorthand fragment in the reference-only mockup"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "caveat",
+        "files": [
+          "docs/diseno/mockup/landing.html"
+        ],
+        "createdAt": "2026-11-22T18:47:33.311Z",
+        "reason": "Claude: archived reference mockup from before the user asked to replace the croquis with a real photo (2026-11-22); Caveat was removed from the shipped system on purpose"
+      }
+    ]
+  }
+}

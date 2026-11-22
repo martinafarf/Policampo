@@ -21,7 +21,7 @@ export default function PaginaRegistroEnviado() {
       <p className="mb-2 text-4xl" aria-hidden>
         📬
       </p>
-      <h1 className="mb-3 text-2xl font-bold text-campo-oscuro">Revisá tu email</h1>
+      <h1 className="mb-3 text-3xl font-extrabold text-bosque sm:text-4xl">Revisá tu email</h1>
       <p className="mb-2">
         Te enviamos un email a{" "}
         <Suspense fallback={<strong>tu email</strong>}>
@@ -32,7 +32,7 @@ export default function PaginaRegistroEnviado() {
       <p className="mb-6 text-sm text-tinta-suave">El enlace vence en 24 horas.</p>
       <BotonReenviarRegistro />
       <p className="mt-6 text-center text-sm">
-        <Link href="/ingresar" className="font-medium text-campo-oscuro underline">
+        <Link href="/ingresar" className="font-semibold text-hoja underline hover:text-hoja-oscura">
           Ir a iniciar sesión
         </Link>
       </p>

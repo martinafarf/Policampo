@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliCampo · Mockup ingresar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilos.css">
+<style>
+body { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--papel); }
+.lado-foto { position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: var(--e-6); color: #fff; }
+.lado-foto > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.lado-foto::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(16 40 26 / .15), rgb(16 40 26 / .75)); }
+.lado-foto .onda-v { position: absolute; top: 0; right: -1px; height: 100%; width: 60px; }
+.lado-foto .onda-v svg { height: 200%; width: 100%; animation: olav 20s linear infinite; }
+@keyframes olav { to { transform: translateY(-50%); } }
+.marca { display: inline-flex; align-items: center; gap: 10px; background: #fff; padding: 8px 18px 8px 10px; border-radius: var(--radio-pildora); text-decoration: none; align-self: start; box-shadow: var(--sombra-chica); }
+.marca svg { width: 34px; height: 34px; }
+.marca span { font: 800 1.3rem/1 var(--fuente-titulos); color: var(--bosque); }
+.lado-foto blockquote { margin: 0; max-width: 24ch; font: 700 clamp(1.5rem, 1.6vw + 1rem, 2.25rem)/1.2 var(--fuente-titulos); }
+.lado-foto blockquote span { color: var(--brote); }
+
+.lado-form { display: grid; place-items: center; padding: var(--e-7) var(--e-4); position: relative; overflow: hidden; }
+.lado-form .hoja-deco { position: absolute; width: 140px; color: var(--menta-fuerte); right: -30px; bottom: 40px; transform: rotate(-30deg); }
+.tarjeta { width: min(100%, 420px); display: flex; flex-direction: column; gap: var(--e-5); position: relative; }
+.tarjeta h1 { font-size: clamp(2rem, 2vw + 1.2rem, 2.625rem); }
+.tarjeta .sub { color: var(--tinta-suave); }
+form { display: flex; flex-direction: column; gap: var(--e-4); }
+.fila-pass { display: flex; gap: var(--e-2); }
+.fila-pass input { flex: 1; }
+.ver { min-height: 48px; padding: 0 var(--e-4); border-radius: var(--radio-m); border: 1.5px solid var(--borde); background: #fff; font: 600 .9375rem var(--fuente-texto); color: var(--hoja); cursor: pointer; }
+.olvido { align-self: end; font-size: .9375rem; font-weight: 600; margin-top: -6px; }
+.btn-ancho { width: 100%; min-height: 52px; font-size: 1.0625rem; }
+.separador { text-align: center; color: var(--tinta-suave); font-size: .9375rem; }
+.estados { display: flex; flex-direction: column; gap: var(--e-3); border-top: 1.5px dashed var(--borde); padding-top: var(--e-5); }
+.estados small { color: var(--tinta-suave); font-weight: 600; }
+
+@media (max-width: 860px) {
+  body { grid-template-columns: 1fr; }
+  .lado-foto { min-height: 230px; padding: var(--e-4); }
+  .lado-foto blockquote { font-size: 1.375rem; }
+  .lado-foto .onda-v { top: auto; bottom: -1px; right: 0; width: 100%; height: 40px; }
+  .lado-foto .onda-v svg { width: 200%; height: 100%; animation: ola 18s linear infinite; }
+  .lado-form { padding-top: var(--e-5); place-items: start center; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#e8f5ec"/><path d="M4 26c5-3 10-3 16 0s11 3 16 0M5 31c5-3 10-3 15 0s10 3 15 0" fill="none" stroke="#2f7d3b" stroke-width="2.6" stroke-linecap="round"/><g fill="#d6457f"><circle cx="20" cy="10" r="3.6"/><circle cx="26" cy="15" r="3.6"/><circle cx="14" cy="15" r="3.6"/><circle cx="23.5" cy="21" r="3.6"/><circle cx="16.5" cy="21" r="3.6"/></g><circle cx="20" cy="16.5" r="3.2" fill="#f5c443"/></symbol>
+  <symbol id="hoja" viewBox="0 0 48 48"><path d="M6 42C6 20 20 6 42 6c0 22-14 36-36 36Z" fill="currentColor"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></symbol>
+</svg>
+
+<aside class="lado-foto">
+  <img src="../../../web/public/img/huerta.jpg" alt="">
+  <a class="marca" href="landing.html"><svg aria-hidden="true"><use href="#logo"/></svg><span>PoliCampo</span></a>
+  <blockquote>Tu finca, con <span>más flores</span> y más vida.</blockquote>
+  <div class="onda-v" aria-hidden="true">
+    <svg viewBox="0 0 60 1800" preserveAspectRatio="none" class="v-desk"><path d="M60 0 V1800 H30 Q0 1725 30 1650 T30 1500 T30 1350 T30 1200 T30 1050 T30 900 T30 750 T30 600 T30 450 T30 300 T30 150 T30 0Z" fill="#f7fbf6"/></svg>
+  </div>
+</aside>
+
+<main class="lado-form">
+  <svg class="hoja-deco" aria-hidden="true"><use href="#hoja"/></svg>
+  <div class="tarjeta">
+    <div>
+      <h1>Hola de nuevo</h1>
+      <p class="sub">Ingresá para seguir con tus fincas.</p>
+    </div>
+    <form onsubmit="return false">
+      <div class="campo">
+        <label for="id">Usuario o email</label>
+        <input id="id" autocomplete="username" autocapitalize="none" placeholder="ej. finca.losalisos">
+      </div>
+      <div class="campo">
+        <label for="pass">Contraseña</label>
+        <div class="fila-pass"><input id="pass" type="password"><button type="button" class="ver">Ver</button></div>
+      </div>
+      <a class="olvido" href="#">¿Olvidaste tu contraseña?</a>
+      <button class="btn btn-principal btn-ancho">Ingresar</button>
+    </form>
+    <p class="separador">¿Todavía no tenés cuenta? <a href="#"><strong>Creá una</strong></a></p>
+
+    <!-- Solo en el mockup: así se ven los estados -->
+    <div class="estados">
+      <small>Estados (muestra del sistema)</small>
+      <div class="aviso aviso-error" role="alert"><svg aria-hidden="true"><use href="#i-alerta"/></svg>Usuario, email o contraseña incorrectos.</div>
+      <div class="aviso aviso-exito" role="status"><svg aria-hidden="true"><use href="#i-ok"/></svg>Cerraste sesión.</div>
+      <div class="campo"><label for="e">Email</label><input id="e" aria-invalid="true" value="martina@"><span class="error"><svg width="16" height="16" aria-hidden="true"><use href="#i-alerta"/></svg>Escribí un email válido.</span></div>
+      <button class="btn btn-principal btn-ancho" disabled>Enviando…</button>
+    </div>
+  </div>
+</main>
+</body>
+</html>

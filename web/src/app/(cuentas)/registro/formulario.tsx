@@ -63,7 +63,7 @@ export function FormularioRegistro() {
           />
           <span>
             Leí y acepto la{" "}
-            <Link href="/privacidad" target="_blank" className="font-medium text-campo-oscuro underline">
+            <Link href="/privacidad" target="_blank" className="font-semibold text-hoja underline hover:text-hoja-oscura">
               política de privacidad
             </Link>
             , incluido que mis datos se procesen en servicios de Estados Unidos (Neon, Vercel, Google y Esri).

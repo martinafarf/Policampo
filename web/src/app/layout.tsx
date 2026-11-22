@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { Suspense } from "react";
 import { MenuUsuario } from "@/componentes/cuentas/menu-usuario";
+import { EncabezadoSitio } from "@/componentes/marca/EncabezadoSitio";
+import { LogoPoliCampo } from "@/componentes/marca/Logo";
+import { NavegacionLanding } from "@/componentes/marca/NavegacionLanding";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Tipografías del sistema de estilos (ver globals.css):
+// - Figtree: texto general, clara y amable.
+// - Bricolage Grotesque: títulos, con personalidad pero seria.
+const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
+const bricolage = Bricolage_Grotesque({ variable: "--font-bricolage", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "PoliCampo",
@@ -22,19 +20,30 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">
-        <header className="border-b border-borde bg-white">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-            <Link href="/" className="inline-flex min-h-11 items-center text-xl font-bold whitespace-nowrap text-campo-oscuro">
-              🌼 PoliCampo
-            </Link>
-            {/* El menú depende de la sesión: se lee en el pedido, por eso va dentro de Suspense. */}
-            <Suspense fallback={<span className="text-sm text-tinta-suave">…</span>}>
-              <MenuUsuario />
-            </Suspense>
+    <html lang="es" className={`${figtree.variable} ${bricolage.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col font-sans">
+        {/* En la landing flota sobre la foto y queda fijo al bajar; en cuentas también queda fijo (globals.css). */}
+        <EncabezadoSitio>
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-2 px-4 sm:gap-x-4 py-3 sm:py-4">
+            <LogoPoliCampo />
+            {/* Secciones de la landing: enlaces con subrayado en pantallas anchas y menú desplegable en el
+                celular. Solo se muestran en la landing (globals.css). */}
+            <NavegacionLanding
+              cuenta={
+                <Suspense fallback={null}>
+                  <MenuUsuario variante="lista" />
+                </Suspense>
+              }
+            />
+            {/* El menú de cuenta depende de la sesión: se lee en el pedido, por eso va dentro de Suspense.
+                En la landing en el celular se oculta, porque esas opciones ya están en el desplegable. */}
+            <div className="cuenta-encabezado">
+              <Suspense fallback={<span className="text-sm text-tinta-suave">…</span>}>
+                <MenuUsuario />
+              </Suspense>
+            </div>
           </div>
-        </header>
+        </EncabezadoSitio>
         <div className="flex flex-1 flex-col">{children}</div>
       </body>
     </html>

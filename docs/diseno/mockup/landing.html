@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliCampo · Mockup landing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Caveat:wght@600&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilos.css">
+<style>
+/* ── Encabezado ──────────────────────────────────────────── */
+.encabezado { position: absolute; inset: 0 0 auto; z-index: 5; padding-top: var(--e-4); }
+.encabezado .contenedor { display: flex; align-items: center; justify-content: space-between; gap: var(--e-4); }
+.marca { display: inline-flex; align-items: center; gap: 10px; background: #fff; padding: 8px 18px 8px 10px; border-radius: var(--radio-pildora); box-shadow: var(--sombra-chica); text-decoration: none; }
+.marca svg { width: 34px; height: 34px; }
+.marca span { font: 800 1.3rem/1 var(--fuente-titulos); color: var(--bosque); letter-spacing: -0.02em; }
+.menu { display: flex; align-items: center; gap: var(--e-5); }
+.menu a.link { color: #fff; font-weight: 600; text-decoration: none; }
+.menu a.link:hover { text-decoration: underline; }
+@media (max-width: 860px) { .menu a.link, .menu .btn-brote { display: none; } }
+
+/* ── Portada ─────────────────────────────────────────────── */
+.portada { position: relative; isolation: isolate; min-height: min(92vh, 820px); display: flex; align-items: center; color: #fff; overflow: hidden; }
+.portada > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; animation: acerca 22s ease-out both; }
+@keyframes acerca { from { transform: scale(1.08); } }
+.portada::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgb(16 40 26 / .82) 0%, rgb(16 40 26 / .55) 45%, rgb(16 40 26 / 0) 80%); }
+.portada .contenedor { padding-block: 140px 150px; }
+.portada h1 { color: #fff; max-width: 13ch; }
+.portada h1 .resalte { color: var(--brote); }
+.portada .bajada { max-width: 46ch; font-size: 1.1875rem; margin-top: var(--e-5); color: rgb(255 255 255 / .92); }
+.portada .acciones { display: flex; flex-wrap: wrap; gap: var(--e-3); margin-top: var(--e-6); }
+.portada .onda { bottom: -1px; }
+@media (max-width: 860px) { .portada::before { background: linear-gradient(180deg, rgb(16 40 26 / .78), rgb(16 40 26 / .6) 60%, rgb(16 40 26 / .35)); } .portada .hoja-flota { display: none; } .portada .contenedor { padding-block: 110px 170px; } }
+
+.insignia { position: absolute; right: max(32px, calc((100% - var(--ancho)) / 2)); bottom: 130px; width: 168px; height: 168px; }
+.insignia .giro { animation: gira 26s linear infinite; transform-origin: center; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.insignia text { font: 700 11.5px var(--fuente-texto); letter-spacing: .14em; fill: var(--bosque); text-transform: uppercase; }
+@media (max-width: 860px) { .insignia { width: 120px; height: 120px; bottom: 96px; right: 16px; } }
+
+/* hojas que flotan */
+.hoja-flota { position: absolute; width: 46px; color: var(--brote); animation: flota 7s ease-in-out infinite alternate; }
+@keyframes flota { to { transform: translate(10px, -16px) rotate(18deg); } }
+
+/* ── Qué es + croquis ────────────────────────────────────── */
+.que-es { padding-block: var(--e-8) var(--e-9); }
+.que-es .contenedor { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: var(--e-7); align-items: center; }
+.que-es .texto { background: var(--menta); border-radius: var(--radio-l); padding: var(--e-7) var(--e-6); display: flex; flex-direction: column; gap: var(--e-5); }
+.que-es .texto p { color: var(--tinta-suave); max-width: 52ch; }
+.contador { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3) var(--e-4); }
+.contador b { white-space: nowrap; font: 800 4rem/1 var(--fuente-titulos); color: var(--flor); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.contador span { font-weight: 600; color: var(--bosque); max-width: 22ch; line-height: 1.3; }
+.croquis { position: relative; }
+.croquis svg { width: 100%; height: auto; overflow: visible; }
+.croquis .franja { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.6s var(--salida); }
+.croquis.visto .franja { stroke-dashoffset: 0; }
+.croquis .franja:nth-of-type(2) { transition-delay: .25s; } .croquis .franja:nth-of-type(3) { transition-delay: .5s; } .croquis .franja:nth-of-type(4) { transition-delay: .75s; }
+.croquis .nota { font: 600 22px var(--fuente-nota); fill: var(--bosque); opacity: 0; transition: opacity .6s 1.4s; }
+.croquis.visto .nota { opacity: 1; }
+.abeja { offset-path: path("M60 300 C 160 120, 320 420, 470 200 S 640 120, 600 330"); animation: vuela 9s ease-in-out infinite; }
+@keyframes vuela { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@media (max-width: 860px) { .que-es .contenedor { grid-template-columns: 1fr; } }
+
+/* ── Beneficios: fotos en arco ───────────────────────────── */
+.beneficios { padding-bottom: var(--e-9); }
+.beneficios header { margin-bottom: var(--e-7); display: flex; justify-content: space-between; align-items: end; gap: var(--e-5); flex-wrap: wrap; }
+.beneficios header p { max-width: 42ch; color: var(--tinta-suave); }
+.arcos { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--e-5); align-items: start; }
+.arco { position: relative; border-radius: var(--radio-arco); overflow: hidden; aspect-ratio: 3 / 4.4; box-shadow: var(--sombra); transition: transform var(--medio) var(--salida); }
+.arco:nth-child(even) { margin-top: var(--e-8); }
+.arco:hover { transform: translateY(-8px); }
+.arco img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--lento) var(--salida); }
+.arco:hover img { transform: scale(1.06); }
+.arco .pie { position: absolute; inset: auto 0 0; padding: var(--e-7) var(--e-5) var(--e-5); background: linear-gradient(transparent, rgb(29 77 51 / .92) 45%); color: #fff; }
+.arco h3 { color: #fff; }
+.arco p { font-size: .9375rem; margin-top: 6px; color: rgb(255 255 255 / .9); }
+@media (max-width: 960px) { .arcos { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .arcos { grid-template-columns: 1fr; } .arco { aspect-ratio: 4 / 3.6; border-radius: 160px 160px 28px 28px; } .arco:nth-child(even) { margin-top: 0; } }
+
+/* ── Cómo funciona: banda menta ondulada ─────────────────── */
+.como { position: relative; background: var(--menta); padding-block: var(--e-9); }
+.como .onda.arriba { top: -69px; } .como .onda.abajo { bottom: -69px; transform: scaleY(-1); }
+.como header { margin-bottom: var(--e-7); }
+.camino { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--e-6); list-style: none; padding: 0; margin: 0; }
+.camino::before { content: ""; position: absolute; top: 34px; left: 8%; right: 8%; border-top: 3px dashed var(--hoja); opacity: .45; }
+.paso { position: relative; display: flex; flex-direction: column; gap: var(--e-3); }
+.paso .num { width: 68px; height: 68px; display: grid; place-items: center; background: #fff; border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%; box-shadow: var(--sombra-chica); color: var(--hoja); }
+.paso .num svg { width: 32px; height: 32px; }
+.paso small { font-weight: 700; color: var(--hoja); font-variant-numeric: tabular-nums; }
+.paso p { color: var(--tinta-suave); font-size: .9875rem; }
+@media (max-width: 860px) { .camino { grid-template-columns: 1fr; } .camino::before { top: 0; bottom: 0; left: 33px; right: auto; border-top: 0; border-left: 3px dashed var(--hoja); } .paso { padding-left: 88px; min-height: 68px; } .paso .num { position: absolute; left: 0; top: 0; } }
+
+/* ── Para quién ──────────────────────────────────────────── */
+.para-quien { padding-block: calc(var(--e-9) + 40px) var(--e-9); }
+.para-quien .contenedor { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-6); }
+.para-quien .intro { grid-column: 1 / -1; }
+.perfil { display: grid; grid-template-columns: 150px 1fr; gap: var(--e-5); align-items: center; padding: var(--e-5); border: 1.5px solid var(--borde); border-radius: var(--radio-l); }
+.perfil img { width: 150px; height: 180px; object-fit: cover; border-radius: var(--radio-arco); }
+.perfil p { color: var(--tinta-suave); margin-top: 6px; }
+.cultivos { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--e-3); align-items: center; }
+.cultivos span { font-weight: 600; color: var(--bosque); margin-right: var(--e-2); }
+.chip { padding: 8px 16px; border-radius: var(--radio-pildora); background: var(--menta); color: var(--bosque); font-weight: 600; font-size: .9375rem; }
+@media (max-width: 860px) { .para-quien .contenedor { grid-template-columns: 1fr; } .perfil { grid-template-columns: 1fr; } .perfil img { width: 100%; height: 200px; border-radius: 120px 120px 20px 20px; } }
+
+/* ── Respaldo ────────────────────────────────────────────── */
+.respaldo { padding-bottom: var(--e-9); }
+.cita { position: relative; background: var(--cielo); border-radius: var(--radio-l); padding: var(--e-8) var(--e-7); display: grid; grid-template-columns: 1.2fr .8fr; gap: var(--e-7); align-items: center; overflow: hidden; }
+.cita blockquote { margin: 0; font: 700 clamp(1.375rem, 1.3vw + 1rem, 1.875rem)/1.3 var(--fuente-titulos); color: var(--bosque); }
+.cita .fuente { border-top: 2px solid rgb(29 77 51 / .15); padding-top: var(--e-4); font-size: .9375rem; color: var(--tinta-suave); }
+.cita .fuente strong { display: block; color: var(--bosque); margin-bottom: 4px; }
+.cita .hoja-flota { right: 24px; top: 20px; color: var(--hoja); opacity: .35; width: 80px; }
+@media (max-width: 860px) { .cita { grid-template-columns: 1fr; padding: var(--e-7) var(--e-5); } }
+
+/* ── Cierre ilustrado ────────────────────────────────────── */
+.cierre { position: relative; background: linear-gradient(#d9f0e3, #eef8f1 60%); overflow: hidden; padding-top: var(--e-9); text-align: center; }
+.cierre h2 { max-width: 18ch; margin-inline: auto; }
+.cierre p { max-width: 46ch; margin: var(--e-4) auto 0; color: var(--tinta-suave); }
+.cierre .acciones { display: flex; gap: var(--e-3); justify-content: center; flex-wrap: wrap; margin-top: var(--e-6); }
+.paisaje { display: block; width: 100%; height: auto; margin-top: -10px; }
+.nube { animation: nube 40s linear infinite; }
+.nube.b { animation-duration: 60s; animation-delay: -20s; }
+@keyframes nube { from { transform: translateX(-260px); } to { transform: translateX(1700px); } }
+.brote-crece { transform-box: fill-box; transform-origin: bottom center; animation: crece 3.5s var(--salida) infinite alternate; }
+@keyframes crece { from { transform: scaleY(.85) rotate(-3deg); } to { transform: scaleY(1) rotate(3deg); } }
+
+/* ── Pie ─────────────────────────────────────────────────── */
+.pie-sitio { background: var(--bosque); color: rgb(255 255 255 / .85); padding-block: var(--e-7); font-size: .9375rem; }
+.pie-sitio .contenedor { display: flex; justify-content: space-between; gap: var(--e-5); flex-wrap: wrap; align-items: center; }
+.pie-sitio a { color: #fff; }
+
+/* aparición suave al hacer scroll (contenido visible por defecto) */
+.revela { transition: opacity var(--lento) var(--salida), transform var(--lento) var(--salida); }
+.js .revela:not(.visto) { opacity: 0; transform: translateY(24px); }
+</style>
+</head>
+<body>
+
+<!-- Símbolos reutilizables -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#e8f5ec"/><path d="M4 26c5-3 10-3 16 0s11 3 16 0M5 31c5-3 10-3 15 0s10 3 15 0" fill="none" stroke="#2f7d3b" stroke-width="2.6" stroke-linecap="round"/><g fill="#d6457f"><circle cx="20" cy="10" r="3.6"/><circle cx="26" cy="15" r="3.6"/><circle cx="14" cy="15" r="3.6"/><circle cx="23.5" cy="21" r="3.6"/><circle cx="16.5" cy="21" r="3.6"/></g><circle cx="20" cy="16.5" r="3.2" fill="#f5c443"/></symbol>
+  <symbol id="hoja" viewBox="0 0 48 48"><path d="M6 42C6 20 20 6 42 6c0 22-14 36-36 36Z" fill="currentColor"/><path d="M8 40 34 14" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-finca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 20V10l7-5 7 5v10"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5M8.5 11c0-1.5 1-2.5 2.5-2.5"/></symbol>
+  <symbol id="i-flor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="2.5"/><path d="M12 5.5V3M14.5 8H17M12 10.5V13M9.5 8H7M12 13v8M12 17c-2 0-4-1-5-3 2 0 4 1 5 3Zm0 1c2 0 4-1 5-3-2 0-4 1-5 3Z"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></symbol>
+  <symbol id="i-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="abeja-s" viewBox="0 0 40 30"><ellipse cx="14" cy="8" rx="7" ry="5" fill="#fff" fill-opacity=".9" stroke="#1f2a22" stroke-width="1.5"/><ellipse cx="22" cy="7" rx="6" ry="4.5" fill="#fff" fill-opacity=".9" stroke="#1f2a22" stroke-width="1.5"/><ellipse cx="20" cy="18" rx="11" ry="8" fill="#f5c443" stroke="#1f2a22" stroke-width="1.8"/><path d="M16 11v14M22 11v14" stroke="#1f2a22" stroke-width="2.6"/><circle cx="30" cy="17" r="2" fill="#1f2a22"/></symbol>
+</svg>
+
+<header class="encabezado">
+  <div class="contenedor">
+    <a class="marca" href="#"><svg aria-hidden="true"><use href="#logo"/></svg><span>PoliCampo</span></a>
+    <nav class="menu" aria-label="Principal">
+      <a class="link" href="#como">Cómo funciona</a>
+      <a class="link" href="#beneficios">Beneficios</a>
+      <a class="link" href="#para-quien">Para quién es</a>
+      <a class="btn btn-contorno-claro" href="ingresar.html">Iniciar sesión</a>
+      <a class="btn btn-brote" href="#">Crear cuenta</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ─── Portada ─── -->
+  <section class="portada">
+    <img src="../../../web/public/img/portada.jpg" alt="">
+    <div class="contenedor">
+      <h1>Más flores, más vida, <span class="resalte">mejores cosechas</span></h1>
+      <p class="bajada">PoliCampo te ayuda a rediseñar tu finca con franjas florales y plantas de servicio que atraen polinizadores y controlan plagas de forma natural.</p>
+      <div class="acciones">
+        <a class="btn btn-brote" href="#">Crear cuenta <svg aria-hidden="true"><use href="#i-flecha"/></svg></a>
+        <a class="btn btn-contorno-claro" href="ingresar.html">Iniciar sesión</a>
+      </div>
+    </div>
+    <svg class="insignia" viewBox="0 0 170 170" aria-label="Al menos 20 % de hábitat natural" role="img">
+      <circle cx="85" cy="85" r="84" fill="#f5c443"/>
+      <g class="giro"><path id="circ" d="M85 85m-62 0a62 62 0 1 1 124 0a62 62 0 1 1-124 0" fill="none"/><text><textPath href="#circ" textLength="384" lengthAdjust="spacing">al menos 20 % de hábitat natural ·</textPath></text></g>
+      <text x="85" y="97" text-anchor="middle" style="font:800 34px var(--fuente-titulos);fill:var(--bosque);letter-spacing:-1px;text-transform:none">20 %</text>
+    </svg>
+    <svg class="hoja-flota" style="left:52%;top:22%" aria-hidden="true"><use href="#hoja"/></svg>
+    <div class="onda" aria-hidden="true">
+      <svg class="lenta" viewBox="0 0 2880 70" preserveAspectRatio="none"><path d="M0 40 Q180 10 360 40 T720 40 T1080 40 T1440 40 T1800 40 T2160 40 T2520 40 T2880 40 V70 H0Z" fill="#fff"/></svg>
+      <svg viewBox="0 0 2880 70" preserveAspectRatio="none"><path d="M0 45 Q240 15 480 45 T960 45 T1440 45 T1920 45 T2400 45 T2880 45 V70 H0Z" fill="#fff"/></svg>
+    </div>
+  </section>
+
+  <!-- ─── Qué es + croquis animado (el mecanismo) ─── -->
+  <section class="que-es">
+    <div class="contenedor">
+      <div class="texto revela">
+        <h2 class="titulo-onda">Tu finca, rediseñada para la biodiversidad</h2>
+        <p>Cargás tu terreno y tus cultivos. PoliCampo mide cuánta superficie tiene hábitat natural y te propone dónde ubicar franjas florales y corredores, con especies compatibles con tu cultivo y tu zona.</p>
+        <div class="contador"><b data-contador>0 %</b><span>de hábitat natural: la meta recomendada para tu finca</span></div>
+        <a class="btn btn-principal" href="#como" style="align-self:start">Ver cómo funciona</a>
+      </div>
+      <figure class="croquis" style="margin:0" aria-label="Croquis ilustrado de una finca donde aparecen franjas florales en los bordes y en el medio del cultivo">
+        <svg viewBox="0 0 640 460">
+          <defs>
+            <pattern id="surcos" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)"><rect width="18" height="18" fill="#cde8d5"/><path d="M0 9h18" stroke="#9ccaa9" stroke-width="5" stroke-linecap="round"/></pattern>
+            <clipPath id="lote"><path d="M70 60 Q300 20 560 70 Q610 230 570 400 Q330 440 90 410 Q40 230 70 60Z"/></clipPath>
+          </defs>
+          <path d="M70 60 Q300 20 560 70 Q610 230 570 400 Q330 440 90 410 Q40 230 70 60Z" fill="url(#surcos)" stroke="#1d4d33" stroke-width="3"/>
+          <g clip-path="url(#lote)" fill="none" stroke-linecap="round">
+            <path class="franja" pathLength="1" d="M80 75 Q300 35 555 85" stroke="#d6457f" stroke-width="26" stroke-dasharray="1" />
+            <path class="franja" pathLength="1" d="M560 90 Q598 235 560 392" stroke="#f5c443" stroke-width="26"/>
+            <path class="franja" pathLength="1" d="M90 232 Q320 195 580 232" stroke="#d6457f" stroke-width="22"/>
+            <path class="franja" pathLength="1" d="M96 395 Q330 425 565 388" stroke="#f5c443" stroke-width="26"/>
+          </g>
+          <!-- arbolitos (corredor) -->
+          <g><g fill="#7a5a3a"><rect x="30" y="128" width="5" height="16" rx="2"/><rect x="28" y="200" width="5" height="16" rx="2"/><rect x="31" y="282" width="5" height="16" rx="2"/><rect x="28" y="356" width="5" height="16" rx="2"/></g><g fill="#2f7d3b" stroke="#1d4d33" stroke-width="2"><path d="M33 100c14 0 20 12 16 22-3 8-26 10-32 0-5-9 2-22 16-22Z"/><path d="M30 174c12 0 18 10 14 19-3 7-23 8-28 0-4-8 2-19 14-19Z"/><path d="M34 252c14 0 21 12 17 23-3 8-28 10-34 0-5-10 3-23 17-23Z"/><path d="M30 330c12 0 18 10 14 19-3 7-23 8-28 0-4-8 2-19 14-19Z"/></g><text class="nota" x="14" y="455">árboles nativos</text></g>
+          <text class="nota" x="300" y="28" text-anchor="middle">franja floral</text>
+          <text class="nota" x="525" y="440" text-anchor="middle">borde con flores</text>
+          <text class="nota" x="230" y="182">corredor en el medio</text>
+          <svg class="abeja" x="0" y="0" width="40" height="30" style="overflow:visible"><use href="#abeja-s"/></svg>
+        </svg>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ─── Beneficios ─── -->
+  <section class="beneficios" id="beneficios">
+    <div class="contenedor">
+      <header class="revela">
+        <h2 class="titulo-onda">Lo que ganás con las franjas florales</h2>
+        <p>Pequeños cambios en el diseño del terreno que mejoran la producción y cuidan el ambiente.</p>
+      </header>
+      <div class="arcos">
+        <article class="arco revela"><img src="../../../web/public/img/abeja.jpg" alt="Abeja sobre una flor"><div class="pie"><h3>Más polinización</h3><p>Mejor cuajado, tamaño y forma de los frutos.</p></div></article>
+        <article class="arco revela"><img src="../../../web/public/img/huerta.jpg" alt="Huerta con flores entre las hileras"><div class="pie"><h3>Control natural de plagas</h3><p>Refugio para los insectos benéficos.</p></div></article>
+        <article class="arco revela"><img src="../../../web/public/img/frutilla.jpg" alt="Frutilla madura en la planta"><div class="pie"><h3>Menos agroquímicos</h3><p>Menos insumos externos y menores costos.</p></div></article>
+        <article class="arco revela"><img src="../../../web/public/img/portada.jpg" alt="Pradera con flores silvestres" style="object-position:30% 70%"><div class="pie"><h3>Recuperás biodiversidad</h3><p>Corredores que conectan hábitats.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Cómo funciona ─── -->
+  <section class="como" id="como">
+    <div class="onda arriba" aria-hidden="true"><svg viewBox="0 0 2880 70" preserveAspectRatio="none"><path d="M0 40 Q240 10 480 40 T960 40 T1440 40 T1920 40 T2400 40 T2880 40 V70 H0Z" fill="#e8f5ec"/></svg></div>
+    <div class="contenedor">
+      <header class="revela"><h2 class="titulo-onda">De tu finca a un plan, en cuatro pasos</h2></header>
+      <ol class="camino">
+        <li class="paso revela"><span class="num"><svg aria-hidden="true"><use href="#i-finca"/></svg></span><small>Paso 1</small><h3>Registrás tu finca</h3><p>Con un formulario, un croquis o el mapa.</p></li>
+        <li class="paso revela"><span class="num"><svg aria-hidden="true"><use href="#i-lupa"/></svg></span><small>Paso 2</small><h3>Recibís un diagnóstico</h3><p>Cuánta superficie tiene flores frente al 20 % recomendado.</p></li>
+        <li class="paso revela"><span class="num"><svg aria-hidden="true"><use href="#i-flor"/></svg></span><small>Paso 3</small><h3>Obtenés una propuesta</h3><p>Dónde ubicar franjas y qué plantas son compatibles.</p></li>
+        <li class="paso revela"><span class="num"><svg aria-hidden="true"><use href="#i-calendario"/></svg></span><small>Paso 4</small><h3>Planificás y descargás</h3><p>Calendario de siembra y floración, e informe técnico.</p></li>
+      </ol>
+    </div>
+    <div class="onda abajo" aria-hidden="true"><svg viewBox="0 0 2880 70" preserveAspectRatio="none" style="animation-direction:reverse"><path d="M0 40 Q240 10 480 40 T960 40 T1440 40 T1920 40 T2400 40 T2880 40 V70 H0Z" fill="#e8f5ec"/></svg></div>
+  </section>
+
+  <!-- ─── Para quién es ─── -->
+  <section class="para-quien" id="para-quien">
+    <div class="contenedor">
+      <header class="intro revela"><h2 class="titulo-onda">Hecho para quienes trabajan la tierra en Jujuy</h2></header>
+      <article class="perfil revela"><img src="../../../web/public/img/frutilla.jpg" alt=""><div><h3>Productores</h3><p>Pequeños y medianos productores que quieren mejorar su rendimiento, bajar costos en insumos y avanzar hacia una producción agroecológica, paso a paso.</p></div></article>
+      <article class="perfil revela"><img src="../../../web/public/img/huerta.jpg" alt=""><div><h3>Ingenieros agrónomos</h3><p>Profesionales que asesoran fincas y necesitan diagnósticos ordenados, propuestas fundamentadas e informes técnicos para compartir.</p></div></article>
+      <div class="cultivos revela"><span>Cultivos que más se benefician:</span><b class="chip">Frutilla</b><b class="chip">Durazno</b><b class="chip">Tomate</b><b class="chip">Pimiento</b><b class="chip">Palta</b></div>
+    </div>
+  </section>
+
+  <!-- ─── Respaldo científico ─── -->
+  <section class="respaldo">
+    <div class="contenedor">
+      <div class="cita revela">
+        <blockquote>Los paisajes que combinan producción con vegetación natural sostienen más polinizadores e insectos benéficos: mejor polinización, menos plagas y sistemas más estables.</blockquote>
+        <div class="fuente"><strong>Paisajes agrícolas multifuncionales: de la ciencia a la práctica</strong>Lucas A. Garibaldi, Paula F. Zermoglio, Facundo J. Oddi y Lucas J. Andreoni.</div>
+        <svg class="hoja-flota" aria-hidden="true"><use href="#hoja"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Cierre con paisaje ilustrado ─── -->
+  <section class="cierre">
+    <div class="contenedor revela">
+      <h2>Diseñemos juntos una finca con más vida</h2>
+      <p>Creá tu cuenta, cargá tu finca y recibí tu primer diagnóstico de biodiversidad.</p>
+      <div class="acciones"><a class="btn btn-principal" href="#">Crear cuenta</a><a class="btn btn-contorno" href="ingresar.html">Iniciar sesión</a></div>
+    </div>
+    <svg class="paisaje" viewBox="0 0 1440 330" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <circle cx="1080" cy="150" r="70" fill="#f5c443" opacity=".9"/>
+      <g class="nube" fill="#fff"><ellipse cx="120" cy="60" rx="70" ry="22"/><ellipse cx="160" cy="45" rx="45" ry="26"/></g>
+      <g class="nube b" fill="#fff"><ellipse cx="100" cy="100" rx="55" ry="18"/><ellipse cx="130" cy="88" rx="34" ry="20"/></g>
+      <path d="M0 210 Q260 120 520 190 T1040 170 T1440 180 V330 H0Z" fill="#a8d9b5"/>
+      <path d="M0 250 Q300 170 640 240 T1440 220 V330 H0Z" fill="#6fbf73"/>
+      <path d="M0 250 Q300 170 640 240 T1440 220" fill="none" stroke="#d6457f" stroke-width="10" stroke-dasharray="2 14" stroke-linecap="round"/>
+      <path d="M0 290 Q380 230 760 285 T1440 270 V330 H0Z" fill="#2f7d3b"/>
+      <g fill="#a3d55a"><path class="brote-crece" d="M300 300c0-20 6-30 0-42-10 8-12 22 0 42Zm0 0c0-14 10-22 18-24 0 12-8 20-18 24Z"/><path class="brote-crece" style="animation-delay:-1s" d="M700 305c0-20 6-30 0-42-10 8-12 22 0 42Zm0 0c0-14 10-22 18-24 0 12-8 20-18 24Z"/><path class="brote-crece" style="animation-delay:-2s" d="M1120 300c0-20 6-30 0-42-10 8-12 22 0 42Zm0 0c0-14 10-22 18-24 0 12-8 20-18 24Z"/></g>
+    </svg>
+  </section>
+</main>
+
+<footer class="pie-sitio">
+  <div class="contenedor">
+    <p>Somos estudiantes de la Facultad de Ingeniería de la Universidad Nacional de Jujuy (UNJu).</p>
+    <a href="#">Política de privacidad</a>
+  </div>
+</footer>
+
+<script>
+  // En capturas automáticas (o con movimiento reducido) todo se muestra ya terminado.
+  const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches || navigator.webdriver;
+  if (!quieto) document.documentElement.classList.add("js");
+  else { document.querySelectorAll(".revela, .croquis").forEach((el) => el.classList.add("visto")); document.querySelector("[data-contador]").textContent = "20 %"; }
+  const obs = new IntersectionObserver((entradas) => {
+    for (const e of entradas) if (e.isIntersecting) { e.target.classList.add("visto"); obs.unobserve(e.target); }
+  }, { threshold: 0.2 });
+  document.querySelectorAll(".revela, .croquis").forEach((el) => obs.observe(el));
+
+  // Contador 0 → 20 % cuando aparece el croquis
+  const contador = document.querySelector("[data-contador]");
+  const croquis = document.querySelector(".croquis");
+  new IntersectionObserver(([e], o) => {
+    if (!e.isIntersecting) return; o.disconnect();
+    if (quieto) return;
+    const t0 = performance.now();
+    const paso = (t) => { const p = Math.min((t - t0) / 1800, 1); contador.textContent = Math.round(20 * (1 - Math.pow(1 - p, 4))) + " %"; if (p < 1) requestAnimationFrame(paso); };
+    requestAnimationFrame(paso);
+  }, { threshold: 0.4 }).observe(croquis);
+</script>
+</body>
+</html>

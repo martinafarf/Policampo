@@ -1,0 +1,134 @@
+/* ==========================================================================
+   PoliCampo · Sistema de estilos (mockup)
+   Estos tokens son los que después pasan a web/src/app/globals.css (@theme).
+   ========================================================================== */
+
+:root {
+  /* ── Color ─────────────────────────────────────────────── */
+  --bosque: #1d4d33;        /* títulos, pie, fondos oscuros */
+  --hoja: #2f7d3b;          /* acción principal sobre blanco (5.3:1) */
+  --hoja-oscura: #23602d;   /* hover de la acción principal */
+  --brote: #a3d55a;         /* acción sobre foto, con texto bosque */
+  --menta: #e8f5ec;         /* bandas suaves con borde ondulado */
+  --menta-fuerte: #cde8d5;
+  --cielo: #e3f1f5;         /* banda de respaldo científico */
+  --sol: #f5c443;           /* acento: flores, insignia */
+  --flor: #d6457f;          /* acento: franjas florales (solo decorativo o texto grande) */
+  --tinta: #1f2a22;
+  --tinta-suave: #4a5a4e;
+  --borde: #d5e3d8;
+  --fondo: #ffffff;
+  --papel: #f7fbf6;
+  --error: #b42318;
+  --error-claro: #fdecea;
+
+  /* ── Tipografía ────────────────────────────────────────── */
+  --fuente-titulos: "Bricolage Grotesque", system-ui, sans-serif;
+  --fuente-texto: "Figtree", system-ui, sans-serif;
+  --fuente-nota: "Caveat", cursive; /* solo anotaciones del croquis */
+
+  --t-display: clamp(2.5rem, 4.2vw + 1rem, 4.5rem);
+  --t-h2: clamp(1.875rem, 2.4vw + 1rem, 2.875rem);
+  --t-h3: 1.375rem;
+  --t-cuerpo: 1.0625rem;  /* 17 px: se lee al sol */
+  --t-chico: 0.875rem;
+
+  /* ── Forma ─────────────────────────────────────────────── */
+  --radio-s: 10px;
+  --radio-m: 16px;
+  --radio-l: 28px;
+  --radio-pildora: 999px;
+  --radio-arco: 999px 999px 28px 28px; /* marcos de foto en arco */
+
+  --sombra: 0 14px 34px -16px rgb(29 77 51 / 0.35);
+  --sombra-chica: 0 4px 14px -6px rgb(29 77 51 / 0.25);
+
+  /* ── Espacio (escala de 8) ─────────────────────────────── */
+  --e-1: 4px; --e-2: 8px; --e-3: 12px; --e-4: 16px; --e-5: 24px;
+  --e-6: 32px; --e-7: 48px; --e-8: 72px; --e-9: 112px;
+  --ancho: 1180px;
+
+  /* ── Movimiento ────────────────────────────────────────── */
+  --salida: cubic-bezier(0.16, 1, 0.3, 1);
+  --rapido: 200ms;
+  --medio: 450ms;
+  --lento: 900ms;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: 400 var(--t-cuerpo)/1.6 var(--fuente-texto);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--fuente-titulos); color: var(--bosque); margin: 0; text-wrap: balance; }
+h1 { font-size: var(--t-display); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; }
+h2 { font-size: var(--t-h2); line-height: 1.08; letter-spacing: -0.02em; font-weight: 750; }
+h3 { font-size: var(--t-h3); line-height: 1.2; font-weight: 700; }
+p { margin: 0; }
+img { max-width: 100%; display: block; }
+a { color: var(--hoja); text-underline-offset: 3px; }
+::selection { background: var(--brote); color: var(--bosque); }
+:focus-visible { outline: 3px solid var(--sol); outline-offset: 3px; border-radius: 6px; }
+
+.contenedor { width: min(100% - 32px, var(--ancho)); margin-inline: auto; }
+
+/* Subrayado ondulado bajo los títulos de sección (en vez de etiquetas arriba) */
+.titulo-onda { display: inline-flex; flex-direction: column; gap: var(--e-3); }
+.titulo-onda::after {
+  content: ""; width: 64px; height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 10'%3E%3Cpath d='M2 6c6-6 10-6 15 0s9 6 15 0 10-6 15 0 9 6 15 0' fill='none' stroke='%23a3d55a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
+}
+.centrado { text-align: center; align-items: center; }
+
+/* ── Botones ──────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--e-2);
+  min-height: 48px; padding: 0 var(--e-5);
+  border-radius: var(--radio-pildora); border: 2px solid transparent;
+  font: 700 1rem/1 var(--fuente-texto); text-decoration: none; cursor: pointer;
+  transition: background var(--rapido), transform var(--rapido) var(--salida), box-shadow var(--rapido);
+}
+.btn:hover { transform: translateY(-2px); box-shadow: var(--sombra-chica); }
+.btn:active { transform: translateY(0); }
+.btn-principal { background: var(--hoja); color: #fff; }
+.btn-principal:hover { background: var(--hoja-oscura); }
+.btn-brote { background: var(--brote); color: var(--bosque); }
+.btn-brote:hover { background: #b4e06f; }
+.btn-contorno { border-color: currentColor; color: var(--hoja); background: transparent; }
+.btn-contorno-claro { border-color: rgb(255 255 255 / .85); color: #fff; background: rgb(255 255 255 / .08); }
+.btn svg { width: 20px; height: 20px; }
+.btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Campos ───────────────────────────────────────────────── */
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo label { font-weight: 600; font-size: .9375rem; }
+.campo input {
+  min-height: 48px; padding: 0 var(--e-4);
+  border: 1.5px solid var(--borde); border-radius: var(--radio-m);
+  font: inherit; color: var(--tinta); background: var(--papel);
+  transition: border-color var(--rapido), box-shadow var(--rapido), background var(--rapido);
+}
+.campo input:hover { border-color: #b7cdbd; }
+.campo input:focus { outline: none; border-color: var(--hoja); background: #fff; box-shadow: 0 0 0 4px rgb(163 213 90 / .45); }
+.campo input[aria-invalid="true"] { border-color: var(--error); background: var(--error-claro); }
+.campo .ayuda { font-size: var(--t-chico); color: var(--tinta-suave); }
+.campo .error { font-size: var(--t-chico); color: var(--error); font-weight: 600; display: flex; gap: 6px; align-items: center; }
+
+.aviso { border-radius: var(--radio-m); padding: var(--e-3) var(--e-4); font-size: .9375rem; display: flex; gap: var(--e-3); align-items: flex-start; }
+.aviso svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+.aviso-exito { background: var(--menta); color: var(--bosque); border: 1.5px solid var(--menta-fuerte); }
+.aviso-error { background: var(--error-claro); color: var(--error); border: 1.5px solid #f5c2bd; }
+
+/* ── Bordes ondulados animados ───────────────────────────── */
+.onda { position: absolute; left: 0; width: 100%; height: 70px; overflow: hidden; pointer-events: none; line-height: 0; }
+.onda svg { width: 200%; height: 100%; animation: ola 18s linear infinite; }
+.onda .lenta { animation-duration: 28s; position: absolute; inset: 0; opacity: .5; }
+@keyframes ola { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

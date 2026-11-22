@@ -1,35 +1,294 @@
 @import "tailwindcss";
 
 /*
-  Paleta de PoliCampo (tomada de la v1: verde campo y flores).
-  Se usa como clases de Tailwind: bg-campo, text-campo-oscuro, border-borde, etc.
-  "@theme" (sin inline) además crea las variables CSS (--color-fondo, ...) que usa el body.
-  Por ahora la v2 tiene un solo tema claro, pensado para leerse bien al sol en el celular.
+  Sistema de estilos de PoliCampo (rediseño "estilos-visuales").
+  Lenguaje: web agroecológica clásica (foto real a sangre, bordes ondulados, formas orgánicas, paisaje
+  ilustrado). Referencias en docs/diseno/ y mockup en docs/diseno/mockup/.
+
+  Todo lo que está en @theme se usa como clase de Tailwind (bg-bosque, text-hoja, rounded-arco, ...)
+  y además queda como variable CSS (--color-bosque, ...).
+
+  Los nombres viejos (campo, campo-oscuro, campo-claro, fondo, tinta, borde, flor, error) se mantienen
+  porque los usan las demás pantallas de la app: solo cambian sus valores para que combinen.
 */
 @theme {
-  --color-fondo: #f6f8f4;
-  --color-tinta: #1f2a1f;
-  --color-tinta-suave: #4b5a4b;
-  --color-campo: #2b8a3e;
-  --color-campo-oscuro: #1f6b30;
-  --color-campo-claro: #e8f3e9;
-  --color-flor: #c2185b;
+  /* ── Paleta de marca (4 colores: naranja, turquesa, oliva y verde muy oscuro) ── */
+  --color-bosque: #003300; /* verde muy oscuro: títulos, pie y texto sobre naranja o turquesa */
+  --color-hoja: #597931; /* oliva: acción principal sobre fondo claro (texto blanco, contraste 5,0:1) */
+  --color-naranja: #ff9900; /* acento cálido: botón sobre la foto, resaltados, foco. Con texto bosque (6,7:1) */
+  --color-turquesa: #00cc99; /* acento fresco: insignia del 20 %, brotes, selección. Con texto bosque (6,9:1) */
+
+  /* ── Tonos derivados de la paleta (hover, textos y fondos suaves) ── */
+  --color-hoja-oscura: #465f26; /* hover de la acción principal: oliva más oscuro */
+  --color-naranja-claro: #ffad33; /* hover del botón naranja */
+  --color-naranja-oscuro: #b35f00; /* naranja para TEXTO sobre fondo claro (4,6:1) */
+  --color-menta: #e3f6ef; /* bandas suaves: turquesa muy aclarado */
+  --color-menta-fuerte: #c2ebdc;
+  --color-papel: #f5f9f2;
+
+  /* ── Colores que ya usaba la app (valores actualizados a la paleta) ── */
+  --color-fondo: #f5f9f2;
+  --color-tinta: #0f220f; /* texto: casi negro con un toque de bosque */
+  --color-tinta-suave: #45573a;
+  --color-campo: #597931;
+  --color-campo-oscuro: #465f26;
+  --color-campo-claro: #e3f6ef;
+  --color-flor: #b35f00; /* antes rosa; ahora el naranja oscuro, legible como texto */
   --color-error: #b42318;
   --color-error-claro: #fdecea;
-  --color-borde: #c9d4c7;
+  --color-borde: #d3e0cc;
+
+  /* ── Forma ────────────────────────────────────────── */
+  --radius-arco: 999px 999px 28px 28px; /* marcos de foto en arco: rounded-arco */
+  --shadow-suave: 0 14px 34px -16px rgb(0 51 0 / 0.35);
+  --shadow-chica: 0 4px 14px -6px rgb(0 51 0 / 0.25);
+
+  /* ── Movimiento ───────────────────────────────────── */
+  --ease-salida: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Las fuentes las define next/font en el <html>: por eso estas sí van "inline". */
+/* Las fuentes las define next/font en el <html> (layout.tsx): por eso estas van "inline". */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-figtree);
+  --font-titulos: var(--font-bricolage);
 }
 
-html {
-  color-scheme: light; /* campos y casillas del navegador en modo claro */
+/* Estilos base: van en @layer base para que las clases de Tailwind (text-white, etc.) les ganen. */
+@layer base {
+  html {
+    color-scheme: light; /* campos y casillas del navegador en modo claro: se lee mejor al sol */
+    accent-color: var(--color-hoja); /* casillas y radios del navegador con el verde de la marca */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-fondo);
+    color: var(--color-tinta);
+    font-size: 1.0625rem; /* 17 px: se lee bien en el celular al aire libre */
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titulos);
+    color: var(--color-bosque);
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  /* Detalles del navegador también con los colores de la marca */
+  ::selection {
+    background: var(--color-turquesa);
+    color: var(--color-bosque);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-naranja);
+    outline-offset: 3px;
+  }
+  a {
+    text-underline-offset: 3px;
+  }
 }
 
-body {
-  background: var(--color-fondo);
-  color: var(--color-tinta);
+/* ── Subrayado ondulado debajo de los títulos de sección ─────────────────
+   Reemplaza a las "etiquetas" chiquitas que antes iban arriba del título. */
+@utility titulo-onda {
+  &::after {
+    content: "";
+    display: block;
+    width: 64px;
+    height: 10px;
+    margin-top: 0.75rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 10'%3E%3Cpath d='M2 6c6-6 10-6 15 0s9 6 15 0 10-6 15 0 9 6 15 0' fill='none' stroke='%23ff9900' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")
+      no-repeat;
+  }
+}
+
+/* ── Animaciones (las usan los componentes de src/componentes/marca) ─────── */
+@keyframes ola {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes flota {
+  to {
+    transform: translate(10px, -16px) rotate(18deg);
+  }
+}
+@keyframes acerca {
+  from {
+    transform: scale(1.08);
+  }
+}
+@keyframes nube {
+  from {
+    transform: translateX(-260px);
+  }
+  to {
+    transform: translateX(1700px);
+  }
+}
+@keyframes crece {
+  from {
+    transform: scaleY(0.85) rotate(-3deg);
+  }
+  to {
+    transform: scaleY(1) rotate(3deg);
+  }
+}
+
+@utility animar-ola {
+  animation: ola 18s linear infinite;
+}
+@utility animar-gira {
+  animation: gira 26s linear infinite;
+  transform-origin: center;
+}
+@utility animar-flota {
+  animation: flota 7s ease-in-out infinite alternate;
+}
+@utility animar-acerca {
+  animation: acerca 22s ease-out both;
+}
+
+/* Aparición al hacer scroll (componente <Revelar>): el contenido es visible por defecto y solo se
+   oculta si el JavaScript ya cargó y el elemento todavía no entró en pantalla. */
+.revelar {
+  transition:
+    opacity 0.9s var(--ease-salida),
+    transform 0.9s var(--ease-salida);
+}
+.revelar[data-visto="no"] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* Quien pide menos movimiento en su sistema no ve animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Encabezado fijo (componente EncabezadoSitio) ──────────────────────
+   En la landing (data-pagina="landing") el encabezado flota sobre la foto de portada y queda siempre a
+   la vista. Las pantallas de cuentas no tienen esta barra (EncabezadoSitio no la muestra ahí). En el
+   resto de la app sigue como antes: arriba, sin quedar fijo (ahí hay mapas y barras fijas propias que
+   quedarían tapadas). */
+.encabezado-sitio[data-pagina="landing"] {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 40; /* debajo de los diálogos de la app (z-50) */
+  transition:
+    background-color 0.3s var(--ease-salida),
+    box-shadow 0.3s var(--ease-salida);
+}
+/* Al bajar (más de 24 px): fondo verde bosque y sombra suave. Es oscuro a propósito: una barra blanca se
+   confundía con las secciones blancas de la página. */
+.encabezado-sitio[data-pagina="landing"][data-desplazado] {
+  background-color: rgb(0 51 0 / 0.97);
+  box-shadow: 0 8px 24px -12px rgb(0 51 0 / 0.6);
+}
+
+/* El logo y los menús no tienen fondo. Por defecto van en verde bosque (clases de cada componente).
+   En la landing pasan a blanco: primero van sobre la foto y, al bajar, sobre la barra verde. */
+.encabezado-sitio[data-pagina="landing"] .texto-encabezado {
+  color: #fff;
+}
+/* Sobre la foto, además, una sombra suave para que se lea sobre cualquier parte de la imagen. */
+.encabezado-sitio[data-pagina="landing"]:not([data-desplazado]) .texto-encabezado {
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.4);
+}
+.encabezado-sitio[data-pagina="landing"] .borde-encabezado {
+  border-color: rgb(255 255 255 / 0.7);
+}
+.encabezado-sitio[data-pagina="landing"] .hover-encabezado:hover {
+  background-color: rgb(255 255 255 / 0.15);
+}
+/* "Registrarse": naranja con texto bosque (como "Crear cuenta"), porque el oliva se pierde contra el verde. */
+.encabezado-sitio[data-pagina="landing"] .boton-registro-encabezado {
+  background-color: var(--color-naranja);
+  color: var(--color-bosque);
+}
+.encabezado-sitio[data-pagina="landing"] .fondo-icono-menu {
+  background-color: rgb(255 255 255 / 0.18);
+  color: #fff;
+}
+.encabezado-sitio[data-pagina="landing"] .nombre-seccion::after {
+  background: var(--color-naranja); /* sobre la foto y sobre la barra verde, el naranja resalta */
+}
+/* ── Navegación por secciones de la landing (componente NavegacionLanding) ──
+   Pantallas anchas: enlaces con subrayado deslizante. Celular: menú desplegable que reemplaza a la
+   píldora de cuenta (sus opciones van adentro del desplegable). Fuera de la landing, nada de esto. */
+.enlaces-landing,
+.menu-movil-landing {
+  display: none;
+}
+.enlaces-landing {
+  color: #fff; /* sobre la foto de portada */
+}
+@media (min-width: 64rem) {
+  .encabezado-sitio[data-pagina="landing"] .enlaces-landing {
+    display: flex;
+  }
+}
+@media (max-width: 63.99rem) {
+  .encabezado-sitio[data-pagina="landing"] .menu-movil-landing {
+    display: block;
+  }
+  .encabezado-sitio[data-pagina="landing"] .cuenta-encabezado {
+    display: none;
+  }
+}
+
+/* Subrayado que se desliza (posición y ancho) hasta la sección en la que está la persona. */
+.subrayado-seccion {
+  background: var(--color-naranja);
+  transition:
+    transform 0.5s var(--ease-salida),
+    width 0.5s var(--ease-salida),
+    opacity 0.3s;
+}
+
+/* Celular: el nombre de la sección en el botón entra con un subrayado que se dibuja de izquierda a
+   derecha cada vez que cambia de sección. En el desplegable, la sección actual también se subraya. */
+@keyframes subraya {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes entra-nombre {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.nombre-seccion {
+  animation: entra-nombre 0.4s var(--ease-salida);
+}
+.nombre-seccion::after,
+.subrayable.activo::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-hoja); /* van sobre blanco o menta: el oliva se lee mejor que el naranja */
+  transform-origin: left;
+  animation: subraya 0.5s var(--ease-salida) 0.1s both;
 }

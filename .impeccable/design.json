@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-22T12:00:00Z",
+  "title": "Design System: PoliCampo",
+  "extensions": {
+    "colorMeta": {
+      "bosque": {
+        "role": "primary",
+        "displayName": "Verde Bosque",
+        "tonalRamp": ["#001400", "#002000", "#003300", "#1f4d1f", "#3d6b3d", "#6e956e", "#a9c4a9", "#e1ece1"]
+      },
+      "hoja": {
+        "role": "primary",
+        "displayName": "Oliva Hoja",
+        "tonalRamp": ["#1f2b11", "#33461b", "#465f26", "#597931", "#7a9755", "#9fb683", "#c8d6b5", "#edf2e6"]
+      },
+      "hoja-oscura": {
+        "role": "primary",
+        "displayName": "Oliva Oscuro",
+        "tonalRamp": ["#1f2b11", "#33461b", "#465f26", "#597931", "#7a9755", "#9fb683", "#c8d6b5", "#edf2e6"]
+      },
+      "naranja": {
+        "role": "secondary",
+        "displayName": "Naranja",
+        "tonalRamp": ["#4d2e00", "#804c00", "#b35f00", "#e08600", "#ff9900", "#ffad33", "#ffd08a", "#fff1db"]
+      },
+      "naranja-claro": {
+        "role": "secondary",
+        "displayName": "Naranja Claro",
+        "tonalRamp": ["#4d2e00", "#804c00", "#b35f00", "#e08600", "#ff9900", "#ffad33", "#ffd08a", "#fff1db"]
+      },
+      "naranja-oscuro": {
+        "role": "secondary",
+        "displayName": "Naranja Oscuro (texto sobre claro)",
+        "tonalRamp": ["#4d2e00", "#804c00", "#b35f00", "#e08600", "#ff9900", "#ffad33", "#ffd08a", "#fff1db"]
+      },
+      "turquesa": {
+        "role": "tertiary",
+        "displayName": "Turquesa",
+        "tonalRamp": ["#00402f", "#006b50", "#009971", "#00cc99", "#33d6ad", "#7fe5cb", "#c2ebdc", "#e3f6ef"]
+      },
+      "menta": {
+        "role": "neutral",
+        "displayName": "Menta",
+        "tonalRamp": ["#0f4a3a", "#2b7562", "#5aa38f", "#93cdbb", "#c2ebdc", "#e3f6ef", "#f1fbf7", "#fafefc"]
+      },
+      "menta-fuerte": {
+        "role": "neutral",
+        "displayName": "Menta Fuerte",
+        "tonalRamp": ["#0f4a3a", "#2b7562", "#5aa38f", "#93cdbb", "#c2ebdc", "#e3f6ef", "#f1fbf7", "#fafefc"]
+      },
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel",
+        "tonalRamp": ["#0f220f", "#2c3a2a", "#4f5e4a", "#7f8f78", "#b3c1ab", "#d3e0cc", "#f5f9f2", "#ffffff"]
+      },
+      "fondo": {
+        "role": "neutral",
+        "displayName": "Fondo (alias de papel)",
+        "tonalRamp": ["#0f220f", "#2c3a2a", "#4f5e4a", "#7f8f78", "#b3c1ab", "#d3e0cc", "#f5f9f2", "#ffffff"]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "tonalRamp": ["#0a170a", "#0f220f", "#273825", "#45573a", "#677a5c", "#94a58a", "#c6d2be", "#eef3eb"]
+      },
+      "tinta-suave": {
+        "role": "neutral",
+        "displayName": "Tinta Suave",
+        "tonalRamp": ["#0a170a", "#0f220f", "#273825", "#45573a", "#677a5c", "#94a58a", "#c6d2be", "#eef3eb"]
+      },
+      "borde": {
+        "role": "neutral",
+        "displayName": "Borde",
+        "tonalRamp": ["#2e3b28", "#4f6145", "#75896a", "#9db193", "#b9cbae", "#d3e0cc", "#e8efe4", "#f7faf5"]
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Rojo Error",
+        "tonalRamp": ["#3f0a06", "#6b130c", "#8f1b12", "#b42318", "#d4483c", "#e88a81", "#f5c2bd", "#fdecea"]
+      },
+      "error-claro": {
+        "role": "neutral",
+        "displayName": "Error Claro",
+        "tonalRamp": ["#3f0a06", "#6b130c", "#8f1b12", "#b42318", "#d4483c", "#e88a81", "#f5c2bd", "#fdecea"]
+      },
+      "campo": {
+        "role": "primary",
+        "displayName": "Campo (alias heredado de hoja)",
+        "tonalRamp": ["#1f2b11", "#33461b", "#465f26", "#597931", "#7a9755", "#9fb683", "#c8d6b5", "#edf2e6"]
+      },
+      "campo-oscuro": {
+        "role": "primary",
+        "displayName": "Campo Oscuro (alias heredado de hoja-oscura)",
+        "tonalRamp": ["#1f2b11", "#33461b", "#465f26", "#597931", "#7a9755", "#9fb683", "#c8d6b5", "#edf2e6"]
+      },
+      "campo-claro": {
+        "role": "neutral",
+        "displayName": "Campo Claro (alias heredado de menta)",
+        "tonalRamp": ["#0f4a3a", "#2b7562", "#5aa38f", "#93cdbb", "#c2ebdc", "#e3f6ef", "#f1fbf7", "#fafefc"]
+      },
+      "flor": {
+        "role": "secondary",
+        "displayName": "Flor (alias heredado de naranja-oscuro)",
+        "tonalRamp": ["#4d2e00", "#804c00", "#b35f00", "#e08600", "#ff9900", "#ffad33", "#ffd08a", "#fff1db"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Titular de portada, blanco sobre foto, una frase por línea, la última en naranja." },
+      "headline": { "displayName": "Headline", "purpose": "Títulos de sección en bosque con subrayado ondulado naranja." },
+      "title": { "displayName": "Title", "purpose": "Títulos de tarjeta y de paso." },
+      "body": { "displayName": "Body", "purpose": "Texto general de 17 px, legible al sol." },
+      "body-small": { "displayName": "Body Small", "purpose": "Textos de tarjetas, avisos y pie." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas de campo, chips, enlaces del menú y de sección." }
+    },
+    "shadows": [
+      { "name": "chica", "value": "0 4px 14px -6px rgb(0 51 0 / 0.25)", "purpose": "Círculos de paso y hover de botones." },
+      { "name": "suave", "value": "0 14px 34px -16px rgb(0 51 0 / 0.35)", "purpose": "Tarjetas de foto en arco, foto del corredor floral, su tarjeta superpuesta y panel del menú desplegable." },
+      { "name": "encabezado", "value": "0 8px 24px -12px rgb(0 51 0 / 0.6)", "purpose": "Encabezado verde bosque al bajar más de 24 px." }
+    ],
+    "motion": [
+      { "name": "ease-salida", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Apariciones al hacer scroll (0,9 s, 24 px), hover de tarjetas de foto, encabezado y subrayados." },
+      { "name": "hover-boton", "value": "200ms, translateY(-2px)", "purpose": "Botones píldora al pasar el cursor." },
+      { "name": "encabezado", "value": "0.3s ease-salida", "purpose": "Fondo y sombra del encabezado al bajar." },
+      { "name": "subrayado-seccion", "value": "0.5s ease-salida (transform, width)", "purpose": "Subrayado que se desliza hasta la sección actual." },
+      { "name": "subraya", "value": "0.5s ease-salida 0.1s, scaleX 0 → 1", "purpose": "Subrayado que se dibuja bajo el nombre de sección del menú desplegable." },
+      { "name": "entra-nombre", "value": "0.4s ease-salida, translateY(6px)", "purpose": "Entrada del nombre de la sección actual en el botón del menú." },
+      { "name": "ola", "value": "18s linear infinite", "purpose": "Desplazamiento del borde ondulado; segunda ola a 28 s." },
+      { "name": "gira", "value": "26s linear infinite", "purpose": "Texto circular de la insignia del 20 %." },
+      { "name": "flota", "value": "7s ease-in-out infinite alternate", "purpose": "Hojas decorativas." },
+      { "name": "acerca", "value": "22s ease-out", "purpose": "Acercamiento lento de la foto de portada." },
+      { "name": "nube", "value": "40s / 60s linear infinite", "purpose": "Nubes del paisaje ilustrado." },
+      { "name": "crece", "value": "3.5s ease-salida infinite alternate", "purpose": "Brotes turquesa del paisaje que se mecen." },
+      { "name": "reducir-movimiento", "value": "prefers-reduced-motion: reduce", "purpose": "Anula todas las animaciones y transiciones." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal sobre fondo claro: oliva con texto blanco.",
+      "html": "<button class=\"ds-btn-primary\">Crear cuenta <svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 24px; border-radius:999px; border:2px solid transparent; background:var(--color-hoja,#597931); color:#fff; font-family:Figtree,system-ui,sans-serif; font-weight:700; font-size:1rem; cursor:pointer; transition:transform .2s, box-shadow .2s, background .2s; } .ds-btn-primary:hover { background:var(--color-hoja-oscura,#465f26); transform:translateY(-2px); box-shadow:0 4px 14px -6px rgb(0 51 0 / .25); } .ds-btn-primary:focus-visible { outline:3px solid var(--color-naranja,#ff9900); outline-offset:3px; }"
+    },
+    {
+      "name": "Botón naranja (sobre foto)",
+      "kind": "button",
+      "refersTo": "button-naranja",
+      "description": "Acción principal sobre la foto de portada, con su par claro.",
+      "html": "<div class=\"ds-foto\"><button class=\"ds-btn-naranja\">Crear cuenta</button><button class=\"ds-btn-claro\">Iniciar sesión</button></div>",
+      "css": ".ds-foto { display:flex; gap:12px; flex-wrap:wrap; padding:24px; border-radius:28px; background:linear-gradient(100deg,rgb(0 34 0/.82),rgb(0 34 0/.55)); } .ds-btn-naranja, .ds-btn-claro { min-height:48px; padding:0 24px; border-radius:999px; border:2px solid transparent; font-family:Figtree,system-ui,sans-serif; font-weight:700; font-size:1rem; cursor:pointer; transition:transform .2s, box-shadow .2s, background .2s; } .ds-btn-naranja { background:var(--color-naranja,#ff9900); color:var(--color-bosque,#003300); } .ds-btn-naranja:hover { background:var(--color-naranja-claro,#ffad33); transform:translateY(-2px); box-shadow:0 4px 14px -6px rgb(0 51 0 / .25); } .ds-btn-claro { border-color:rgb(255 255 255/.85); background:rgb(255 255 255/.1); color:#fff; } .ds-btn-claro:hover { background:rgb(255 255 255/.2); transform:translateY(-2px); } .ds-btn-naranja:focus-visible, .ds-btn-claro:focus-visible { outline:3px solid var(--color-naranja,#ff9900); outline-offset:3px; }"
+    },
+    {
+      "name": "Botón contorno",
+      "kind": "button",
+      "refersTo": "button-contorno",
+      "description": "Acción secundaria sobre fondo claro.",
+      "html": "<button class=\"ds-btn-contorno\">Iniciar sesión</button>",
+      "css": ".ds-btn-contorno { min-height:48px; padding:0 24px; border-radius:999px; border:2px solid var(--color-hoja,#597931); background:transparent; color:var(--color-hoja,#597931); font-family:Figtree,system-ui,sans-serif; font-weight:700; font-size:1rem; cursor:pointer; transition:transform .2s, box-shadow .2s, background .2s; } .ds-btn-contorno:hover { background:#fff; transform:translateY(-2px); box-shadow:0 4px 14px -6px rgb(0 51 0 / .25); } .ds-btn-contorno:focus-visible { outline:3px solid var(--color-naranja,#ff9900); outline-offset:3px; }"
+    },
+    {
+      "name": "Campo de formulario",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo con etiqueta arriba, 48 px de alto, foco con borde oliva y halo naranja.",
+      "html": "<div class=\"ds-campo\"><label class=\"ds-campo-etiqueta\" for=\"ds-email\">Email o nombre de usuario</label><input id=\"ds-email\" class=\"ds-campo-input\" placeholder=\"tu@correo.com\"></div>",
+      "css": ".ds-campo { display:flex; flex-direction:column; gap:6px; font-family:Figtree,system-ui,sans-serif; } .ds-campo-etiqueta { font-size:.95rem; font-weight:600; color:var(--color-tinta,#0f220f); } .ds-campo-input { min-height:48px; padding:0 16px; border-radius:16px; border:1.5px solid var(--color-borde,#d3e0cc); background:var(--color-papel,#f5f9f2); color:var(--color-tinta,#0f220f); font-size:1rem; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; } .ds-campo-input:hover { border-color:#b9cbae; } .ds-campo-input:focus, .ds-campo-input:focus-visible { border-color:var(--color-hoja,#597931); background:#fff; box-shadow:0 0 0 4px rgb(255 153 0 / .45); }"
+    },
+    {
+      "name": "Encabezado sin fondo",
+      "kind": "nav",
+      "refersTo": "nav-encabezado",
+      "description": "Menú de cuenta sin fondo: blanco sobre la foto de la landing, bosque sobre el encabezado blanco.",
+      "html": "<div class=\"ds-enc ds-enc-foto\"><a href=\"#\" class=\"ds-enc-link\">Iniciar sesión</a><a href=\"#\" class=\"ds-enc-cta\">Registrarse</a></div><div class=\"ds-enc ds-enc-blanco\"><a href=\"#\" class=\"ds-enc-link\">Iniciar sesión</a><a href=\"#\" class=\"ds-enc-cta\">Registrarse</a></div>",
+      "css": ".ds-enc { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:12px 16px; font-family:Figtree,system-ui,sans-serif; font-size:.95rem; } .ds-enc-foto { background:linear-gradient(rgb(0 34 0/.6),rgb(0 34 0/.35)); } .ds-enc-blanco { background:rgb(255 255 255/.97); box-shadow:0 6px 20px -12px rgb(0 51 0 / .4); } .ds-enc-link, .ds-enc-cta { display:inline-flex; align-items:center; min-height:40px; padding:0 12px; border-radius:999px; font-weight:600; text-decoration:none; white-space:nowrap; } .ds-enc-link { color:var(--color-bosque,#003300); } .ds-enc-link:hover { background:var(--color-menta,#e3f6ef); } .ds-enc-cta { padding:0 16px; background:var(--color-hoja,#597931); color:#fff; } .ds-enc-cta:hover { background:var(--color-hoja-oscura,#465f26); } .ds-enc-foto .ds-enc-link { color:#fff; text-shadow:0 1px 10px rgb(0 0 0 / .4); } .ds-enc-foto .ds-enc-link:hover { background:rgb(255 255 255/.15); } .ds-enc-foto .ds-enc-cta { background:var(--color-naranja,#ff9900); color:var(--color-bosque,#003300); } .ds-enc a:focus-visible { outline:3px solid var(--color-naranja,#ff9900); outline-offset:3px; }"
+    },
+    {
+      "name": "Enlaces de sección con subrayado",
+      "kind": "nav",
+      "description": "Navegación de la landing en pantallas anchas: subrayado de 3 px que se desliza a la sección actual (naranja sobre foto, oliva sobre blanco).",
+      "html": "<nav class=\"ds-secciones\"><a href=\"#\">Qué es</a><a href=\"#\" class=\"ds-activa\">Beneficios</a><a href=\"#\">Cómo funciona</a><a href=\"#\">Para quién es</a></nav>",
+      "css": ".ds-secciones { display:flex; gap:28px; padding:16px 24px; background:rgb(0 34 0/.7); font-family:Figtree,system-ui,sans-serif; font-weight:600; } .ds-secciones a { position:relative; padding:8px 0; color:#fff; text-decoration:none; transition:opacity .2s; } .ds-secciones a:hover { opacity:.8; } .ds-secciones a.ds-activa::after { content:''; position:absolute; left:0; right:0; bottom:0; height:3px; border-radius:999px; background:var(--color-naranja,#ff9900); } .ds-secciones a:focus-visible { outline:3px solid var(--color-naranja,#ff9900); outline-offset:3px; }"
+    },
+    {
+      "name": "Chip de cultivo",
+      "kind": "chip",
+      "refersTo": "chip-cultivo",
+      "description": "Etiqueta informativa en menta.",
+      "html": "<ul class=\"ds-chips\"><li class=\"ds-chip\">Frutilla</li><li class=\"ds-chip\">Durazno</li><li class=\"ds-chip\">Tomate</li></ul>",
+      "css": ".ds-chips { display:flex; flex-wrap:wrap; gap:10px; list-style:none; padding:0; margin:0; } .ds-chip { padding:8px 16px; border-radius:999px; background:var(--color-menta,#e3f6ef); color:var(--color-bosque,#003300); font-family:Figtree,system-ui,sans-serif; font-size:.95rem; font-weight:600; }"
+    },
+    {
+      "name": "Tarjeta de foto en arco",
+      "kind": "card",
+      "refersTo": "card-borde",
+      "description": "Foto en marco de arco con velo bosque y texto blanco; sube al pasar.",
+      "html": "<article class=\"ds-arco\"><div class=\"ds-arco-velo\"><h3 class=\"ds-arco-titulo\">Más polinización</h3><p class=\"ds-arco-texto\">Las flores atraen abejas que mejoran el cuajado de los frutos.</p></div></article>",
+      "css": ".ds-arco { position:relative; width:240px; aspect-ratio:3/4.4; overflow:hidden; border-radius:999px 999px 28px 28px; background:linear-gradient(160deg,#9fb683,#597931 60%,#003300); box-shadow:0 14px 34px -16px rgb(0 51 0 / .35); transition:transform .5s cubic-bezier(.16,1,.3,1); } .ds-arco:hover { transform:translateY(-8px); } .ds-arco-velo { position:absolute; inset:auto 0 0 0; padding:64px 24px 24px; background:linear-gradient(transparent,rgb(0 51 0/.9) 42%); color:#fff; } .ds-arco-titulo { margin:0; font-family:'Bricolage Grotesque',system-ui,sans-serif; font-size:1.25rem; font-weight:700; letter-spacing:-.02em; color:#fff; } .ds-arco-texto { margin:6px 0 0; font-family:Figtree,system-ui,sans-serif; font-size:.95rem; line-height:1.4; opacity:.9; }"
+    },
+    {
+      "name": "Título con onda",
+      "kind": "custom",
+      "description": "Título de sección en bosque con subrayado ondulado naranja de 64 × 10 px.",
+      "html": "<h2 class=\"ds-titulo-onda\">Lo que ganás con las franjas florales</h2>",
+      "css": ".ds-titulo-onda { margin:0; font-family:'Bricolage Grotesque',system-ui,sans-serif; font-size:2.2rem; font-weight:700; line-height:1.08; letter-spacing:-.02em; color:var(--color-bosque,#003300); } .ds-titulo-onda::after { content:''; display:block; width:64px; height:10px; margin-top:.75rem; background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 10'%3E%3Cpath d='M2 6c6-6 10-6 15 0s9 6 15 0 10-6 15 0 9 6 15 0' fill='none' stroke='%23ff9900' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E\") no-repeat; }"
+    },
+    {
+      "name": "Insignia del 20 %",
+      "kind": "custom",
+      "refersTo": "insignia-habitat",
+      "description": "Círculo turquesa con texto circular que gira y el 20 % en bosque.",
+      "html": "<svg class=\"ds-insignia\" viewBox=\"0 0 170 170\" role=\"img\" aria-label=\"Al menos 20 % de hábitat natural\"><circle cx=\"85\" cy=\"85\" r=\"84\" fill=\"#00cc99\"/><g class=\"ds-insignia-giro\"><path id=\"ds-circ\" d=\"M85 85m-62 0a62 62 0 1 1 124 0a62 62 0 1 1-124 0\" fill=\"none\"/><text font-size=\"11.5\" font-weight=\"700\" letter-spacing=\"1.6\" fill=\"#003300\"><textPath href=\"#ds-circ\" textLength=\"384\" lengthAdjust=\"spacing\">AL MENOS 20 % DE HÁBITAT NATURAL ·</textPath></text></g><text x=\"85\" y=\"97\" text-anchor=\"middle\" font-family=\"Bricolage Grotesque, system-ui, sans-serif\" font-size=\"34\" font-weight=\"800\" fill=\"#003300\">20 %</text></svg>",
+      "css": ".ds-insignia { width:160px; height:160px; font-family:Figtree,system-ui,sans-serif; } .ds-insignia-giro { transform-box:view-box; transform-origin:center; animation:ds-gira 26s linear infinite; } @keyframes ds-gira { to { transform:rotate(360deg); } } @media (prefers-reduced-motion: reduce) { .ds-insignia-giro { animation:none; } }"
+    },
+    {
+      "name": "Aviso",
+      "kind": "custom",
+      "description": "Mensaje de estado con ícono de trazo: info, éxito o error.",
+      "html": "<div class=\"ds-aviso ds-aviso-exito\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12 3 3 5-6\"/></svg><div>Cerraste sesión.</div></div>",
+      "css": ".ds-aviso { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:16px; border:1.5px solid; font-family:Figtree,system-ui,sans-serif; font-size:.95rem; } .ds-aviso svg { flex-shrink:0; margin-top:2px; } .ds-aviso-exito { border-color:var(--color-menta-fuerte,#c2ebdc); background:var(--color-menta,#e3f6ef); color:var(--color-bosque,#003300); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La finca que florece",
+    "overview": "PoliCampo habla el idioma visual estándar de la web agroecológica, sin ironía ni atajos: foto real de campo a sangre que ocupa toda la primera pantalla, secciones que se unen con bordes ondulados, fotos dentro de marcos en arco y un paisaje ilustrado al cierre. El sistema es claro y luminoso (blanco y menta sobre todo), con el verde bosque casi negro como peso tipográfico, el oliva como color de acción sobre fondo claro y dos acentos de la paleta elegida por la usuaria: naranja cálido (acción sobre la foto, resaltados, foco) y turquesa fresco (insignia del 20 %, brotes, selección).\n\nLa densidad es generosa y pensada para el celular al aire libre: texto base de 17 px, controles de 48 px de alto, una columna en pantallas chicas. Lo propio del mundo es mostrar el mecanismo con una foto real: un corredor floral en el borde de un cultivo, con una tarjeta blanca superpuesta que explica la meta del 20 % de hábitat natural. Los íconos y el logo son dibujos SVG propios de trazo único; no hay emojis.\n\nEl movimiento es lento y orgánico (olas que se desplazan, una insignia que gira, hojas que flotan, nubes que cruzan, brotes que se mecen, apariciones suaves al hacer scroll, un subrayado que sigue a la sección actual) y desaparece por completo con \"reducir movimiento\".",
+    "keyCharacteristics": [
+      "Foto real a sangre de pantalla completa con velo verde muy oscuro y titular blanco, con la última frase en naranja.",
+      "Encabezado sin fondo que flota sobre la foto en blanco y, al bajar, toma fondo verde bosque con el texto en blanco.",
+      "Bordes ondulados entre secciones y entre foto y formulario.",
+      "Fotos en marcos de arco (medio punto arriba, esquinas de 28 px abajo).",
+      "Todo lo accionable es píldora; todo lo contenedor tiene esquinas de 24 a 28 px.",
+      "Íconos SVG propios de trazo 2 px con puntas redondeadas, en `currentColor`.",
+      "Subrayado ondulado naranja bajo los títulos de sección en lugar de etiquetas sobre el título."
+    ],
+    "rules": [
+      { "name": "The Una Acción Rule", "body": "Sobre fondo claro la acción es oliva con texto blanco; sobre foto oscura es naranja con texto bosque. Ningún otro color pinta un botón principal.", "section": "colors" },
+      { "name": "The Texto Bosque Rule", "body": "Naranja y turquesa, cuando son fondo, llevan siempre texto bosque. Nunca van como texto chico sobre fondo claro: para eso existe naranja oscuro.", "section": "colors" },
+      { "name": "The Onda en Vez de Etiqueta Rule", "body": "Los títulos de sección se marcan con el subrayado ondulado naranja de 64 × 10 px debajo, nunca con una etiqueta chica en mayúsculas encima.", "section": "typography" },
+      { "name": "The Sombra Verde Rule", "body": "Las sombras de caja se tiñen de bosque y se abren hacia abajo con extensión negativa; nunca grises ni duras.", "section": "elevation" },
+      { "name": "The Levantar al Pasar Rule", "body": "Botones y tarjetas de foto responden al hover subiendo (2 px los botones, 8 px las tarjetas) y ganando sombra.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do usar oliva con texto blanco para la acción sobre fondo claro y naranja con texto bosque sobre foto.",
+      "Do poner texto bosque sobre cualquier fondo naranja o turquesa.",
+      "Do unir secciones de distinto fondo con la Onda, y separar foto de formulario con borde ondulado.",
+      "Do poner las fotos en marco de arco y los contenedores con esquinas de 28 px.",
+      "Do mantener controles de 48 px de alto y texto base de 17 px.",
+      "Do dibujar íconos nuevos en SVG de 24 × 24 con trazo de 2 px, puntas redondeadas y `currentColor`.",
+      "Do marcar los títulos de sección con el subrayado ondulado naranja.",
+      "Do anular toda animación con `prefers-reduced-motion` y dejar el contenido visible sin JavaScript."
+    ],
+    "donts": [
+      "Don't usar emojis como íconos ni en el logo.",
+      "Don't poner etiquetas chicas en mayúsculas encima de los títulos.",
+      "Don't usar naranja puro o turquesa como color de texto chico sobre fondo claro; para texto naranja, naranja oscuro.",
+      "Don't usar sombras de caja grises, duras o desplazadas en diagonal sin desenfoque; solo las sombras verde bosque del sistema.",
+      "Don't resolver portadas con \"hero + fila de tarjetas con íconos\".",
+      "Don't volver a poner fondos de píldora blanca detrás del logo o del menú del encabezado.",
+      "Don't usar los alias heredados (`campo`, `flor`, etc.) en pantallas nuevas."
+    ]
+  }
+}

@@ -15,8 +15,8 @@ async function Resultado({ searchParams }: { searchParams: Promise<{ error?: str
     if (await obtenerUsuario()) redirect("/inicio?confirmada=1");
     return (
       <>
-        <h1 className="mb-3 text-2xl font-bold text-campo-oscuro">Tu cuenta está confirmada</h1>
-        <Link href="/ingresar" className="font-medium text-campo-oscuro underline">
+        <h1 className="mb-3 text-3xl font-extrabold text-bosque sm:text-4xl">Tu cuenta está confirmada</h1>
+        <Link href="/ingresar" className="font-semibold text-hoja underline hover:text-hoja-oscura">
           Iniciá sesión
         </Link>
       </>
@@ -24,7 +24,7 @@ async function Resultado({ searchParams }: { searchParams: Promise<{ error?: str
   }
   return (
     <>
-      <h1 className="mb-3 text-2xl font-bold text-campo-oscuro">El enlace venció o ya fue usado</h1>
+      <h1 className="mb-3 text-3xl font-extrabold text-bosque sm:text-4xl">El enlace venció o ya fue usado</h1>
       <p className="mb-6">Pedí un enlace nuevo: te lo mandamos por email y vence en 24 horas.</p>
       <FormularioReenvio />
     </>

@@ -3,3 +3,4 @@ export * from "./tipos";
 export * from "./semanas";
 export * from "./publicacion";
 export * from "./historial";
+export * from "./validacion-planta";

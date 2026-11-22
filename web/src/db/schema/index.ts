@@ -5,3 +5,4 @@ export * from "./cultivos";
 export * from "./establecimientos";
 export * from "./catalogo";
 export * from "./diagnostico";
+export * from "./propuesta";

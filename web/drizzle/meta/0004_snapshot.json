@@ -1,0 +1,2333 @@
+{
+  "id": "cf93ccf3-c12b-483d-be22-625bdfbdf00e",
+  "prevId": "e30d016c-d363-47a3-ba7a-ae6070863ce4",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.account": {
+      "name": "account",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "account_user_id_idx": {
+          "name": "account_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "account_user_id_user_id_fk": {
+          "name": "account_user_id_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rate_limit": {
+      "name": "rate_limit",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_request": {
+          "name": "last_request",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rate_limit_key_unique": {
+          "name": "rate_limit_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.session": {
+      "name": "session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "impersonated_by": {
+          "name": "impersonated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "session_user_id_idx": {
+          "name": "session_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "session_user_id_user_id_fk": {
+          "name": "session_user_id_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "session_token_unique": {
+          "name": "session_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "display_username": {
+          "name": "display_username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'usuario'"
+        },
+        "banned": {
+          "name": "banned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ban_reason": {
+          "name": "ban_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ban_expires": {
+          "name": "ban_expires",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "apellido": {
+          "name": "apellido",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "politica_privacidad_version": {
+          "name": "politica_privacidad_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "politica_privacidad_aceptada_en": {
+          "name": "politica_privacidad_aceptada_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        },
+        "user_username_unique": {
+          "name": "user_username_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "username"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.verification": {
+      "name": "verification",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "verification_identifier_idx": {
+          "name": "verification_identifier_idx",
+          "columns": [
+            {
+              "expression": "identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.evento_seguridad": {
+      "name": "evento_seguridad",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fecha": {
+          "name": "fecha",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "detalle": {
+          "name": "detalle",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "indexes": {
+        "evento_seguridad_fecha_idx": {
+          "name": "evento_seguridad_fecha_idx",
+          "columns": [
+            {
+              "expression": "fecha",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "evento_seguridad_usuario_id_user_id_fk": {
+          "name": "evento_seguridad_usuario_id_user_id_fk",
+          "tableFrom": "evento_seguridad",
+          "tableTo": "user",
+          "columnsFrom": [
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "evento_seguridad_actor_id_user_id_fk": {
+          "name": "evento_seguridad_actor_id_user_id_fk",
+          "tableFrom": "evento_seguridad",
+          "tableTo": "user",
+          "columnsFrom": [
+            "actor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.limite_uso": {
+      "name": "limite_uso",
+      "schema": "",
+      "columns": {
+        "clave": {
+          "name": "clave",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ventana_inicio": {
+          "name": "ventana_inicio",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cantidad": {
+          "name": "cantidad",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cultivo": {
+      "name": "cultivo",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "clave": {
+          "name": "clave",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "activo": {
+          "name": "activo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "dependencia_polinizacion": {
+          "name": "dependencia_polinizacion",
+          "type": "dependencia_polinizacion",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo_polinizacion": {
+          "name": "tipo_polinizacion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "polinizadores_necesarios": {
+          "name": "polinizadores_necesarios",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado": {
+          "name": "estado",
+          "type": "estado_catalogo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'borrador'"
+        },
+        "fuente_tipo": {
+          "name": "fuente_tipo",
+          "type": "fuente_tipo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fuente_detalle": {
+          "name": "fuente_detalle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validado_por": {
+          "name": "validado_por",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cultivo_clave_unique": {
+          "name": "cultivo_clave_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "clave"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "cultivo_clave_normalizada": {
+          "name": "cultivo_clave_normalizada",
+          "value": "\"cultivo\".\"clave\" = lower(btrim(\"cultivo\".\"clave\")) AND length(\"cultivo\".\"clave\") > 0"
+        },
+        "cultivo_campos_publicacion": {
+          "name": "cultivo_campos_publicacion",
+          "value": "\"cultivo\".\"estado\" <> 'publicado' OR (\n        \"cultivo\".\"dependencia_polinizacion\" IS NOT NULL\n        AND \"cultivo\".\"fuente_tipo\" IS NOT NULL\n        AND \"cultivo\".\"fuente_detalle\" IS NOT NULL\n        AND length(btrim(\"cultivo\".\"fuente_detalle\")) > 0\n        AND \"cultivo\".\"validado_por\" IS NOT NULL\n        AND length(btrim(\"cultivo\".\"validado_por\")) > 0\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.establecimiento": {
+      "name": "establecimiento",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "direccion": {
+          "name": "direccion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "departamento": {
+          "name": "departamento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "localidad": {
+          "name": "localidad",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "localidad_es_otra": {
+          "name": "localidad_es_otra",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "ecorregion": {
+          "name": "ecorregion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_total_ha": {
+          "name": "superficie_total_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo_caracterizacion": {
+          "name": "metodo_caracterizacion",
+          "type": "metodo_caracterizacion",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contorno": {
+          "name": "contorno",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "establecimiento_usuario_id_idx": {
+          "name": "establecimiento_usuario_id_idx",
+          "columns": [
+            {
+              "expression": "usuario_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "establecimiento_usuario_nombre_unico_idx": {
+          "name": "establecimiento_usuario_nombre_unico_idx",
+          "columns": [
+            {
+              "expression": "usuario_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "lower(\"nombre\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "establecimiento_usuario_id_user_id_fk": {
+          "name": "establecimiento_usuario_id_user_id_fk",
+          "tableFrom": "establecimiento",
+          "tableTo": "user",
+          "columnsFrom": [
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "establecimiento_departamento_valido": {
+          "name": "establecimiento_departamento_valido",
+          "value": "\"establecimiento\".\"departamento\" IN ('El Carmen', 'Dr. Manuel Belgrano', 'Palpalá', 'San Antonio', 'San Pedro', 'Ledesma', 'Santa Bárbara', 'Tilcara', 'Tumbaya', 'Humahuaca', 'Valle Grande', 'Cochinoca', 'Yavi', 'Susques', 'Rinconada', 'Santa Catalina')"
+        },
+        "establecimiento_ecorregion_valida": {
+          "name": "establecimiento_ecorregion_valida",
+          "value": "\"establecimiento\".\"ecorregion\" IN ('valles_templados', 'quebrada_de_humahuaca', 'yungas', 'puna', 'chaco_seco')"
+        },
+        "establecimiento_superficie_positiva": {
+          "name": "establecimiento_superficie_positiva",
+          "value": "\"establecimiento\".\"superficie_total_ha\" IS NULL OR \"establecimiento\".\"superficie_total_ha\" > 0"
+        },
+        "establecimiento_superficie_segun_metodo": {
+          "name": "establecimiento_superficie_segun_metodo",
+          "value": "\"establecimiento\".\"metodo_caracterizacion\" = 'mapa' OR \"establecimiento\".\"superficie_total_ha\" IS NOT NULL"
+        },
+        "establecimiento_contorno_solo_mapa": {
+          "name": "establecimiento_contorno_solo_mapa",
+          "value": "\"establecimiento\".\"metodo_caracterizacion\" = 'mapa' OR \"establecimiento\".\"contorno\" IS NULL"
+        },
+        "establecimiento_version_positiva": {
+          "name": "establecimiento_version_positiva",
+          "value": "\"establecimiento\".\"version\" >= 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.sector": {
+      "name": "sector",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "establecimiento_id": {
+          "name": "establecimiento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "tipo_sector",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cultivo_id": {
+          "name": "cultivo_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cultivo_otro": {
+          "name": "cultivo_otro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subtipo_flores": {
+          "name": "subtipo_flores",
+          "type": "subtipo_flores",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_ha": {
+          "name": "superficie_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ubicacion_relativa": {
+          "name": "ubicacion_relativa",
+          "type": "ubicacion_relativa",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "geometria": {
+          "name": "geometria",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "orden": {
+          "name": "orden",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "sector_establecimiento_id_idx": {
+          "name": "sector_establecimiento_id_idx",
+          "columns": [
+            {
+              "expression": "establecimiento_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "sector_establecimiento_id_establecimiento_id_fk": {
+          "name": "sector_establecimiento_id_establecimiento_id_fk",
+          "tableFrom": "sector",
+          "tableTo": "establecimiento",
+          "columnsFrom": [
+            "establecimiento_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "sector_cultivo_id_cultivo_id_fk": {
+          "name": "sector_cultivo_id_cultivo_id_fk",
+          "tableFrom": "sector",
+          "tableTo": "cultivo",
+          "columnsFrom": [
+            "cultivo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "sector_superficie_positiva": {
+          "name": "sector_superficie_positiva",
+          "value": "\"sector\".\"superficie_ha\" > 0"
+        },
+        "sector_coherencia_tipo": {
+          "name": "sector_coherencia_tipo",
+          "value": "(\n        \"sector\".\"tipo\" = 'cultivo'\n        AND (\n          (\"sector\".\"cultivo_id\" IS NOT NULL AND \"sector\".\"cultivo_otro\" IS NULL)\n          OR (\"sector\".\"cultivo_id\" IS NULL AND \"sector\".\"cultivo_otro\" IS NOT NULL AND length(btrim(\"sector\".\"cultivo_otro\")) > 0)\n        )\n        AND \"sector\".\"subtipo_flores\" IS NULL\n      ) OR (\n        \"sector\".\"tipo\" = 'sector_flores'\n        AND \"sector\".\"cultivo_id\" IS NULL\n        AND \"sector\".\"cultivo_otro\" IS NULL\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.cambio_catalogo": {
+      "name": "cambio_catalogo",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "entidad": {
+          "name": "entidad",
+          "type": "entidad_catalogo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entidad_id": {
+          "name": "entidad_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accion": {
+          "name": "accion",
+          "type": "accion_catalogo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "administrador_id": {
+          "name": "administrador_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fecha": {
+          "name": "fecha",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "antes": {
+          "name": "antes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "despues": {
+          "name": "despues",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "motivo": {
+          "name": "motivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "cambio_catalogo_entidad_idx": {
+          "name": "cambio_catalogo_entidad_idx",
+          "columns": [
+            {
+              "expression": "entidad",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entidad_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cambio_catalogo_fecha_idx": {
+          "name": "cambio_catalogo_fecha_idx",
+          "columns": [
+            {
+              "expression": "fecha",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cambio_catalogo_administrador_id_user_id_fk": {
+          "name": "cambio_catalogo_administrador_id_user_id_fk",
+          "tableFrom": "cambio_catalogo",
+          "tableTo": "user",
+          "columnsFrom": [
+            "administrador_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.compatibilidad": {
+      "name": "compatibilidad",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cultivo_id": {
+          "name": "cultivo_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "planta_id": {
+          "name": "planta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "grado": {
+          "name": "grado",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "justificacion": {
+          "name": "justificacion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estado": {
+          "name": "estado",
+          "type": "estado_catalogo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'borrador'"
+        },
+        "fuente_tipo": {
+          "name": "fuente_tipo",
+          "type": "fuente_tipo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fuente_detalle": {
+          "name": "fuente_detalle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validado_por": {
+          "name": "validado_por",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "compatibilidad_cultivo_planta_unico_idx": {
+          "name": "compatibilidad_cultivo_planta_unico_idx",
+          "columns": [
+            {
+              "expression": "cultivo_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "planta_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "compatibilidad_cultivo_id_cultivo_id_fk": {
+          "name": "compatibilidad_cultivo_id_cultivo_id_fk",
+          "tableFrom": "compatibilidad",
+          "tableTo": "cultivo",
+          "columnsFrom": [
+            "cultivo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "compatibilidad_planta_id_planta_servicio_id_fk": {
+          "name": "compatibilidad_planta_id_planta_servicio_id_fk",
+          "tableFrom": "compatibilidad",
+          "tableTo": "planta_servicio",
+          "columnsFrom": [
+            "planta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "compatibilidad_grado_rango": {
+          "name": "compatibilidad_grado_rango",
+          "value": "\"compatibilidad\".\"grado\" BETWEEN -5 AND 5"
+        },
+        "compatibilidad_justificacion_largo": {
+          "name": "compatibilidad_justificacion_largo",
+          "value": "length(btrim(\"compatibilidad\".\"justificacion\")) BETWEEN 10 AND 500"
+        },
+        "compatibilidad_campos_publicacion": {
+          "name": "compatibilidad_campos_publicacion",
+          "value": "\"compatibilidad\".\"estado\" <> 'publicado' OR (\n        \"compatibilidad\".\"fuente_tipo\" IS NOT NULL\n        AND \"compatibilidad\".\"fuente_detalle\" IS NOT NULL AND length(btrim(\"compatibilidad\".\"fuente_detalle\")) > 0\n        AND \"compatibilidad\".\"validado_por\" IS NOT NULL AND length(btrim(\"compatibilidad\".\"validado_por\")) > 0\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.cultivo_ecorregion": {
+      "name": "cultivo_ecorregion",
+      "schema": "",
+      "columns": {
+        "cultivo_id": {
+          "name": "cultivo_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ecorregion": {
+          "name": "ecorregion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "floracion_semanas": {
+          "name": "floracion_semanas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "cosecha_semanas": {
+          "name": "cosecha_semanas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "cultivo_ecorregion_cultivo_id_cultivo_id_fk": {
+          "name": "cultivo_ecorregion_cultivo_id_cultivo_id_fk",
+          "tableFrom": "cultivo_ecorregion",
+          "tableTo": "cultivo",
+          "columnsFrom": [
+            "cultivo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "cultivo_ecorregion_cultivo_id_ecorregion_pk": {
+          "name": "cultivo_ecorregion_cultivo_id_ecorregion_pk",
+          "columns": [
+            "cultivo_id",
+            "ecorregion"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "cultivo_ecorregion_valida": {
+          "name": "cultivo_ecorregion_valida",
+          "value": "\"cultivo_ecorregion\".\"ecorregion\" IN ('valles_templados', 'quebrada_de_humahuaca', 'yungas', 'puna', 'chaco_seco')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.planta_servicio": {
+      "name": "planta_servicio",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "clave": {
+          "name": "clave",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre_comun": {
+          "name": "nombre_comun",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre_cientifico": {
+          "name": "nombre_cientifico",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "funciones": {
+          "name": "funciones",
+          "type": "funcion_planta[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ciclo": {
+          "name": "ciclo",
+          "type": "ciclo_planta",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "origen": {
+          "name": "origen",
+          "type": "origen_planta",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'desconocido'"
+        },
+        "es_espontanea": {
+          "name": "es_espontanea",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "en_mercado_local": {
+          "name": "en_mercado_local",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "polinizadores_que_atrae": {
+          "name": "polinizadores_que_atrae",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "beneficios": {
+          "name": "beneficios",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "necesidad_agua": {
+          "name": "necesidad_agua",
+          "type": "nivel_agua",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'media'"
+        },
+        "manejo_corte": {
+          "name": "manejo_corte",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "riesgo_maleza": {
+          "name": "riesgo_maleza",
+          "type": "riesgo_maleza",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'bajo'"
+        },
+        "dosis_siembra": {
+          "name": "dosis_siembra",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "costo_referencia_ars_ha": {
+          "name": "costo_referencia_ars_ha",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "costo_referencia_fecha": {
+          "name": "costo_referencia_fecha",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado": {
+          "name": "estado",
+          "type": "estado_catalogo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'borrador'"
+        },
+        "fuente_tipo": {
+          "name": "fuente_tipo",
+          "type": "fuente_tipo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fuente_detalle": {
+          "name": "fuente_detalle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validado_por": {
+          "name": "validado_por",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "planta_servicio_clave_unique": {
+          "name": "planta_servicio_clave_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "clave"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "planta_servicio_clave_normalizada": {
+          "name": "planta_servicio_clave_normalizada",
+          "value": "\"planta_servicio\".\"clave\" = lower(btrim(\"planta_servicio\".\"clave\")) AND length(\"planta_servicio\".\"clave\") > 0"
+        },
+        "planta_servicio_funciones_no_vacias": {
+          "name": "planta_servicio_funciones_no_vacias",
+          "value": "cardinality(\"planta_servicio\".\"funciones\") >= 1"
+        },
+        "planta_servicio_disponibilidad_local": {
+          "name": "planta_servicio_disponibilidad_local",
+          "value": "\"planta_servicio\".\"es_espontanea\" OR \"planta_servicio\".\"en_mercado_local\""
+        },
+        "planta_servicio_campos_publicacion": {
+          "name": "planta_servicio_campos_publicacion",
+          "value": "\"planta_servicio\".\"estado\" <> 'publicado' OR (\n        \"planta_servicio\".\"nombre_cientifico\" IS NOT NULL AND length(btrim(\"planta_servicio\".\"nombre_cientifico\")) > 0\n        AND \"planta_servicio\".\"beneficios\" IS NOT NULL AND length(btrim(\"planta_servicio\".\"beneficios\")) > 0\n        AND \"planta_servicio\".\"manejo_corte\" IS NOT NULL AND length(btrim(\"planta_servicio\".\"manejo_corte\")) > 0\n        AND \"planta_servicio\".\"fuente_tipo\" IS NOT NULL\n        AND \"planta_servicio\".\"fuente_detalle\" IS NOT NULL AND length(btrim(\"planta_servicio\".\"fuente_detalle\")) > 0\n        AND \"planta_servicio\".\"validado_por\" IS NOT NULL AND length(btrim(\"planta_servicio\".\"validado_por\")) > 0\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.planta_servicio_ecorregion": {
+      "name": "planta_servicio_ecorregion",
+      "schema": "",
+      "columns": {
+        "planta_id": {
+          "name": "planta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ecorregion": {
+          "name": "ecorregion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "siembra_semanas": {
+          "name": "siembra_semanas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "floracion_semanas": {
+          "name": "floracion_semanas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "corte_semanas": {
+          "name": "corte_semanas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "semanas_hasta_floracion_min": {
+          "name": "semanas_hasta_floracion_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "semanas_hasta_floracion_max": {
+          "name": "semanas_hasta_floracion_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "planta_servicio_ecorregion_planta_id_planta_servicio_id_fk": {
+          "name": "planta_servicio_ecorregion_planta_id_planta_servicio_id_fk",
+          "tableFrom": "planta_servicio_ecorregion",
+          "tableTo": "planta_servicio",
+          "columnsFrom": [
+            "planta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "planta_servicio_ecorregion_planta_id_ecorregion_pk": {
+          "name": "planta_servicio_ecorregion_planta_id_ecorregion_pk",
+          "columns": [
+            "planta_id",
+            "ecorregion"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "planta_ecorregion_valida": {
+          "name": "planta_ecorregion_valida",
+          "value": "\"planta_servicio_ecorregion\".\"ecorregion\" IN ('valles_templados', 'quebrada_de_humahuaca', 'yungas', 'puna', 'chaco_seco')"
+        },
+        "planta_semanas_floracion_coherentes": {
+          "name": "planta_semanas_floracion_coherentes",
+          "value": "(\"planta_servicio_ecorregion\".\"semanas_hasta_floracion_min\" IS NULL OR \"planta_servicio_ecorregion\".\"semanas_hasta_floracion_min\" > 0)\n      AND (\"planta_servicio_ecorregion\".\"semanas_hasta_floracion_max\" IS NULL OR \"planta_servicio_ecorregion\".\"semanas_hasta_floracion_max\" > 0)\n      AND (\n        \"planta_servicio_ecorregion\".\"semanas_hasta_floracion_min\" IS NULL\n        OR \"planta_servicio_ecorregion\".\"semanas_hasta_floracion_max\" IS NULL\n        OR \"planta_servicio_ecorregion\".\"semanas_hasta_floracion_max\" >= \"planta_servicio_ecorregion\".\"semanas_hasta_floracion_min\"\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.diagnostico": {
+      "name": "diagnostico",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "establecimiento_id": {
+          "name": "establecimiento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "version_reglas": {
+          "name": "version_reglas",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entrada": {
+          "name": "entrada",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_total_ha": {
+          "name": "superficie_total_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_flores_ha": {
+          "name": "superficie_flores_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_cultivos_ha": {
+          "name": "superficie_cultivos_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_sin_asignar_ha": {
+          "name": "superficie_sin_asignar_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hectareas_a_compensar": {
+          "name": "hectareas_a_compensar",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "porcentaje_flores": {
+          "name": "porcentaje_flores",
+          "type": "numeric(5, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "deficit_pp": {
+          "name": "deficit_pp",
+          "type": "numeric(5, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nivel_riesgo": {
+          "name": "nivel_riesgo",
+          "type": "nivel_riesgo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "perimetro_m": {
+          "name": "perimetro_m",
+          "type": "numeric(10, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ancho_franja_m": {
+          "name": "ancho_franja_m",
+          "type": "numeric(10, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "areas_aptas": {
+          "name": "areas_aptas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_libre": {
+          "name": "superficie_libre",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alertas": {
+          "name": "alertas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "diagnostico_establecimiento_creado_idx": {
+          "name": "diagnostico_establecimiento_creado_idx",
+          "columns": [
+            {
+              "expression": "establecimiento_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "\"creado_en\" desc",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "diagnostico_establecimiento_id_establecimiento_id_fk": {
+          "name": "diagnostico_establecimiento_id_establecimiento_id_fk",
+          "tableFrom": "diagnostico",
+          "tableTo": "establecimiento",
+          "columnsFrom": [
+            "establecimiento_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.propuesta": {
+      "name": "propuesta",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "establecimiento_id": {
+          "name": "establecimiento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "diagnostico_id": {
+          "name": "diagnostico_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "version_reglas": {
+          "name": "version_reglas",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "elegida": {
+          "name": "elegida",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "objetivo_pct": {
+          "name": "objetivo_pct",
+          "type": "numeric(4, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "disposicion": {
+          "name": "disposicion",
+          "type": "disposicion_propuesta",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parametros": {
+          "name": "parametros",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "franjas": {
+          "name": "franjas",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reparto": {
+          "name": "reparto",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "editada_a_mano": {
+          "name": "editada_a_mano",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "superficie_franjas_ha": {
+          "name": "superficie_franjas_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "superficie_libre_usada_ha": {
+          "name": "superficie_libre_usada_ha",
+          "type": "numeric(12, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "porcentaje_logrado": {
+          "name": "porcentaje_logrado",
+          "type": "numeric(5, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "perdida_por_cultivo": {
+          "name": "perdida_por_cultivo",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "floracion": {
+          "name": "floracion",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avisos": {
+          "name": "avisos",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "propuesta_establecimiento_creado_idx": {
+          "name": "propuesta_establecimiento_creado_idx",
+          "columns": [
+            {
+              "expression": "establecimiento_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "\"creado_en\" desc",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "propuesta_una_elegida_por_finca_idx": {
+          "name": "propuesta_una_elegida_por_finca_idx",
+          "columns": [
+            {
+              "expression": "establecimiento_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"propuesta\".\"elegida\" = true",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "propuesta_establecimiento_id_establecimiento_id_fk": {
+          "name": "propuesta_establecimiento_id_establecimiento_id_fk",
+          "tableFrom": "propuesta",
+          "tableTo": "establecimiento",
+          "columnsFrom": [
+            "establecimiento_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "propuesta_diagnostico_id_diagnostico_id_fk": {
+          "name": "propuesta_diagnostico_id_diagnostico_id_fk",
+          "tableFrom": "propuesta",
+          "tableTo": "diagnostico",
+          "columnsFrom": [
+            "diagnostico_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "propuesta_objetivo_rango": {
+          "name": "propuesta_objetivo_rango",
+          "value": "\"propuesta\".\"objetivo_pct\" BETWEEN 10 AND 40"
+        },
+        "propuesta_nombre_largo": {
+          "name": "propuesta_nombre_largo",
+          "value": "\"propuesta\".\"nombre\" IS NULL OR length(\"propuesta\".\"nombre\") <= 60"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.propuesta_especie": {
+      "name": "propuesta_especie",
+      "schema": "",
+      "columns": {
+        "propuesta_id": {
+          "name": "propuesta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "planta_id": {
+          "name": "planta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proporcion_pct": {
+          "name": "proporcion_pct",
+          "type": "numeric(4, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "orden": {
+          "name": "orden",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "copia": {
+          "name": "copia",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "propuesta_especie_planta_idx": {
+          "name": "propuesta_especie_planta_idx",
+          "columns": [
+            {
+              "expression": "planta_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "propuesta_especie_propuesta_id_propuesta_id_fk": {
+          "name": "propuesta_especie_propuesta_id_propuesta_id_fk",
+          "tableFrom": "propuesta_especie",
+          "tableTo": "propuesta",
+          "columnsFrom": [
+            "propuesta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "propuesta_especie_planta_id_planta_servicio_id_fk": {
+          "name": "propuesta_especie_planta_id_planta_servicio_id_fk",
+          "tableFrom": "propuesta_especie",
+          "tableTo": "planta_servicio",
+          "columnsFrom": [
+            "planta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "propuesta_especie_propuesta_id_planta_id_pk": {
+          "name": "propuesta_especie_propuesta_id_planta_id_pk",
+          "columns": [
+            "propuesta_id",
+            "planta_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.dependencia_polinizacion": {
+      "name": "dependencia_polinizacion",
+      "schema": "public",
+      "values": [
+        "alta",
+        "media",
+        "baja",
+        "ninguna"
+      ]
+    },
+    "public.estado_catalogo": {
+      "name": "estado_catalogo",
+      "schema": "public",
+      "values": [
+        "borrador",
+        "publicado",
+        "retirado"
+      ]
+    },
+    "public.fuente_tipo": {
+      "name": "fuente_tipo",
+      "schema": "public",
+      "values": [
+        "bibliografia",
+        "entrevista",
+        "institucion",
+        "observacion_propia"
+      ]
+    },
+    "public.metodo_caracterizacion": {
+      "name": "metodo_caracterizacion",
+      "schema": "public",
+      "values": [
+        "cuestionario",
+        "croquis",
+        "mapa"
+      ]
+    },
+    "public.subtipo_flores": {
+      "name": "subtipo_flores",
+      "schema": "public",
+      "values": [
+        "flora_espontanea",
+        "borde_silvestre",
+        "banda_implantada",
+        "vegetacion_natural"
+      ]
+    },
+    "public.tipo_sector": {
+      "name": "tipo_sector",
+      "schema": "public",
+      "values": [
+        "cultivo",
+        "sector_flores"
+      ]
+    },
+    "public.ubicacion_relativa": {
+      "name": "ubicacion_relativa",
+      "schema": "public",
+      "values": [
+        "arriba_izquierda",
+        "arriba_centro",
+        "arriba_derecha",
+        "centro_izquierda",
+        "centro",
+        "centro_derecha",
+        "abajo_izquierda",
+        "abajo_centro",
+        "abajo_derecha"
+      ]
+    },
+    "public.accion_catalogo": {
+      "name": "accion_catalogo",
+      "schema": "public",
+      "values": [
+        "alta",
+        "edicion",
+        "publicacion",
+        "retiro",
+        "borrado",
+        "importacion"
+      ]
+    },
+    "public.ciclo_planta": {
+      "name": "ciclo_planta",
+      "schema": "public",
+      "values": [
+        "anual",
+        "bianual",
+        "perenne"
+      ]
+    },
+    "public.entidad_catalogo": {
+      "name": "entidad_catalogo",
+      "schema": "public",
+      "values": [
+        "planta_servicio",
+        "cultivo",
+        "compatibilidad"
+      ]
+    },
+    "public.funcion_planta": {
+      "name": "funcion_planta",
+      "schema": "public",
+      "values": [
+        "atrae_polinizadores",
+        "control_biologico",
+        "cobertura_suelo",
+        "aporta_fertilidad",
+        "refugio"
+      ]
+    },
+    "public.nivel_agua": {
+      "name": "nivel_agua",
+      "schema": "public",
+      "values": [
+        "baja",
+        "media",
+        "alta"
+      ]
+    },
+    "public.origen_planta": {
+      "name": "origen_planta",
+      "schema": "public",
+      "values": [
+        "nativa",
+        "introducida",
+        "desconocido"
+      ]
+    },
+    "public.riesgo_maleza": {
+      "name": "riesgo_maleza",
+      "schema": "public",
+      "values": [
+        "bajo",
+        "medio",
+        "alto"
+      ]
+    },
+    "public.nivel_riesgo": {
+      "name": "nivel_riesgo",
+      "schema": "public",
+      "values": [
+        "adecuado",
+        "moderado",
+        "critico"
+      ]
+    },
+    "public.disposicion_propuesta": {
+      "name": "disposicion_propuesta",
+      "schema": "public",
+      "values": [
+        "superficie_libre",
+        "perimetral",
+        "transversal",
+        "islas",
+        "matriz",
+        "texto"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

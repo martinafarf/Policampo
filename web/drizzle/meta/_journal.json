@@ -29,6 +29,13 @@
       "when": 1795319330639,
       "tag": "0003_diagnostico",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795324182605,
+      "tag": "0004_propuesta",
+      "breakpoints": true
     }
   ]
 }

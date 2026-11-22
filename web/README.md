@@ -120,10 +120,10 @@ se ven en el panel de Vercel → Settings → Cron Jobs.
 ## Rotación de secretos
 
 Se rotan **cuando alguien deja el grupo, cuando hay sospecha de filtración y una vez por cuatrimestre**:
-`BETTER_AUTH_SECRET`, `CRON_SECRET`, `EMAIL_BAJA_SECRET`, `RESEND_API_KEY` y las contraseñas de los roles de la
+`BETTER_AUTH_SECRET`, `CRON_SECRET`, `EMAIL_BAJA_SECRET`, `GMAIL_CLAVE_APP` y las contraseñas de los roles de la
 base.
 
-1. Generar el valor nuevo: en Neon, restablecer la contraseña del rol; en Resend, crear una clave nueva; para los
+1. Generar el valor nuevo: en Neon, restablecer la contraseña del rol; en la cuenta de Google, crear una contraseña de aplicación nueva; para los
    secretos propios, un valor aleatorio de 32 bytes o más.
 2. Cargarlo en Vercel como secreto (`vercel env add … --sensitive`) y volver a desplegar. Si es la contraseña de
    `policampo_migraciones` o la clave de Neon, actualizar también los secretos de GitHub de la acción Migraciones.
@@ -137,7 +137,7 @@ src/app/                    Pantallas y rutas (App Router)
 src/app/api/salud/          GET /api/salud: estado de la app y de la base
 src/app/api/auth/[...all]/  Rutas de Better Auth (registro, ingreso, verificación…)
 src/lib/auth.ts             Configuración de Better Auth (especificación 01)
-src/lib/email/              Envío de emails con Resend y plantillas (simulado en la consola si no hay clave)
+src/lib/email/              Envío de emails con Gmail y plantillas (simulado en la consola si no hay clave)
 src/lib/sesion.ts           requerirUsuario(), requerirAdministrador(), obtenerUsuario()
 src/lib/cuentas.ts          Registro, ingreso y reenvío de la verificación
 src/lib/limites.ts          Límites de intentos en la base (regla RS-13)

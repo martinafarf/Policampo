@@ -12,7 +12,7 @@ export function FormularioAceptar({ volver }: { volver: string }) {
         <input type="checkbox" name="acepta" required className="mt-1 h-5 w-5 shrink-0 accent-campo" />
         <span>
           Leí y acepto la política de privacidad, incluido que mis datos se procesen en servicios de Estados Unidos
-          (Neon, Vercel, Resend y Esri).
+          (Neon, Vercel, Google y Esri).
         </span>
       </label>
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}

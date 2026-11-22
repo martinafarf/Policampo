@@ -1,22 +1,22 @@
 // Regresión (encontrada probando la T4 en el navegador): si el email de AVISO "tu contraseña se
 // cambió" falla, la contraseña igual queda cambiada y la persona tiene que ver que salió bien.
-// Se simula solo Resend: rechaza el aviso y acepta el resto. Todo lo demás es el código real.
+// Se simula solo el envío (nodemailer): rechaza el aviso y acepta el resto. Todo lo demás es el código real.
 import { eq } from "drizzle-orm";
 import { beforeEach, expect, it, vi } from "vitest";
 
 const enviados: { subject: string; text: string }[] = [];
-vi.mock("resend", () => ({
-  Resend: class {
-    emails = {
-      send: async (email: { subject: string; text: string }) => {
-        if (email.subject.includes("se cambió")) return { data: null, error: { name: "application_error", message: "caído" } };
+vi.mock("nodemailer", () => ({
+  default: {
+    createTransport: () => ({
+      sendMail: async (email: { subject: string; text: string }) => {
+        if (email.subject.includes("se cambió")) throw new Error("caído");
         enviados.push(email);
-        return { data: { id: "1" }, error: null };
       },
-    };
+    }),
   },
 }));
-vi.stubEnv("RESEND_API_KEY", "clave-de-prueba");
+vi.stubEnv("GMAIL_USUARIO", "policampo@ejemplo.com");
+vi.stubEnv("GMAIL_CLAVE_APP", "clave-de-prueba");
 vi.spyOn(console, "error").mockImplementation(() => {});
 
 const { db } = await import("@/db");

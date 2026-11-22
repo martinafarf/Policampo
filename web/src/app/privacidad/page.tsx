@@ -22,7 +22,7 @@ function Seccion({ titulo, children }: { titulo: string; children: React.ReactNo
 const SERVICIOS = [
   { nombre: "Neon", uso: "Base de datos: guarda tu cuenta y tus fincas.", pais: "Estados Unidos" },
   { nombre: "Vercel", uso: "Servidores donde funciona el sitio.", pais: "Estados Unidos" },
-  { nombre: "Resend", uso: "Envío de los emails (confirmación, recuperación, avisos).", pais: "Estados Unidos" },
+  { nombre: "Google (Gmail)", uso: "Envío de los emails (confirmación, recuperación, avisos).", pais: "Estados Unidos" },
   { nombre: "Esri", uso: "Imágenes satelitales del mapa al dibujar tu finca.", pais: "Estados Unidos" },
 ];
 
@@ -111,7 +111,7 @@ export default function PaginaPrivacidad() {
               una actualización del sistema, a los 30 días;
             </li>
             <li>los registros técnicos de los servidores de Vercel, que se borran solos en poco tiempo;</li>
-            <li>el historial de envíos de emails de Resend (a quién se envió y cuándo, no el contenido de tus fincas).</li>
+            <li>el historial de envíos de emails de Gmail (a quién se envió y cuándo, no el contenido de tus fincas).</li>
           </ul>
         </Seccion>
 

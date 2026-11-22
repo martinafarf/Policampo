@@ -1,21 +1,21 @@
 // Tests del perfil (especificación 01, T5): CA-01-14 a CA-01-17, y las rutas de Better Auth
-// cerradas al público. Se simula solo Resend, para saber a qué dirección va cada email.
+// cerradas al público. Se simula solo el envío (nodemailer), para saber a qué dirección va cada email.
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type EmailEnviado = { to: string; subject: string; text: string };
 const enviados: EmailEnviado[] = [];
-vi.mock("resend", () => ({
-  Resend: class {
-    emails = {
-      send: async (email: EmailEnviado) => {
+vi.mock("nodemailer", () => ({
+  default: {
+    createTransport: () => ({
+      sendMail: async (email: EmailEnviado) => {
         enviados.push(email);
-        return { data: { id: "1" }, error: null };
       },
-    };
+    }),
   },
 }));
-vi.stubEnv("RESEND_API_KEY", "clave-de-prueba");
+vi.stubEnv("GMAIL_USUARIO", "policampo@ejemplo.com");
+vi.stubEnv("GMAIL_CLAVE_APP", "clave-de-prueba");
 
 const { db } = await import("@/db");
 const { account, establecimiento, eventoSeguridad, limiteUso, session, user, verification } = await import("@/db/schema");

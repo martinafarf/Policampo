@@ -15,7 +15,7 @@ const IP = "203.0.113.70";
 let lineas: string[] = [];
 function capturar(...partes: unknown[]) {
   const linea = partes.map((p) => (p instanceof Error ? `${p.name} ${p.message} ${p.stack}` : typeof p === "string" ? p : JSON.stringify(p))).join(" ");
-  // Los emails "simulados" (sin RESEND_API_KEY) se muestran a propósito en desarrollo y en los
+  // Los emails "simulados" (sin GMAIL_CLAVE_APP) se muestran a propósito en desarrollo y en los
   // tests para poder probar los enlaces; en producción no existen. No son logs del servidor.
   if (!linea.startsWith("[email simulado]")) lineas.push(linea);
 }

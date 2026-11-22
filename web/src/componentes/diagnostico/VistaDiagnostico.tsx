@@ -321,17 +321,21 @@ export function VistaDiagnostico({
         </ol>
       </details>
 
-      {/* 8. Acciones finales (Esp. 04 §5.2) */}
+      {/* 8. Acciones finales (Esp. 04 §5.2, activado en Esp. 05 §6.1) */}
       <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-stone-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col items-start gap-1">
-          <button
-            type="button"
-            disabled
-            className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg bg-stone-300 px-4 py-2 text-sm font-semibold text-stone-600"
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/fincas/${establecimientoId}/propuestas/nueva`}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
           >
-            Ver propuesta de rediseño
-          </button>
-          <span className="text-xs font-medium text-stone-500">Disponible próximamente</span>
+            🌼 Ver propuesta de rediseño
+          </Link>
+          <Link
+            href={`/fincas/${establecimientoId}/propuestas`}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100"
+          >
+            Guardadas
+          </Link>
         </div>
 
         <Link

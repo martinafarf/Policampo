@@ -18,7 +18,7 @@ export function BotonCerrarSesion() {
     <form action={cerrarSesion} onSubmit={borrarBorradoresLocales}>
       <button
         type="submit"
-        className="rounded-lg border border-borde px-3 py-2 font-medium text-tinta hover:bg-campo-claro"
+        className="rounded-lg border border-borde px-2 py-2 font-medium whitespace-nowrap text-tinta hover:bg-campo-claro sm:px-3"
       >
         Cerrar sesión
       </button>

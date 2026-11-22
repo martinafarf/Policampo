@@ -22,7 +22,9 @@ export type TipoEvento =
   | "cuenta_desactivada"
   | "cuenta_reactivada"
   | "administrador_creado"
-  | "administrador_ascendido";
+  | "administrador_ascendido"
+  // Privacidad (T7)
+  | "politica_aceptada";
 
 export async function registrarEvento(
   tipo: TipoEvento,

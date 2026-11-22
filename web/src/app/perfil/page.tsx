@@ -37,7 +37,7 @@ function AvisoCambioEmail({ busqueda }: { busqueda: Busqueda }) {
 }
 
 async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) {
-  const usuario = await requerirUsuario("/perfil");
+  const usuario = await requerirUsuario("/perfil", { sinConsentimiento: true });
   const [perfil, resumenSemanalActivo, busqueda] = await Promise.all([
     datosDelPerfil(usuario.id),
     obtenerPreferenciaResumenSemanal(usuario.id),

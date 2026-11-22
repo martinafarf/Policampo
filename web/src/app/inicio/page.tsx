@@ -1,5 +1,5 @@
-// Inicio del usuario (versión mínima de la T3; la T7 la completa).
-// Accesos a los módulos: "Mis fincas" activado (especificación 02, sección 5.1); el resto "Próximamente".
+// Inicio del usuario (especificación 01, 5.1): saludo y accesos a los módulos. Los que todavía no
+// existen dicen "Próximamente"; al terminar cada módulo se le agrega su enlace acá.
 import Link from "next/link";
 import { Suspense } from "react";
 import { BadgeEstadoTarea } from "@/componentes/calendario/BadgeEstadoTarea";

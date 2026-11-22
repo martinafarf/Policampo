@@ -26,7 +26,7 @@ function texto(formulario: FormData, campo: string): string {
 export type EstadoNombre = { guardado?: boolean; errores?: ErroresNombre };
 
 export async function guardarNombre(_previo: EstadoNombre, formulario: FormData): Promise<EstadoNombre> {
-  const usuario = await requerirUsuario("/perfil");
+  const usuario = await requerirUsuario("/perfil", { sinConsentimiento: true });
   // Solo se leen nombre y apellido: aunque el formulario mande "usuario", se ignora (CA-01-14).
   const resultado = await actualizarNombre(usuario.id, {
     nombre: texto(formulario, "nombre"),
@@ -42,7 +42,7 @@ export async function guardarNombre(_previo: EstadoNombre, formulario: FormData)
 export type EstadoContrasena = { guardada?: boolean; errores?: ErroresCambioContrasena; general?: string };
 
 export async function cambiarContrasenaAccion(_previo: EstadoContrasena, formulario: FormData): Promise<EstadoContrasena> {
-  const usuario = await requerirUsuario("/perfil");
+  const usuario = await requerirUsuario("/perfil", { sinConsentimiento: true });
   const resultado = await cambiarContrasena(
     usuario.id,
     {
@@ -61,7 +61,7 @@ export async function cambiarContrasenaAccion(_previo: EstadoContrasena, formula
 export type EstadoEmail = { enviadoA?: string; errores?: ErroresCambioEmail; general?: string; email?: string };
 
 export async function pedirCambioEmailAccion(_previo: EstadoEmail, formulario: FormData): Promise<EstadoEmail> {
-  const usuario = await requerirUsuario("/perfil");
+  const usuario = await requerirUsuario("/perfil", { sinConsentimiento: true });
   const email = texto(formulario, "email");
   const resultado = await pedirCambioEmail(usuario.id, { email, contrasena: texto(formulario, "contrasena") }, await headers());
   if (!resultado.ok) return { errores: resultado.errores, general: resultado.general, email };
@@ -77,7 +77,7 @@ export type EstadoEliminar = { errores?: ErroresEliminar; general?: string };
  * borradores del navegador, como al cerrar sesión (RS-08, componentes/cuentas/limpiar-borradores.tsx).
  */
 export async function eliminarCuentaAccion(_previo: EstadoEliminar, formulario: FormData): Promise<EstadoEliminar> {
-  const usuario = await requerirUsuario("/perfil");
+  const usuario = await requerirUsuario("/perfil", { sinConsentimiento: true });
   const resultado = await eliminarCuenta(
     usuario.id,
     { contrasena: texto(formulario, "contrasena"), confirmacion: texto(formulario, "confirmacion") },

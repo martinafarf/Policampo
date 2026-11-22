@@ -44,3 +44,16 @@ export async function enviarEmail(email: Email): Promise<void> {
     throw new Error("No se pudo enviar el email. Probá de nuevo en unos minutos.");
   }
 }
+
+/**
+ * Para los emails de AVISO (contraseña cambiada, email cambiado, cuenta eliminada): se mandan
+ * después de que la operación ya ocurrió. Si el envío falla, se registra y se sigue: la operación
+ * no puede aparecer como fallida cuando en realidad se hizo.
+ */
+export async function enviarAvisoSinInterrumpir(email: Email): Promise<void> {
+  try {
+    await enviarEmail(email);
+  } catch {
+    console.error(`No se pudo enviar el aviso "${email.asunto}"; la operación ya se había completado.`);
+  }
+}

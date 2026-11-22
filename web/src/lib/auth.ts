@@ -11,7 +11,7 @@ import { db } from "@/db";
 // Reglas del nombre de usuario (especificación 01, sección 6.2): una sola fuente, en el dominio.
 import { nombreDeUsuarioValido, USUARIO_MAX, USUARIO_MIN } from "@/dominio/usuarios/validaciones";
 import * as schema from "@/db/schema";
-import { enviarEmail } from "@/lib/email";
+import { enviarAvisoSinInterrumpir, enviarEmail } from "@/lib/email";
 import * as plantillas from "@/lib/email/plantillas";
 
 const MINUTO = 60;
@@ -72,8 +72,10 @@ export const auth = betterAuth({
       await enviarEmail({ para: user.email, ...plantillas.recuperacion(url) });
     },
     // Después de recuperar la contraseña se avisa por email (especificación 01, flujo 4.5).
+    // Es un aviso: si el email falla, la contraseña YA se cambió y el enlace ya se usó, así que el
+    // error no puede interrumpir la operación (la persona vería "no se cambió" cuando sí se cambió).
     onPasswordReset: async ({ user }) => {
-      await enviarEmail({ para: user.email, ...plantillas.avisoCambioContrasena() });
+      await enviarAvisoSinInterrumpir({ para: user.email, ...plantillas.avisoCambioContrasena() });
     },
   },
   emailVerification: {

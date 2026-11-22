@@ -1,11 +1,19 @@
 // Servicio de cuentas: registro, ingreso y reenvío de la verificación (especificación 01, T3).
 // Las acciones de las pantallas llaman a estas funciones; así la lógica se testea sin pantallas.
 import "server-only";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { APIError } from "better-auth/api";
 import { db } from "@/db";
-import { user } from "@/db/schema";
-import { normalizarEmail, validarRegistro, type DatosRegistro, type ErroresRegistro } from "@/dominio/usuarios/validaciones";
+import { user, verification } from "@/db/schema";
+import {
+  emailValido,
+  normalizarEmail,
+  validarContrasena,
+  validarRegistro,
+  type DatosRegistro,
+  type ErroresContrasena,
+  type ErroresRegistro,
+} from "@/dominio/usuarios/validaciones";
 import { auth } from "@/lib/auth";
 import { registrarEvento } from "@/lib/eventos";
 import { claveDeLimite, consumirIntento, contarIntentos, reiniciarIntentos, sumarIntento } from "@/lib/limites";
@@ -166,4 +174,77 @@ export async function reenviarVerificacion(identificador: string): Promise<{ ok:
     }
   }
   return { ok: true };
+}
+
+// ─── Recuperación de contraseña (especificación 01, flujo 4.5, T4) ───
+
+/** Adónde lleva el enlace del email de recuperación (con ?token=... o ?error=INVALID_TOKEN). */
+export const RUTA_NUEVA_CONTRASENA = "/recuperar/nueva";
+const LIMITE_RECUPERACION_IP = { ventana: HORA, maximo: 5 };
+const LIMITE_RECUPERACION_EMAIL = { ventana: HORA, maximo: 3 };
+
+export type ResultadoPedidoRecuperacion = { ok: true } | { ok: false; error: string };
+
+/**
+ * Pide el enlace para crear una contraseña nueva. Responde lo mismo exista o no la cuenta
+ * (CA-01-12): el email solo se envía si existe.
+ */
+export async function pedirRecuperacion(emailIngresado: string, ip: string): Promise<ResultadoPedidoRecuperacion> {
+  const email = normalizarEmail(emailIngresado);
+  if (!emailValido(email)) return { ok: false, error: "El email no es válido." };
+  const porIp = await consumirIntento(claveDeLimite("recuperacion-ip", ip), LIMITE_RECUPERACION_IP.ventana, LIMITE_RECUPERACION_IP.maximo);
+  const porEmail = await consumirIntento(
+    claveDeLimite("recuperacion-email", email),
+    LIMITE_RECUPERACION_EMAIL.ventana,
+    LIMITE_RECUPERACION_EMAIL.maximo,
+  );
+  if (!porIp || !porEmail) return { ok: false, error: "Demasiados pedidos. Probá de nuevo más tarde." };
+  try {
+    await auth.api.requestPasswordReset({ body: { email, redirectTo: RUTA_NUEVA_CONTRASENA } });
+  } catch (error) {
+    console.error("Error al pedir la recuperación:", error instanceof Error ? error.name : "error");
+    return { ok: false, error: "No pudimos procesar el pedido. Probá de nuevo en unos minutos." };
+  }
+  return { ok: true };
+}
+
+/** La cuenta a la que corresponde un enlace de recuperación vigente, o null si venció o ya se usó. */
+export async function cuentaDelEnlaceDeRecuperacion(token: string): Promise<{ id: string; usuario: string; email: string } | null> {
+  if (!token || token.length > 200) return null;
+  const [fila] = await db
+    .select({ id: user.id, usuario: user.username, email: user.email })
+    .from(verification)
+    .innerJoin(user, eq(user.id, verification.value))
+    // Se compara con la hora de la base (now()), no con new Date() de Node: es la misma fuente de
+    // tiempo para todos y Next.js no lo trata como un valor inestable al pre-generar la página.
+    .where(and(eq(verification.identifier, `reset-password:${token}`), gt(verification.expiresAt, sql`now()`)))
+    .limit(1);
+  return fila ? { id: fila.id, usuario: fila.usuario ?? "", email: fila.email } : null;
+}
+
+export type ResultadoNuevaContrasena =
+  | { ok: true }
+  | { ok: false; enlaceInvalido?: boolean; errores?: ErroresContrasena; general?: string };
+
+/**
+ * Crea la contraseña nueva con el enlace del email. Better Auth consume el enlace (sirve una sola
+ * vez), cierra todas las sesiones de la cuenta y dispara el email de aviso (CA-01-13).
+ */
+export async function crearNuevaContrasena(token: string, contrasena: string, repetir: string): Promise<ResultadoNuevaContrasena> {
+  const cuenta = await cuentaDelEnlaceDeRecuperacion(token);
+  if (!cuenta) return { ok: false, enlaceInvalido: true };
+  const errores = validarContrasena(contrasena, repetir, cuenta);
+  if (Object.keys(errores).length > 0) return { ok: false, errores };
+  try {
+    await auth.api.resetPassword({ body: { newPassword: contrasena, token } });
+    await registrarEvento("contrasena_restablecida", { usuarioId: cuenta.id });
+    return { ok: true };
+  } catch (error) {
+    const codigo = codigoDeError(error);
+    if (codigo === "PASSWORD_COMPROMISED")
+      return { ok: false, errores: { contrasena: "Esa contraseña apareció en filtraciones de datos. Elegí otra." } };
+    if (codigo === "INVALID_TOKEN") return { ok: false, enlaceInvalido: true };
+    console.error("Error al crear la contraseña nueva:", error instanceof Error ? error.name : "error");
+    return { ok: false, general: "No pudimos cambiar la contraseña. Probá de nuevo en unos minutos." };
+  }
 }

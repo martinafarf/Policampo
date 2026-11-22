@@ -270,7 +270,7 @@ export function FormularioCuestionario({
       {/* Barra fija con superficie total, distribuida y restante (Esp. 02, 5.3 y 6.2) */}
       <aside
         aria-live="polite"
-        className={`sticky top-2 z-10 rounded-xl border p-3.5 shadow-xs ${claseBarraRestante}`}
+        className={`sticky top-24 z-10 rounded-xl border p-3.5 shadow-xs ${claseBarraRestante}`}
       >
         <div className="grid grid-cols-3 gap-2 text-center text-xs sm:text-sm">
           <div>

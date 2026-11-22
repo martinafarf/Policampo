@@ -1,4 +1,4 @@
-// Inicio del usuario (especificación 01, 5.1): saludo, próximas tareas y accesos a los módulos.
+// Herramientas del usuario, en la ruta /inicio («Inicio» en pantalla es la landing) (especificación 01, 5.1): saludo, próximas tareas y accesos a los módulos.
 // Estética alineada con DESIGN.md (paleta bosque/hoja/menta/naranja, tarjetas 28 px, píldoras 48 px, íconos SVG).
 import Link from "next/link";
 import { Suspense, type ComponentType } from "react";
@@ -19,7 +19,7 @@ import { formatearFechaCortaEsAr } from "@/dominio/calendario";
 import { obtenerResumenTareasParaInicio } from "@/dominio/calendario/servicio";
 import { requerirUsuario } from "@/lib/sesion";
 
-export const metadata = { title: "Inicio · PoliCampo" };
+export const metadata = { title: "Herramientas · PoliCampo" };
 
 const MODULOS: readonly {
   titulo: string;

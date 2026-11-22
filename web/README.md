@@ -62,22 +62,45 @@ Nunca se usa la base de producción para probar ni se copian sus datos a desarro
 | Rol | Puede | Dónde se usa |
 | --- | --- | --- |
 | `policampo_app` | Leer, insertar, modificar y borrar **datos**. No puede crear, cambiar ni borrar tablas. | `DATABASE_URL` de la app (local y Vercel) |
-| `policampo_migraciones` | Cambiar el esquema (migraciones). Las tablas que crea quedan disponibles para `policampo_app`. | `DATABASE_URL_MIGRACIONES`, solo en la computadora de quien migra |
+| `policampo_migraciones` | Cambiar el esquema (migraciones). Las tablas que crea quedan disponibles para `policampo_app`. | La acción **Migraciones** de GitHub (secretos del repositorio). Nunca en Vercel. |
 | `neondb_owner` | Todo (dueño). | Solo para administrar roles. La app no lo usa. |
 
 Estado: los roles existen en `desarrollo` y en `production` (creados el 2026-11-21, con la rama de respaldo
 `respaldo-2026-11-21`). En Vercel, Preview y Production usan `policampo_app`.
 
-## Respaldo antes de migrar (regla RS-16)
+## Migraciones y respaldo (reglas RS-12 y RS-16)
 
-1. Antes de migrar producción, crear la rama de respaldo:
-   ```bash
-   neonctl branches create --project-id <id> --name respaldo-AAAA-MM-DD --parent production
-   ```
-2. Aplicar la migración con el rol `policampo_migraciones` (RS-12).
-3. **Si algo sale mal:** restaurar `production` desde la rama de respaldo (consola de Neon → Branches → Restore) y
-   avisar al grupo.
-4. Borrar las ramas de respaldo de más de 30 días.
+**Las migraciones se aplican solas.** Quien cambia el esquema corre `npm run db:generar` y sube el archivo de
+`web/drizzle/` en su PR. Al mergearlo, la acción **Migraciones** de GitHub
+([`.github/workflows/migraciones.yml`](../.github/workflows/migraciones.yml)):
+
+1. aplica la migración en `desarrollo` (si falla, se detiene y `production` no se toca);
+2. crea la rama de respaldo `respaldo-AAAA-MM-DD-<commit>` de `production`;
+3. aplica la migración en `production`.
+
+Siempre con el rol `policampo_migraciones`. Si la acción falla, llega un email de GitHub y se ve en la pestaña
+**Actions**. Se puede volver a correr desde ahí (Run workflow).
+
+**Si algo sale mal en production:** restaurar `production` desde la rama de respaldo (consola de Neon → Branches →
+Restore) y avisar al grupo.
+
+**Mantenimiento:** borrar las ramas de respaldo de más de 30 días.
+
+**Configuración** (Settings → Secrets and variables → Actions del repositorio):
+
+| Nombre | Tipo | Valor |
+| --- | --- | --- |
+| `MIGRACIONES_DESARROLLO_URL` | Secreto | Conexión de `policampo_migraciones` a la rama `desarrollo` |
+| `MIGRACIONES_PRODUCCION_URL` | Secreto | Conexión de `policampo_migraciones` a la rama `production` |
+| `NEON_API_KEY` | Secreto | Clave de la API de Neon **limitada a este proyecto** (*project-scoped*) |
+| `NEON_PROJECT_ID` | Variable | ID del proyecto de Neon |
+
+**A mano** (solo si la acción no está disponible), con `DATABASE_URL_MIGRACIONES` en el `.env.local`:
+
+```bash
+neonctl branches create --name respaldo-AAAA-MM-DD --parent production
+npm run db:migrar
+```
 
 ## Rotación de secretos
 
@@ -87,7 +110,8 @@ base.
 
 1. Generar el valor nuevo: en Neon, restablecer la contraseña del rol; en Resend, crear una clave nueva; para los
    secretos propios, un valor aleatorio de 32 bytes o más.
-2. Cargarlo en Vercel como secreto (`vercel env add … --sensitive`) y volver a desplegar.
+2. Cargarlo en Vercel como secreto (`vercel env add … --sensitive`) y volver a desplegar. Si es la contraseña de
+   `policampo_migraciones` o la clave de Neon, actualizar también los secretos de GitHub de la acción Migraciones.
 3. Revocar el valor viejo.
 4. Rotar `BETTER_AUTH_SECRET` cierra todas las sesiones: avisar a los usuarios.
 

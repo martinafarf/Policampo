@@ -80,7 +80,8 @@ Cuando varios agentes trabajan a la vez:
 | --- | --- |
 | Idioma | Español en la interfaz, la documentación, los comentarios, los commits y los nombres del dominio. Inglés solo en los términos técnicos del framework. |
 | Nombres | Los del [glosario](docs/glosario.md), columna "Nombre en el código": `establecimiento`, `sector`, `superficie_total_ha`, `metodo_caracterizacion`, etc. |
-| Migraciones | **Una sola persona genera migraciones a la vez**, avisando al grupo: dos ramas con una `0001_…` cada una chocan al mergear. Si pasa igual, antes de mergear: actualizar la rama con `main`, borrar la migración propia y volver a generarla con `npm run db:generar`. Nunca editar una migración que ya está en `main`. |
+| Migraciones | **Una sola persona genera migraciones a la vez**, avisando al grupo: dos ramas con una `0001_…` cada una chocan al mergear. Si pasa igual, antes de mergear: actualizar la rama con `main`, borrar la migración propia y volver a generarla con `npm run db:generar`. Nunca editar una migración que ya está en `main`. **Nadie migra a mano:** al mergear, la acción **Migraciones** de GitHub la aplica en `desarrollo`, respalda `production` y la aplica ahí (ver `web/README.md`). |
+| Pull Requests | Todo entra a `main` por PR (RD-05). **Quien abre el PR lo mergea** cuando la CI pasó; pedir revisión a otra integrante es opcional. |
 | Sesión y permisos | En páginas y acciones del servidor, el usuario se obtiene con `requerirUsuario()` (o `requerirAdministrador()`) de `web/src/lib/sesion.ts`. En páginas, todo lo que lee la sesión va dentro de un `<Suspense>` (Next.js 16, Cache Components). |
 | Unidades | Superficies en hectáreas (ha), con hasta 4 decimales. Los m² solo para mostrar. |
 | Ramas | `feature/<tema>`, `fix/<tema>`, `docs/<tema>`, en minúsculas y con guiones. |

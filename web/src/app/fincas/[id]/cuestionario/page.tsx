@@ -1,9 +1,9 @@
 // Ruta /fincas/[id]/cuestionario: carga y edición de sectores por cuestionario (Esp. 02, T3).
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
+import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 import { FormularioCuestionario } from "./FormularioCuestionario";
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 
 async function ContenidoCuestionario({ params }: Props) {
   const { id } = await params;
-  const usuario = await exigirUsuarioActual(`/fincas/${id}/cuestionario`);
+  const usuario = await requerirUsuario(`/fincas/${id}/cuestionario`);
   const finca = await obtenerEstablecimientoDelUsuario(id, usuario.id);
 
   if (!finca) {

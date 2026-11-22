@@ -1,0 +1,87 @@
+# Migraciones automáticas de la base (reglas RS-12 y RS-16).
+#
+# Cuando llega a main una migración nueva (un archivo en web/drizzle/), este flujo:
+#   1. la aplica en la rama "desarrollo" de Neon (si falla ahí, se detiene y production no se toca);
+#   2. crea una rama de respaldo de "production" en Neon (RS-16);
+#   3. la aplica en "production".
+# Siempre con el rol policampo_migraciones (RS-12). Nadie tiene que migrar a mano: quien hace una
+# migración solo corre "npm run db:generar" y la sube en su PR.
+#
+# Secretos del repositorio (Settings → Secrets and variables → Actions):
+#   - MIGRACIONES_DESARROLLO_URL: conexión de policampo_migraciones a la rama desarrollo.
+#   - MIGRACIONES_PRODUCCION_URL: conexión de policampo_migraciones a la rama production.
+#   - NEON_API_KEY: clave de la API de Neon limitada a este proyecto (project-scoped), para el respaldo.
+# Variable del repositorio: NEON_PROJECT_ID (no es secreta).
+#
+# También se puede correr a mano: Actions → Migraciones → Run workflow.
+name: Migraciones
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/drizzle/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Nunca dos migraciones a la vez, y nunca se cancela una que ya empezó.
+concurrency:
+  group: migraciones
+  cancel-in-progress: false
+
+jobs:
+  migrar:
+    name: Respaldar y migrar
+    # Solo en el repositorio del grupo (no en copias).
+    if: github.repository == 'martinafarf/Policampo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias (exactas, desde package-lock.json)
+        run: npm ci
+
+      - name: Migrar desarrollo
+        env:
+          DATABASE_URL_MIGRACIONES: ${{ secrets.MIGRACIONES_DESARROLLO_URL }}
+        run: npx drizzle-kit migrate
+
+      # Copia de production en este momento, sin cómputo propio (no consume horas de Neon).
+      # Si algo sale mal: consola de Neon → Branches → Restore desde esta rama (web/README.md).
+      # Sin "parent_id", Neon copia la rama por defecto del proyecto, que es production.
+      - name: Respaldar production (RS-16)
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          nombre="respaldo-$(date -u +%Y-%m-%d)-${GITHUB_SHA::7}"
+          # Si se vuelve a correr el mismo commit, el nombre no puede repetirse.
+          if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then nombre="$nombre-intento$GITHUB_RUN_ATTEMPT"; fi
+          cuerpo=$(jq -n --arg nombre "$nombre" '{branch: {name: $nombre}}')
+          respuesta=$(curl --fail-with-body -sS -X POST \
+            "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
+            -H "Authorization: Bearer ${NEON_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$cuerpo")
+          echo "Rama de respaldo creada: $nombre ($(echo "$respuesta" | jq -r .branch.id))"
+
+      - name: Migrar production
+        env:
+          DATABASE_URL_MIGRACIONES: ${{ secrets.MIGRACIONES_PRODUCCION_URL }}
+        run: npx drizzle-kit migrate

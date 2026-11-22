@@ -29,7 +29,7 @@ const MODULOS: readonly {
     titulo: "Diagnóstico",
     icono: "🔍",
     texto: "Mirá cuánta superficie tiene flores frente al 20 % recomendado.",
-    href: "/fincas",
+    href: "/fincas?enfoque=diagnostico",
   },
   { titulo: "Rediseño", icono: "🌼", texto: "Dónde ubicar franjas florales y qué plantas sembrar." },
   { titulo: "Informes", icono: "📄", texto: "Descargá el informe técnico de cada finca." },

@@ -2,19 +2,20 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ETIQUETAS_METODO, formatearSuperficieCompleta } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { listarEstablecimientosDelUsuario } from "./_lib/consultas";
-import { exigirUsuarioActual } from "./_lib/sesion";
 
 interface Props {
   searchParams: Promise<{ borrada?: string }>;
 }
 
 async function ContenidoMisFincas({ searchParams }: Props) {
-  const usuario = await exigirUsuarioActual("/fincas");
+  const usuario = await requerirUsuario("/fincas");
   const [{ borrada }, fincas] = await Promise.all([
     searchParams,
     listarEstablecimientosDelUsuario(usuario.id),
   ]);
+  const nombreBorrada = borrada?.trim().slice(0, 150) || null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,12 +34,12 @@ async function ContenidoMisFincas({ searchParams }: Props) {
         </Link>
       </header>
 
-      {borrada ? (
+      {nombreBorrada ? (
         <div
           role="status"
-          className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900"
+          className="break-words rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900"
         >
-          Se borró la finca {borrada}.
+          Se borró la finca {nombreBorrada}.
         </div>
       ) : null}
 
@@ -65,8 +66,10 @@ async function ContenidoMisFincas({ searchParams }: Props) {
             >
               <div className="flex flex-col gap-1.5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="text-lg font-bold text-stone-900">{finca.nombre}</h2>
-                  <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
+                  <h2 className="min-w-0 flex-1 break-words text-lg font-bold text-stone-900">
+                    {finca.nombre}
+                  </h2>
+                  <span className="shrink-0 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
                     {ETIQUETAS_METODO[finca.metodoCaracterizacion]}
                   </span>
                 </div>

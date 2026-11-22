@@ -17,7 +17,7 @@ import {
   validarSumaSuperficies,
   type ErroresDatosEstablecimiento,
 } from "@/dominio/establecimientos";
-import { exigirUsuarioActual } from "./_lib/sesion";
+import { requerirUsuario } from "@/lib/sesion";
 
 export interface EstadoFormularioEstablecimiento {
   errores: ErroresDatosEstablecimiento;
@@ -49,7 +49,7 @@ export async function crearEstablecimiento(
   _estadoPrevio: EstadoFormularioEstablecimiento,
   formData: FormData,
 ): Promise<EstadoFormularioEstablecimiento> {
-  const usuario = await exigirUsuarioActual("/fincas/nueva");
+  const usuario = await requerirUsuario("/fincas/nueva");
 
   const localidadEsOtra = leerTexto(formData, "localidadEsOtra") === "true";
   const localidad = localidadEsOtra
@@ -148,7 +148,7 @@ export async function actualizarDatosGenerales(
   _estadoPrevio: EstadoFormularioEstablecimiento,
   formData: FormData,
 ): Promise<EstadoFormularioEstablecimiento> {
-  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}/datos`);
+  const usuario = await requerirUsuario(`/fincas/${establecimientoId}/datos`);
 
   if (!esUuidValido(establecimientoId)) {
     notFound();
@@ -304,7 +304,7 @@ export async function borrarEstablecimiento(
   _estadoPrevio: EstadoBorradoEstablecimiento,
   formData: FormData,
 ): Promise<EstadoBorradoEstablecimiento> {
-  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}`);
+  const usuario = await requerirUsuario(`/fincas/${establecimientoId}`);
 
   if (!esUuidValido(establecimientoId)) {
     notFound();
@@ -351,7 +351,7 @@ export async function cambiarMetodoEstablecimiento(
   _estadoPrevio: EstadoCambioMetodo,
   formData: FormData,
 ): Promise<EstadoCambioMetodo> {
-  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}`);
+  const usuario = await requerirUsuario(`/fincas/${establecimientoId}`);
 
   if (!esUuidValido(establecimientoId)) {
     notFound();

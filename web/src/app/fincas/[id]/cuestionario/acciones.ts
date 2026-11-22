@@ -14,8 +14,8 @@ import {
   type EntradaSectorCuestionario,
   type ErrorSector,
 } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 
 export interface ResultadoGuardarCuestionario {
   guardado: boolean;
@@ -33,7 +33,7 @@ export async function guardarSectoresCuestionario(
   establecimientoId: string,
   payload: PayloadGuardarCuestionario,
 ): Promise<ResultadoGuardarCuestionario> {
-  const usuario = await exigirUsuarioActual(`/fincas/${establecimientoId}/cuestionario`);
+  const usuario = await requerirUsuario(`/fincas/${establecimientoId}/cuestionario`);
 
   if (!esUuidValido(establecimientoId)) {
     notFound();

@@ -3,9 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { EditorCroquis } from "@/componentes/croquis/EditorCroquis";
 import type { PoligonoGeoJson } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -13,7 +13,7 @@ interface Props {
 
 async function ContenidoCroquis({ params }: Props) {
   const { id } = await params;
-  const usuario = await exigirUsuarioActual(`/fincas/${id}/croquis`);
+  const usuario = await requerirUsuario(`/fincas/${id}/croquis`);
   const finca = await obtenerEstablecimientoDelUsuario(id, usuario.id);
 
   if (!finca) {

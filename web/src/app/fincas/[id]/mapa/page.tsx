@@ -4,9 +4,9 @@ import { Suspense } from "react";
 import { obtenerLocalidades } from "@/datos/jujuy";
 import { EditorMapa } from "@/componentes/mapa/EditorMapa";
 import type { PoligonoGeoJson } from "@/dominio/establecimientos";
+import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
-import { exigirUsuarioActual } from "../../_lib/sesion";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -16,7 +16,7 @@ const CENTRO_JUJUY_POR_DEFECTO = { lat: -24.1858, lng: -65.2995, zoom: 12 };
 
 async function ContenidoMapa({ params }: Props) {
   const { id } = await params;
-  const usuario = await exigirUsuarioActual(`/fincas/${id}/mapa`);
+  const usuario = await requerirUsuario(`/fincas/${id}/mapa`);
   const finca = await obtenerEstablecimientoDelUsuario(id, usuario.id);
 
   if (!finca) {

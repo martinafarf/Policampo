@@ -384,6 +384,25 @@ async function ContenidoFicha({ params, searchParams }: Props) {
           </Link>
         </div>
       </section>
+
+      {/* Bloque de Calendario agroecológico (Esp. 06 §5.1 y §6) */}
+      {propuestaElegida ? (
+        <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-bold text-stone-900">Calendario agroecológico</h2>
+            <p className="text-sm text-stone-600">
+              Fechas de siembra, límite, corte y avisos de no pulverizar a partir de tu propuesta
+              elegida.
+            </p>
+          </div>
+          <Link
+            href={`/fincas/${finca.id}/calendario`}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          >
+            🗓️ Abrir calendario →
+          </Link>
+        </section>
+      ) : null}
     </div>
   );
 }

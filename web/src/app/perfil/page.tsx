@@ -3,7 +3,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CasillaResumenSemanal } from "@/componentes/calendario/CasillaResumenSemanal";
 import { Aviso } from "@/componentes/ui/formulario";
+import { obtenerPreferenciaResumenSemanal } from "@/dominio/calendario/servicio";
 import { datosDelPerfil } from "@/lib/perfil";
 import { requerirUsuario } from "@/lib/sesion";
 import { FormularioContrasena, FormularioEliminar, FormularioEmail, FormularioNombre } from "./formularios";
@@ -36,9 +38,12 @@ function AvisoCambioEmail({ busqueda }: { busqueda: Busqueda }) {
 
 async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) {
   const usuario = await requerirUsuario("/perfil");
-  const perfil = await datosDelPerfil(usuario.id);
+  const [perfil, resumenSemanalActivo, busqueda] = await Promise.all([
+    datosDelPerfil(usuario.id),
+    obtenerPreferenciaResumenSemanal(usuario.id),
+    searchParams,
+  ]);
   if (!perfil) notFound();
-  const busqueda = await searchParams;
   return (
     <div className="flex flex-col gap-6">
       <AvisoCambioEmail busqueda={busqueda} />
@@ -62,6 +67,10 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
           Te mandamos un enlace al email nuevo. El cambio se hace cuando lo abrís, y avisamos a tu email actual.
         </p>
         <FormularioEmail />
+      </Seccion>
+
+      <Seccion titulo="Resumen semanal de tareas">
+        <CasillaResumenSemanal inicial={resumenSemanalActivo} />
       </Seccion>
 
       <Seccion titulo="Eliminar mi cuenta" peligro>

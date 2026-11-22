@@ -6,7 +6,7 @@
 // Especificación 01, sección 7. Si se actualiza Better Auth, comparar con
 // node_modules/@better-auth/core/dist/db/get-tables.mjs y con los schema de los plugins.
 import { relations } from "drizzle-orm";
-import { bigint, boolean, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -31,6 +31,9 @@ export const user = pgTable("user", {
   apellido: text("apellido"),
   politicaPrivacidadVersion: text("politica_privacidad_version"),
   politicaPrivacidadAceptadaEn: timestamp("politica_privacidad_aceptada_en", { withTimezone: true }),
+  // Resumen semanal de tareas por email (especificación 06, §5.6 y §8). Desactivado por defecto.
+  resumenSemanal: boolean("resumen_semanal").notNull().default(false),
+  resumenUltimoEnvio: date("resumen_ultimo_envio"),
 });
 
 export const session = pgTable(

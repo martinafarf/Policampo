@@ -4,6 +4,7 @@
 // En pantallas anchas: foto de la huerta a la izquierda, de alto completo, con borde ondulado, y el
 // formulario a la derecha. En el celular: la foto queda como una franja arriba y el formulario abajo.
 import Image from "next/image";
+import { Suspense } from "react";
 import { AccesoAlternativo } from "@/componentes/cuentas/acceso-alternativo";
 import { LogoPoliCampo } from "@/componentes/marca/Logo";
 import huerta from "../../../public/img/huerta.jpg";
@@ -22,8 +23,11 @@ export default function LayoutCuentas({ children }: LayoutProps<"/">) {
         <BordeOndulado />
       </aside>
       <div className="relative flex flex-col px-4 pt-4 pb-14 md:px-8 md:py-8">
-        <div className="flex justify-end">
-          <AccesoAlternativo />
+        {/* Suspense: el botón lee la ruta (usePathname); Next lo exige en páginas con partes dinámicas. */}
+        <div className="flex min-h-11 justify-end">
+          <Suspense fallback={null}>
+            <AccesoAlternativo />
+          </Suspense>
         </div>
         <div className="flex flex-1 justify-center pt-6 md:items-center md:pt-0">
           <div className="w-full max-w-[420px]">{children}</div>

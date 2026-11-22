@@ -13,7 +13,7 @@ nada sin una especificación aprobada** (regla RD-01).
 | 04 | [Diagnóstico](04-diagnostico.md) (regla del 20 %, nivel de riesgo, áreas aptas, alertas) | Implementada (T1 a T5; pendientes de validación en sección 12) | 02, 03 |
 | 05 | [Propuesta de rediseño y plantas de servicio](05-propuesta-de-rediseno.md) (disposiciones, mezcla, propuesta elegida) | Implementada (T1 a T6; pendientes de validación en sección 13) | 02, 03, 04 |
 | 06 | [Calendario agroecológico](06-calendario-agroecologico.md) (tareas, checklist, email semanal, `.ics`) | Implementada (T1 a T6; pendientes en sección 12) | 01, 03, 05 |
-| 07 | [Informe técnico descargable](07-informe-tecnico.md) (PDF con código y foto de los datos) | Borrador para revisión | 04, 05, 06 |
+| 07 | [Informe técnico descargable](07-informe-tecnico.md) (PDF con código y foto de los datos) | Implementada (T1 a T5; pendientes en sección 12) | 04, 05, 06 |
 
 Quedan para más adelante: las encuestas de seguimiento y los pagos o suscripción.
 

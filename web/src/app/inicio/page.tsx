@@ -46,7 +46,12 @@ const MODULOS: readonly {
     texto: "Calendario de siembra, fechas límite, corte y avisos de todas tus fincas.",
     href: "/tareas",
   },
-  { titulo: "Informes", icono: "📄", texto: "Descargá el informe técnico de cada finca." },
+  {
+    titulo: "Informes",
+    icono: "📄",
+    texto: "Descargá el informe técnico de cada finca.",
+    href: "/informes",
+  },
 ];
 
 async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: string }> }) {

@@ -91,6 +91,14 @@ async function ContenidoDetallePropuesta({ params }: Props) {
         </p>
 
         <div className="flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3">
+          {propuesta.elegida ? (
+            <Link
+              href={`/fincas/${establecimiento.id}/informes`}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            >
+              📄 Generar informe
+            </Link>
+          ) : null}
           <Link
             href={`/fincas/${establecimiento.id}/propuestas/nueva?desde=${propuesta.id}`}
             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50"

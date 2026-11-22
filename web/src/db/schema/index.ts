@@ -7,3 +7,4 @@ export * from "./catalogo";
 export * from "./diagnostico";
 export * from "./propuesta";
 export * from "./calendario";
+export * from "./informe";

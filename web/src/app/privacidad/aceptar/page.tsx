@@ -25,17 +25,17 @@ async function Contenido({ searchParams }: { searchParams: Promise<{ volver?: st
         necesitamos que la leas y la aceptes.
       </p>
       <p className="mb-6">
-        <Link href="/privacidad" target="_blank" className="font-semibold text-campo-oscuro underline">
+        <Link href="/privacidad" target="_blank" className="font-semibold text-hoja underline hover:text-hoja-oscura">
           Leer la política de privacidad
         </Link>{" "}
         <span className="text-sm text-tinta-suave">(se abre en otra pestaña)</span>
       </p>
       <FormularioAceptar volver={destino} />
-      <div className="mt-8 border-t border-borde pt-4 text-sm text-tinta-suave">
+      <div className="mt-8 border-t border-borde pt-5 text-sm text-tinta-suave">
         <p className="mb-3">Si no estás de acuerdo, podés cerrar sesión o eliminar tu cuenta y todos tus datos.</p>
         <div className="flex flex-wrap items-center gap-3">
           <BotonCerrarSesion />
-          <Link href="/perfil" className="underline">
+          <Link href="/perfil" className="font-semibold text-hoja underline hover:text-hoja-oscura">
             Ir a Mi perfil para eliminar la cuenta
           </Link>
         </div>
@@ -46,11 +46,13 @@ async function Contenido({ searchParams }: { searchParams: Promise<{ volver?: st
 
 export default function PaginaAceptarPolitica({ searchParams }: PageProps<"/privacidad/aceptar">) {
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-8">
-      <h1 className="mb-4 text-2xl font-bold text-campo-oscuro">Política de privacidad</h1>
-      <Suspense fallback={<p className="text-tinta-suave">Cargando…</p>}>
-        <Contenido searchParams={searchParams as Promise<{ volver?: string }>} />
-      </Suspense>
+    <main className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
+      <div className="rounded-[28px] border-2 border-borde bg-white p-6 sm:p-8">
+        <h1 className="titulo-onda mb-5 text-3xl font-bold text-bosque">Política de privacidad</h1>
+        <Suspense fallback={<p className="text-tinta-suave">Cargando…</p>}>
+          <Contenido searchParams={searchParams as Promise<{ volver?: string }>} />
+        </Suspense>
+      </div>
     </main>
   );
 }

@@ -54,6 +54,35 @@ export function IconoFlecha({ className = "h-5 w-5" }: Props) {
   );
 }
 
+export function IconoVolver({ className = "h-4 w-4" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO} strokeWidth={2.2}>
+      <path d="M19 12H5M11 6l-6 6 6 6" />
+    </svg>
+  );
+}
+
+/** Guía de especies: libro abierto con silueta de hoja. */
+export function IconoGuia({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v17H6.5A2.5 2.5 0 0 0 4 22.5V5.5Z" />
+      <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v17h5.5a2.5 2.5 0 0 1 2.5 2.5V5.5Z" />
+      <path d="M7.5 8.5h2M14.5 8.5h2M14.5 12h2" />
+    </svg>
+  );
+}
+
+/** Informe técnico descargable: hoja con líneas y marca de verificación. */
+export function IconoDocumento({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+      <path d="M14 3v5h5M9 12h6M9 16h4" />
+    </svg>
+  );
+}
+
 export function IconoOk({ className = "h-5 w-5" }: Props) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO} strokeWidth={2.2}>

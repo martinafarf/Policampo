@@ -1,9 +1,11 @@
 // Mi perfil (especificación 01, flujo 4.6, T5): datos, contraseña, email y eliminar la cuenta.
 // Todo lo que lee la sesión va dentro de <Suspense> (Next.js 16, Cache Components).
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CasillaResumenSemanal } from "@/componentes/calendario/CasillaResumenSemanal";
+import { IconoVolver } from "@/componentes/marca/Iconos";
 import { Aviso } from "@/componentes/ui/formulario";
 import { obtenerPreferenciaResumenSemanal } from "@/dominio/calendario/servicio";
 import { datosDelPerfil } from "@/lib/perfil";
@@ -16,8 +18,10 @@ type Busqueda = { email?: string; error?: string };
 
 function Seccion({ titulo, peligro = false, children }: { titulo: string; peligro?: boolean; children: React.ReactNode }) {
   return (
-    <section className={`rounded-2xl border bg-white p-5 ${peligro ? "border-error" : "border-borde"}`}>
-      <h2 className={`mb-4 text-lg font-semibold ${peligro ? "text-error" : ""}`}>{titulo}</h2>
+    <section
+      className={`rounded-[28px] border-2 bg-white p-6 ${peligro ? "border-error/60" : "border-borde"}`}
+    >
+      <h2 className={`mb-4 text-xl font-bold ${peligro ? "text-error" : "text-bosque"}`}>{titulo}</h2>
       {children}
     </section>
   );
@@ -86,8 +90,17 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
 
 export default function PaginaPerfil({ searchParams }: PageProps<"/perfil">) {
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-campo-oscuro">Mi perfil</h1>
+    <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12">
+      <div className="mb-7 flex flex-col gap-2">
+        <Link
+          href="/inicio"
+          className="inline-flex items-center gap-1.5 self-start text-sm font-semibold text-hoja hover:text-hoja-oscura hover:underline"
+        >
+          <IconoVolver />
+          Volver a Inicio
+        </Link>
+        <h1 className="titulo-onda mt-1 text-3xl font-bold text-bosque sm:text-4xl">Mi perfil</h1>
+      </div>
       <Suspense fallback={<p className="text-tinta-suave">Cargando…</p>}>
         <Contenido searchParams={searchParams as Promise<Busqueda>} />
       </Suspense>

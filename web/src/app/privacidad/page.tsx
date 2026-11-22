@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold text-campo-oscuro">{titulo}</h2>
+    <section className="flex flex-col gap-3 rounded-[28px] border-2 border-borde bg-white p-6">
+      <h2 className="text-xl font-bold text-bosque">{titulo}</h2>
       {children}
     </section>
   );
@@ -29,7 +29,7 @@ const SERVICIOS = [
 export default function PaginaPrivacidad() {
   const contacto = process.env.EMAIL_CONTACTO;
   const enlaceContacto = contacto ? (
-    <a href={`mailto:${contacto}`} className="font-medium text-campo-oscuro underline break-all">
+    <a href={`mailto:${contacto}`} className="font-semibold text-hoja underline break-all hover:text-hoja-oscura">
       {contacto}
     </a>
   ) : (
@@ -37,13 +37,15 @@ export default function PaginaPrivacidad() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-campo-oscuro">Política de privacidad</h1>
-      <p className="mt-1 text-sm text-tinta-suave">
+    <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12">
+      <h1 className="titulo-onda text-3xl font-bold text-bosque sm:text-4xl">
+        Política de privacidad
+      </h1>
+      <p className="mt-2 text-sm text-tinta-suave">
         Versión {POLITICA_PRIVACIDAD_VERSION} · vigente desde el {FECHA_POLITICA_PRIVACIDAD}
       </p>
 
-      <div className="mt-6 flex flex-col gap-8 leading-relaxed">
+      <div className="mt-8 flex flex-col gap-5 leading-relaxed">
         <Seccion titulo="Quiénes somos">
           <p>
             PoliCampo es un sistema web de apoyo a la toma de decisiones agroecológicas, desarrollado como proyecto
@@ -86,10 +88,10 @@ export default function PaginaPrivacidad() {
             Para funcionar, PoliCampo usa estos servicios, que procesan los datos en Estados Unidos. Al registrarte das
             tu consentimiento expreso para esa transferencia (Ley 25.326, artículo 12):
           </p>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2.5">
             {SERVICIOS.map((servicio) => (
-              <li key={servicio.nombre} className="rounded-lg border border-borde bg-white p-3">
-                <strong>{servicio.nombre}</strong> ({servicio.pais}): {servicio.uso}
+              <li key={servicio.nombre} className="rounded-2xl border-[1.5px] border-borde bg-papel p-4 text-sm">
+                <strong className="text-bosque">{servicio.nombre}</strong> ({servicio.pais}): {servicio.uso}
               </li>
             ))}
           </ul>

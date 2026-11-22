@@ -3,7 +3,8 @@
 # Cuando llega a main una migración nueva (un archivo en web/drizzle/), este flujo:
 #   1. la aplica en la rama "desarrollo" de Neon (si falla ahí, se detiene y production no se toca);
 #   2. crea una rama de respaldo de "production" en Neon (RS-16);
-#   3. la aplica en "production".
+#   3. la aplica en "production";
+#   4. borra los respaldos que no estén entre los 2 más nuevos o que tengan más de 30 días.
 # Siempre con el rol policampo_migraciones (RS-12). Nadie tiene que migrar a mano: quien hace una
 # migración solo corre "npm run db:generar" y la sube en su PR.
 #
@@ -85,3 +86,28 @@ jobs:
         env:
           DATABASE_URL_MIGRACIONES: ${{ secrets.MIGRACIONES_PRODUCCION_URL }}
         run: npx drizzle-kit migrate
+
+      # Se borran los respaldos ("respaldo-...") que no estén entre los 2 más nuevos (el plan gratis de
+      # Neon admite 10 ramas) o que tengan más de 30 días (lo dice la política de privacidad).
+      # Nunca se tocan production, desarrollo ni pruebas. Si este paso falla, la migración ya está hecha.
+      - name: Borrar respaldos viejos
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          RESPALDOS_A_CONSERVAR: 2
+          DIAS_MAXIMOS: 30
+        run: |
+          api="https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches"
+          limite=$(date -u -d "-${DIAS_MAXIMOS} days" +%Y-%m-%dT%H:%M:%SZ)
+          # Del más nuevo al más viejo; se borra a partir del tercero, o cualquiera anterior al límite.
+          viejos=$(curl --fail-with-body -sS "$api" -H "Authorization: Bearer ${NEON_API_KEY}" \
+            | jq -r --argjson dejar "$RESPALDOS_A_CONSERVAR" --arg limite "$limite" \
+              '[.branches[] | select(.name | startswith("respaldo-")) | select(.default != true)]
+               | sort_by(.created_at) | reverse | to_entries[]
+               | select(.key >= $dejar or .value.created_at < $limite)
+               | "\(.value.id) \(.value.name)"')
+          if [ -z "$viejos" ]; then echo "No hay respaldos viejos para borrar."; exit 0; fi
+          echo "$viejos" | while read -r id nombre; do
+            curl --fail-with-body -sS -X DELETE "$api/$id" -H "Authorization: Bearer ${NEON_API_KEY}" > /dev/null
+            echo "Respaldo borrado: $nombre"
+          done

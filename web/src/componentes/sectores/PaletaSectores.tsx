@@ -8,6 +8,7 @@
 // siempre se lee con qué se está dibujando ahora ("Estás dibujando: 🫐 Arándano"). Cada opción lleva el mismo
 // color que después tiene el sector en el plano.
 import { IconoOk } from "@/componentes/marca/Iconos";
+import { MasInfo } from "@/componentes/ui/mas-info";
 import { Tarjeta } from "@/componentes/ui/tarjeta";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
@@ -116,7 +117,15 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
     : (cultivoElegido?.nombre ?? (seleccion.cultivoOtro.trim() || "Otro cultivo"));
 
   return (
-    <Tarjeta titulo="¿Qué vas a dibujar?">
+    <Tarjeta
+      titulo="¿Qué vas a dibujar?"
+      extra={
+        <MasInfo sobre="cómo dibujar varios sectores">
+          Podés dibujar todos los sectores que tengas. Elegí un cultivo (o flores), marcalo en el plano y después
+          elegí otro para seguir. Cada sector es de una sola cosa.
+        </MasInfo>
+      }
+    >
       <p className="text-tinta-suave">
         Elegí uno y dibujalo en el plano. Después elegí otro: podés dibujar todos los que tengas.
       </p>

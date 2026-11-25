@@ -920,7 +920,7 @@ export function EditorCroquis({
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="editar-nombre-croquis" className="text-[0.95rem] font-semibold text-tinta">
-                    Nombre del sector (si querés ponerle uno)
+                    Nombre del sector (opcional)
                   </label>
                   <input
                     id="editar-nombre-croquis"

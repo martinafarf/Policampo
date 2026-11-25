@@ -15,6 +15,7 @@ import { Boton, clasesBoton } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { EstadoVacio } from "@/componentes/ui/estado-vacio";
 import { Aviso } from "@/componentes/ui/formulario";
+import { MasInfo } from "@/componentes/ui/mas-info";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   LIMITES_ESTABLECIMIENTO,
@@ -369,6 +370,11 @@ export function FormularioCuestionario({
                         <fieldset className="flex flex-col gap-2">
                           <legend className="text-[0.95rem] font-semibold text-tinta">
                             ¿Qué es este sector?
+                            <MasInfo sobre="qué es un sector">
+                              Cada sector es una sola cosa: un cultivo o un lugar con flores. Si tenés las dos,
+                              agregá un sector para cada una con «Agregar otro sector». Podés agregar todos los que
+                              tengas.
+                            </MasInfo>
                           </legend>
                           <div className="grid grid-cols-1 gap-2">
                             <button
@@ -511,7 +517,7 @@ export function FormularioCuestionario({
                               htmlFor={`nombre-${fila.claveLocal}`}
                               className="text-[0.95rem] font-semibold text-tinta"
                             >
-                              Nombre del sector (si querés ponerle uno)
+                              Nombre del sector (opcional)
                             </label>
                             <input
                               id={`nombre-${fila.claveLocal}`}
@@ -596,6 +602,10 @@ export function FormularioCuestionario({
               <IconoMas className="h-5 w-5" />
               Agregar otro sector
             </Boton>
+            <MasInfo sobre="cuántos sectores se pueden agregar">
+              Agregá un sector por cada cultivo y por cada lugar con flores o vegetación. No hay que elegir solo
+              uno: podés agregar todos los que tengas.
+            </MasInfo>
             {filas.length >= LIMITES_ESTABLECIMIENTO.maxSectores ? (
               <p className="text-[0.95rem] text-tinta-suave">
                 Llegaste al máximo de {LIMITES_ESTABLECIMIENTO.maxSectores} sectores.

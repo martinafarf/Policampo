@@ -140,3 +140,31 @@ export function Hoja({ className = "h-12 w-12" }: Props) {
     </svg>
   );
 }
+
+/** Flecha chica hacia la derecha: separa las "migas de pan" y abre desplegables (gira 90°). */
+export function IconoChevron({ className = "h-4 w-4" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+/** Candado: un paso que todavía no se puede hacer (falta uno anterior). */
+export function IconoCandado({ className = "h-4 w-4" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
+/** Más: agregar algo nuevo (una finca, un sector). */
+export function IconoMas({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}

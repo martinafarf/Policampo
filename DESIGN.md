@@ -163,15 +163,15 @@ Cuatro colores de marca (verde muy oscuro, oliva, naranja y turquesa) sobre fond
 - **Verde Bosque** (bosque): títulos h1–h3 fuera de la foto, logo y menú sobre fondo claro, texto de chips, pie de página como fondo sólido, y todo texto que va sobre naranja o turquesa. Sus tonos oscuros tiñen los velos (`rgb(0 34 0)` en portada y cuentas, `rgb(0 51 0)` en las tarjetas en arco) y las sombras.
 
 ### Secondary
-- **Naranja** (naranja): acento cálido. Botón principal sobre la foto ("Crear cuenta" / "Ir a Inicio") y "Registrarse" del encabezado mientras flota sobre la foto, siempre con texto bosque (6,7:1); última frase del titular ("mejores cosechas") y "más flores" en cuentas; subrayado ondulado de títulos; anillo de foco (`:focus-visible`) y halo de foco de campos al 45 %; subrayado de sección sobre la foto; pétalos del logo; hoja flotante de portada; línea florida del paisaje.
+- **Naranja** (naranja): acento cálido. Botón principal sobre la foto ("Crear cuenta" / "Ir a Inicio") y "Registrarse" del encabezado mientras flota sobre la foto, siempre con texto bosque (6,7:1); última frase del titular ("mejores cosechas") y "más flores" en cuentas; subrayado ondulado de títulos; anillo de foco (`:focus-visible`) y halo de foco de campos al 45 %; subrayado de sección sobre la foto; el logo (abeja y palabra); hoja flotante de portada; línea florida del paisaje.
 - **Naranja Claro** (naranja-claro): hover del botón naranja.
 - **Naranja Oscuro** (naranja-oscuro): el naranja para texto sobre fondo claro (4,6:1). Reservado; hoy solo lo usa el alias `flor`.
 
 ### Tertiary
-- **Turquesa** (turquesa): acento fresco. Insignia circular del 20 % (con texto bosque, 6,9:1), centro de la flor del logo, brotes del paisaje y `::selection` (con texto bosque).
+- **Turquesa** (turquesa): acento fresco. Insignia circular del 20 % (con texto bosque, 6,9:1), brotes del paisaje y `::selection` (con texto bosque).
 
 ### Neutral
-- **Menta** (menta): turquesa muy aclarado. Bandas suaves con borde ondulado, banda detrás de la foto del corredor floral, chips, aviso de éxito, círculo del logo, hover de enlaces y fila de la sección actual en el menú desplegable.
+- **Menta** (menta): turquesa muy aclarado. Bandas suaves con borde ondulado, banda detrás de la foto del corredor floral, chips, aviso de éxito, hover de enlaces y fila de la sección actual en el menú desplegable.
 - **Menta Fuerte** (menta-fuerte): bloque de respaldo científico (al 60 %), borde del aviso de éxito.
 - **Papel** (papel) / **Fondo** (fondo): fondo de la app y relleno de campos en reposo. La landing usa blanco puro como lienzo.
 - **Tinta** (tinta): texto general, casi negro con un toque de bosque.
@@ -260,7 +260,7 @@ Caja de 16 px de radio con borde de 1,5 px e ícono de trazo a la izquierda: inf
 
 ### Navigation
 - **Encabezado:** sin fondo ni píldoras. Sobre la foto de la landing (antes de bajar) logo, enlaces y menú van en blanco con una sombra de texto suave; al bajar, la barra se pone verde bosque y todo sigue en blanco ("Registrarse" en naranja con texto bosque). En las demás pantallas de la app van en bosque sobre fondo claro; las de cuentas no tienen encabezado (el logo va en blanco sobre su foto). El tipo de página se decide por la ruta (`data-pagina`), no por el contenido, porque Next deja montadas ocultas las páginas visitadas.
-- **Logo:** el símbolo (círculo menta, surcos oliva, flor de pétalos naranja con centro turquesa) y "PoliCampo" en Bricolage 800.
+- **Logo:** una abeja de trazo y "Policampo" en letra cursiva (Tropika Script), todo en naranja y en un solo SVG (la palabra viene convertida en trazos: no se carga la fuente). Sobre foto lleva una sombra suave (`drop-shadow`). La abeja sola (`SimboloPoliCampo`) es el ícono de la pestaña (favicon).
 - **Menú de cuenta:** enlaces de 40 px de alto en bosque con hover menta (sobre la foto: blancos con hover blanco al 15 %); "Registrarse" en píldora oliva llena, que pasa a naranja con texto bosque mientras flota sobre la foto; "Cerrar sesión" con borde `borde` (blanco al 70 % sobre la foto). En el celular, "Ingresar" en lugar de "Iniciar sesión".
 - **Enlaces de sección (landing, desde 1024 px):** texto 600, blanco sobre la foto y sobre la barra verde, con un subrayado de 3 px que se desliza (posición y ancho, 0,5 s) hasta la sección actual: naranja en los dos casos.
 - **Menú desplegable (landing, debajo de 1024 px):** reemplaza al menú de cuenta. El botón muestra el nombre de la sección actual (o "Menú"), que entra con un subrayado que se dibuja de izquierda a derecha, junto a un círculo menta con el ícono de tres líneas (blanco al 18 % sobre la foto). El panel es blanco, de 24 px de radio y sombra suave: filas de 48 px con la sección actual en menta, subrayada en oliva y marcada "Estás acá"; abajo, separadas por una línea, las opciones de cuenta como botones píldora a lo ancho. Se cierra con Escape o tocando afuera.
@@ -276,6 +276,37 @@ Círculo turquesa con el texto en círculo girando (26 s) y "20 %" en Bricolage 
 
 ### Paisaje ilustrado
 Cierre de la landing: lomas en tres capas de oliva, una línea punteada naranja como franja florida, nubes blancas que cruzan (40 y 60 s) y brotes turquesa que se mecen (3,5 s). Solo decoración.
+
+## Pantallas internas de la app
+
+Las pantallas con sesión (Herramientas, fincas, diagnóstico, propuestas, calendario, informes, perfil, administración) usan el mismo lenguaje que la landing pero más tranquilo: sin fotos grandes de fondo, fondo papel con tarjetas blancas. El objetivo es que se entiendan sin conocer la plataforma, pensando en un productor que entra por primera vez desde el celular. Las piezas comunes están en `web/src/componentes/ui/` y se pueden ver juntas en `/muestrario` (solo en desarrollo).
+
+- **EncabezadoPagina:** migas de pan ("Mis fincas › El Molle"), título con subrayado ondulado, una bajada de una frase como máximo, datos cortos en chips ("4,2 ha") y las acciones a la derecha (debajo en el celular).
+- **Boton / BotonEnlace:** píldoras de 48 px. `principal` (oliva), `contorno`, `texto` (enlace sin borde) y `peligro` (rojo, solo para borrar). `Boton` hace algo en la página; `BotonEnlace` lleva a otra.
+- **Tarjeta:** blanca o menta, 28 px de radio, borde de 2 px, título h2 opcional con un extra a la derecha ("Ver todas").
+- **Etiqueta:** estados `listo`, `ahora` ("Te toca"), `espera` (con candado: falta un paso anterior), `atencion` y `error`. Siempre con texto y, salvo `ahora`, con ícono.
+- **EstadoVacio:** ícono en círculo menta, una frase de qué falta y un botón que lo resuelve.
+- **Desplegable / MasInfo:** esconden la explicación hasta que alguien la busca. `Desplegable` es una pregunta que se abre debajo ("¿Por qué 20 %?"); `MasInfo` es un ⓘ al lado de una palabra técnica que abre una burbuja de una o dos frases.
+- **Aviso:** el de `componentes/ui/formulario.tsx` (info, éxito, error).
+
+### Named Rules
+**The Una Acción Principal Rule.** Cada pantalla tiene como máximo un botón `principal`. Lo demás va en `contorno` o `texto`.
+
+**The Sin Tarjeta en Tarjeta Rule.** Dentro de una tarjeta no van otras tarjetas: las filas se separan con líneas finas y los grupos, con espacio.
+
+**The Dónde Estoy Rule.** Toda pantalla interna dice dónde está la persona (migas o título) y cómo volver.
+
+## Reglas de escritura
+
+Mucho texto intimida a los productores. Antes de escribir un texto, preguntarse si se puede mostrar en vez de explicar.
+
+- **El dato primero.** "7 % de flores · Bajo · Te falta sumar 0,5 ha" antes que un párrafo. La explicación va en un `Desplegable` o `MasInfo`.
+- **Tutear y frases cortas.** Una idea por oración, unas 15 palabras como máximo. "Cargá tu finca", no "Registre su establecimiento".
+- **Botones con verbo y resultado.** "Pedir mi diagnóstico", "Ver cómo mejorarlo"; no "Continuar" ni "Aceptar" solos.
+- **Palabras del campo.** "Flores", "borde del cultivo", "bichos que comen plagas". Los términos técnicos ("plantas de servicio", "hábitat natural") llevan un `MasInfo` la primera vez que aparecen en la pantalla.
+- **Estados que dicen qué hacer.** "Te toca", "Después del paso 2", "Sin flores cerca"; no solo "Pendiente".
+- **Pantallas vacías con salida.** Una frase y un botón: "Todavía no tenés fincas" → "Cargar mi primera finca".
+- **Lo obligatorio no se borra, se ordena.** Los textos legales (Ley 25.326), las confirmaciones antes de borrar y lo que pide cada especificación se mantienen, con títulos y partes desplegables.
 
 ## Do's and Don'ts
 

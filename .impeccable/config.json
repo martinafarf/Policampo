@@ -47,6 +47,15 @@
         ],
         "createdAt": "2026-11-22T18:47:33.311Z",
         "reason": "Claude: archived reference mockup from before the user asked to replace the croquis with a real photo (2026-11-22); Caveat was removed from the shipped system on purpose"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "docs/diseno/mockup/app-prueba.html"
+        ],
+        "createdAt": "2026-11-25T05:36:46.994Z",
+        "reason": "Claude verificó en el navegador: el texto blanco de .foto va sobre el velo inferior rgb(0 51 0/.9); el revisor mide contra el color claro del gradiente de arriba. Mockup estático."
       }
     ]
   }

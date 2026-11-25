@@ -1,6 +1,9 @@
 "use client";
 
 // Aviso para recuperar o descartar cambios locales sin guardar (Esp. 02, 5.6, CA-02-17).
+// Usa los botones y el color de aviso de las pantallas internas (ámbar suave, con ícono).
+import { IconoAlerta } from "@/componentes/marca/Iconos";
+import { Boton } from "@/componentes/ui/boton";
 
 interface Props {
   fechaBorradorIso: string | null;
@@ -39,27 +42,19 @@ export function BannerBorrador({
     return (
       <div
         role="status"
-        className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 rounded-2xl border-[1.5px] border-[#f0c987] bg-[#fff3df] px-4 py-3 text-[0.95rem] text-[#7a4100] sm:flex-row sm:items-center sm:justify-between"
       >
-        <p className="font-medium">
-          Tenés cambios sin guardar del{" "}
-          <strong>{formatearFechaHora(fechaBorradorIso)}</strong>. ¿Recuperarlos?
+        <p className="flex items-start gap-3 font-semibold">
+          <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+          <span>Tenés cambios sin guardar del {formatearFechaHora(fechaBorradorIso)}. ¿Querés recuperarlos?</span>
         </p>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onRecuperar}
-            className="min-h-10 rounded-lg bg-amber-700 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-amber-800"
-          >
+          <Boton onClick={onRecuperar} className="min-h-11 px-5">
             Recuperar
-          </button>
-          <button
-            type="button"
-            onClick={onDescartar}
-            className="min-h-10 rounded-lg border border-amber-400 bg-white px-3.5 py-1.5 text-sm font-semibold text-amber-950 hover:bg-amber-100"
-          >
+          </Boton>
+          <Boton variante="contorno" onClick={onDescartar} className="min-h-11 px-5">
             Descartar
-          </button>
+          </Boton>
         </div>
       </div>
     );
@@ -67,7 +62,7 @@ export function BannerBorrador({
 
   if (ultimoAutoguardadoIso) {
     return (
-      <p className="text-right text-xs text-stone-500">
+      <p className="text-right text-sm text-tinta-suave">
         Borrador guardado en este dispositivo a las {formatearHora(ultimoAutoguardadoIso)}.
       </p>
     );

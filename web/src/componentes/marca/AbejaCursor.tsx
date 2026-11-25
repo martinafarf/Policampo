@@ -22,8 +22,10 @@ const SUAVIDAD = 0.07;
 
 export function AbejaCursor({
   reposo: puntoReposo = REPOSO_DEFECTO,
+  siempreVisible = false,
 }: {
   reposo?: { x: number; y: number };
+  siempreVisible?: boolean;
 } = {}) {
   const capa = useRef<HTMLDivElement>(null);
   const abeja = useRef<HTMLDivElement>(null);
@@ -32,8 +34,11 @@ export function AbejaCursor({
     const contenedor = capa.current?.parentElement;
     const el = abeja.current;
     if (!contenedor || !el) return;
+
     const conMouse = matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)");
-    if (!conMouse.matches || sinAnimaciones()) return;
+    const reducir = sinAnimaciones();
+
+    if (!siempreVisible && (!conMouse.matches || reducir)) return;
 
     const caja = () => contenedor.getBoundingClientRect();
     const reposo = () => ({ x: caja().width * puntoReposo.x, y: caja().height * puntoReposo.y });
@@ -46,8 +51,13 @@ export function AbejaCursor({
     let visible = false;
 
     el.style.opacity = "1";
+    el.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+
+    // Con "reducir movimiento" y siempreVisible, queda quieta en su punto de reposo.
+    if (reducir) return;
 
     const alMover = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       const r = caja();
       objetivo = { x: e.clientX - r.left + DESFASE.x, y: e.clientY - r.top + DESFASE.y };
       persiguiendo = true;
@@ -55,6 +65,9 @@ export function AbejaCursor({
     const alSalir = () => {
       persiguiendo = false;
       objetivo = reposo();
+    };
+    const alRedimensionar = () => {
+      if (!persiguiendo) objetivo = reposo();
     };
 
     const animar = (t: number) => {
@@ -79,7 +92,7 @@ export function AbejaCursor({
       cuadro = requestAnimationFrame(animar);
     };
 
-    // Solo anima mientras la portada se ve.
+    // Solo anima mientras el contenedor se ve.
     const observador = new IntersectionObserver(([entrada]) => {
       if (entrada.isIntersecting && !visible) {
         visible = true;
@@ -92,18 +105,20 @@ export function AbejaCursor({
     observador.observe(contenedor);
     contenedor.addEventListener("pointermove", alMover);
     contenedor.addEventListener("pointerleave", alSalir);
+    window.addEventListener("resize", alRedimensionar);
 
     return () => {
       observador.disconnect();
       cancelAnimationFrame(cuadro);
       contenedor.removeEventListener("pointermove", alMover);
       contenedor.removeEventListener("pointerleave", alSalir);
+      window.removeEventListener("resize", alRedimensionar);
     };
-  }, [puntoReposo.x, puntoReposo.y]);
+  }, [puntoReposo.x, puntoReposo.y, siempreVisible]);
 
   return (
-    <div ref={capa} className="pointer-events-none absolute inset-0 z-10 overflow-hidden" aria-hidden="true">
-      {/* Empieza invisible: solo aparece si el efecto decide animarla (computadora con mouse). */}
+    <div ref={capa} className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden="true">
+      {/* Empieza invisible: solo aparece cuando el efecto la posiciona. */}
       <div ref={abeja} className="absolute top-0 left-0 opacity-0 transition-opacity duration-500 will-change-transform">
         <DibujoAbeja />
       </div>

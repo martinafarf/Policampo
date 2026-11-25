@@ -40,10 +40,13 @@ export function Desplegable({
 
 export function MasInfo({
   sobre,
+  ancho = false,
   children,
 }: {
   /** De qué es la explicación; lo lee el lector de pantalla: "Más información sobre plantas de servicio". */
   sobre: string;
+  /** Burbuja más ancha, para explicaciones de varios pasos. */
+  ancho?: boolean;
   children: ReactNode;
 }) {
   const [fijado, setFijado] = useState(false); // abierto con un toque o con el teclado
@@ -125,7 +128,7 @@ export function MasInfo({
         role="note"
         hidden={!abierto}
         style={{ transform: `translateX(calc(-50% + ${corrimiento}px))` }}
-        className="absolute top-9 left-1/2 z-30 block w-64 before:absolute before:-top-2 before:left-0 before:h-2 before:w-full before:content-[''] max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-borde bg-white p-3 text-left text-sm font-normal text-tinta shadow-suave"
+        className={`absolute top-9 left-1/2 z-30 block ${ancho ? "w-80" : "w-64"} before:absolute before:-top-2 before:left-0 before:h-2 before:w-full before:content-[''] max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-borde bg-white p-3 text-left text-sm font-normal text-tinta shadow-suave`}
       >
         {children}
       </span>

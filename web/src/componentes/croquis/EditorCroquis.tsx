@@ -788,6 +788,25 @@ export function EditorCroquis({
           { texto: nombreEstablecimiento, href: `/fincas/${establecimientoId}` },
         ]}
         titulo="Dibujá tu finca"
+        ayuda={
+          <MasInfo ancho sobre="cómo dibujar tu finca">
+            <span className="block font-bold text-bosque">Cómo dibujar tu finca</span>
+            <span className="mt-1.5 block">
+              <strong>1.</strong> A la izquierda, elegí qué vas a dibujar: un cultivo o flores.
+            </span>
+            <span className="mt-1 block">
+              <strong>2.</strong> Marcalo en el plano: arrastrá en un lugar vacío para hacer un rectángulo, o elegí
+              «Forma libre» y tocá las esquinas.
+            </span>
+            <span className="mt-1 block">
+              <strong>3.</strong> Para cambiar uno que ya dibujaste, tocalo: arrastralo para moverlo, tirá de los
+              cuadraditos blancos para cambiarle el tamaño, o apretá Supr (o clic derecho) para borrarlo.
+            </span>
+            <span className="mt-1 block">
+              <strong>4.</strong> Cuando termines, tocá «Guardar mi terreno».
+            </span>
+          </MasInfo>
+        }
       />
 
       <div className="empty:hidden">
@@ -880,12 +899,6 @@ export function EditorCroquis({
         <div className="flex flex-col gap-1.5 max-lg:order-6 lg:min-h-0">
           <p className="text-center text-[0.95rem] font-semibold text-tinta-suave">
             Tu finca es un cuadrado de {lado} m por {lado} m ({formatearHectareas(superficieTotalHa)})
-            <MasInfo sobre="cómo se dibuja">
-              Elegí qué dibujar a la izquierda y marcá el sector en el plano: arrastrando en un lugar vacío
-              (rectángulo) o tocando las esquinas (forma libre). Para cambiar uno que ya dibujaste, tocalo: arrastralo
-              para moverlo, tirá de los cuadraditos blancos para cambiarle el tamaño, o apretá Supr (o clic derecho)
-              para borrarlo. Si lo dejás encima de otro, vuelve a donde estaba.
-            </MasInfo>
           </p>
           {sectores.length > 0 ? (
             <p className="flex min-h-[2.6rem] items-center justify-center text-center text-sm font-semibold text-hoja-oscura">

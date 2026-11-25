@@ -518,7 +518,7 @@ export function FormularioCuestionario({
                               htmlFor={`nombre-${fila.claveLocal}`}
                               className="text-[0.95rem] font-semibold text-tinta"
                             >
-                              Nombre del sector (opcional)
+                              Nombre personalizado (opcional)
                             </label>
                             <input
                               id={`nombre-${fila.claveLocal}`}

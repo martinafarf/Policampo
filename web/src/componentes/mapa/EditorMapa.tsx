@@ -971,7 +971,7 @@ export function EditorMapa({
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="editar-nombre-mapa" className="text-[0.95rem] font-semibold text-tinta">
-                    Nombre del sector (opcional)
+                    Nombre personalizado (opcional)
                   </label>
                   <input
                     id="editar-nombre-mapa"

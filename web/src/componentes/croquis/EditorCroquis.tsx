@@ -1316,7 +1316,7 @@ export function EditorCroquis({
 
                             <div className="flex flex-col gap-1">
                               <label htmlFor="editar-nombre-croquis" className="text-sm font-semibold text-tinta">
-                                Nombre (opcional)
+                                Nombre personalizado (opcional)
                               </label>
                               <input
                                 id="editar-nombre-croquis"

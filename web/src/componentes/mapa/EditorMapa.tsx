@@ -5,13 +5,22 @@
 // - Dibuja sectores dentro del contorno usando la paleta compartida.
 // - Atribución de Esri visible; si fallan las imágenes por mala señal, se puede seguir dibujando.
 // - "Mi ubicación" centra el mapa sin guardar la posición del navegador (RS-05).
+//
+// Pantalla (solo el aspecto; la lógica del mapa no cambia): en la computadora el mapa va a la izquierda, grande,
+// y a la derecha la superficie con el botón Guardar, la paleta y el sector elegido. En el celular va una cosa
+// debajo de la otra, en el orden en que se usan. Los colores de las figuras sobre el mapa no se tocan: se ven
+// bien sobre la foto satelital.
 import type * as LeafletTipo from "leaflet";
 import "leaflet/dist/leaflet.css";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { BannerBorrador } from "@/componentes/borrador/BannerBorrador";
 import { useBorradorFinca } from "@/componentes/borrador/useBorradorFinca";
+import { IconoAlerta } from "@/componentes/marca/Iconos";
+import { Boton, BotonEnlace } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { Aviso } from "@/componentes/ui/formulario";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { DEPARTAMENTOS_JUJUY, NOMBRES_DEPARTAMENTOS_JUJUY } from "@/datos/jujuy";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
@@ -40,6 +49,9 @@ import {
 } from "@/componentes/sectores/PaletaSectores";
 
 const VALOR_OTRO_CULTIVO = "__OTRO__";
+
+const CAMPO =
+  "min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45";
 
 type ModoMapa = "dibujar_contorno" | "dibujar_sector" | "navegar";
 
@@ -139,7 +151,6 @@ export function EditorMapa({
         },
   );
 
-  const [panelAbierto, setPanelAbierto] = useState(true);
   const [imagenesFallaron, setImagenesFallaron] = useState(false);
   const [avisoMapa, setAvisoMapa] = useState<string | null>(null);
   const [erroresServidor, setErroresServidor] = useState<string[]>([]);
@@ -333,7 +344,6 @@ export function EditorMapa({
         if (modoRef.current === "navegar") {
           L.DomEvent.stopPropagation(e);
           setIndiceSeleccionado(idx);
-          setPanelAbierto(true);
         }
       });
 
@@ -542,414 +552,437 @@ export function EditorMapa({
 
   const sectorEditado = indiceSeleccionado !== null ? sectores[indiceSeleccionado] ?? null : null;
 
+  const porcentajeUsado =
+    superficieTotalHa !== null && superficieTotalHa > 0
+      ? Math.min(100, (superficieDistribuida / superficieTotalHa) * 100)
+      : 0;
+  const cercaDeCero =
+    superficieTotalHa !== null && restanteHa !== null && restanteHa <= superficieTotalHa * 0.1;
+  const colorBarra = cercaDeCero ? "bg-naranja" : "bg-hoja";
+
+  const botonGuardar = (
+    <Boton onClick={manejarGuardado} disabled={guardando || !contorno} anchoCompleto>
+      {guardando ? "Guardando…" : "Guardar mi terreno"}
+    </Boton>
+  );
+
+  /** Cada herramienta es una píldora; la elegida va en oliva. */
+  const claseHerramienta = (activa: boolean) =>
+    `inline-flex min-h-12 items-center gap-2 rounded-full border-2 px-4 text-[0.95rem] font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+      activa
+        ? "border-transparent bg-hoja text-white"
+        : "border-borde bg-white text-tinta-suave hover:border-hoja hover:text-tinta"
+    }`;
+
   return (
-    <div className="flex flex-col gap-4">
-      {/* Cabecera */}
-      <header className="flex flex-col gap-2 px-4 sm:px-0">
-        <Link
-          href={`/fincas/${establecimientoId}`}
-          className="text-sm font-semibold text-emerald-800 hover:underline"
-        >
-          ← Volver a la ficha de {nombreEstablecimiento}
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-xl font-bold text-stone-900 sm:text-2xl">
-            Ubicar finca y sectores en el mapa
-          </h1>
-          {superficieTotalHa !== null ? (
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
-              Contorno: {formatearSuperficieCompleta(superficieTotalHa)}
-            </span>
-          ) : (
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
-              Paso 1: dibujá el contorno del terreno
-            </span>
-          )}
-        </div>
+    <div className="flex flex-col gap-5">
+      <EncabezadoPagina
+        migas={[
+          { texto: "Mis fincas", href: "/fincas" },
+          { texto: nombreEstablecimiento, href: `/fincas/${establecimientoId}` },
+        ]}
+        titulo="Marcá tu finca en el mapa"
+      />
 
-        {/* Buscador por localidad y "Mi ubicación" */}
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <label htmlFor="buscar-localidad-mapa" className="sr-only">
-            Ir a una localidad de Jujuy
-          </label>
-          <select
-            id="buscar-localidad-mapa"
-            defaultValue=""
-            onChange={(e) => volarALocalidad(e.target.value)}
-            className="min-h-11 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900"
-          >
-            <option value="">Ir a una localidad de Jujuy…</option>
-            {todasLasLocalidades.map((loc) => (
-              <option key={loc.clave} value={loc.clave}>
-                {loc.etiqueta}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={centrarEnMiUbicacion}
-            disabled={buscandoUbicacion}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-60"
-          >
-            {buscandoUbicacion ? "Ubicando…" : "📍 Mi ubicación"}
-          </button>
-        </div>
-      </header>
-
-      {/* Aviso si las imágenes satelitales no cargan (CA-02-23) */}
-      {imagenesFallaron ? (
-        <div
-          role="status"
-          className="mx-4 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-950 sm:mx-0"
-        >
-          Las imágenes satelitales de Esri no pudieron cargarse por mala señal. Podés seguir
-          dibujando sobre el fondo liso y guardar normalmente.
-        </div>
-      ) : null}
-
-      <div className="px-4 sm:px-0">
-        <BannerBorrador
-          fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
-          ultimoAutoguardadoIso={ultimoAutoguardado}
-          onRecuperar={recuperarBorrador}
-          onDescartar={descartarBorrador}
-        />
-      </div>
-
-      {/* Mapa a todo lo ancho (RD-03, CA-02-22) */}
-      <div className="relative w-full border-y border-stone-300 bg-stone-200 sm:overflow-hidden sm:rounded-xl sm:border">
-        <div
-          ref={contenedorMapaRef}
-          className="h-[52vh] min-h-[320px] w-full"
-          aria-label="Mapa satelital interactivo del establecimiento"
-        />
-      </div>
-
-      {/* Controles táctiles de dibujo */}
-      <div className="flex flex-col gap-3 px-4 sm:px-0">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setModo("dibujar_contorno");
-              setVerticesEnCurso([]);
-              setIndiceSeleccionado(null);
-            }}
-            className={`min-h-11 rounded-lg border px-3.5 py-2 text-sm font-semibold ${
-              modo === "dibujar_contorno"
-                ? "border-amber-600 bg-amber-600 text-white"
-                : "border-stone-300 bg-white text-stone-800"
-            }`}
-          >
-            ⬠ {contorno ? "Redibujar contorno" : "Dibujar contorno"}
-          </button>
-
-          <button
-            type="button"
-            disabled={!contorno}
-            onClick={() => {
-              setModo("dibujar_sector");
-              setVerticesEnCurso([]);
-              setIndiceSeleccionado(null);
-            }}
-            className={`min-h-11 rounded-lg border px-3.5 py-2 text-sm font-semibold disabled:opacity-45 ${
-              modo === "dibujar_sector"
-                ? "border-emerald-700 bg-emerald-700 text-white"
-                : "border-stone-300 bg-white text-stone-800"
-            }`}
-          >
-            ✏️ Dibujar sector
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setModo("navegar");
-              setVerticesEnCurso([]);
-            }}
-            className={`min-h-11 rounded-lg border px-3.5 py-2 text-sm font-semibold ${
-              modo === "navegar"
-                ? "border-stone-800 bg-stone-800 text-white"
-                : "border-stone-300 bg-white text-stone-800"
-            }`}
-          >
-            ✋ Mover / Seleccionar
-          </button>
-        </div>
-
-        {/* Botones grandes para terminar / deshacer / borrar el trazo activo */}
-        {modo !== "navegar" ? (
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3">
-            <p className="w-full text-xs text-emerald-950 sm:w-auto sm:flex-1">
-              {modo === "dibujar_contorno"
-                ? `Tocá el mapa para marcar los bordes de tu finca (${verticesEnCurso.length} puntos; mínimo 3).`
-                : `Tocá dentro del contorno para marcar el sector «${paleta.etiqueta}» (${verticesEnCurso.length} puntos; mínimo 3).`}
-            </p>
-            <button
-              type="button"
-              disabled={verticesEnCurso.length < 3}
-              onClick={finalizarTrazoActual}
-              className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {modo === "dibujar_contorno" ? "Terminar contorno" : "Terminar sector"}
-            </button>
-            <button
-              type="button"
-              disabled={verticesEnCurso.length === 0}
-              onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
-              className="min-h-11 rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-sm font-semibold text-stone-700 disabled:opacity-50"
-            >
-              Deshacer
-            </button>
-            <button
-              type="button"
-              disabled={verticesEnCurso.length === 0}
-              onClick={() => setVerticesEnCurso([])}
-              className="min-h-11 rounded-lg border border-red-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-700 disabled:opacity-50"
-            >
-              Borrar trazo
-            </button>
+      {/* Computadora: el mapa grande a la izquierda; a la derecha la superficie con Guardar, la paleta y el
+          sector elegido. Celular: una cosa debajo de la otra, en el orden en que se usan ("max-lg:order-N"). */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-x-6">
+        {/* Izquierda: pasos, herramientas y mapa */}
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
+          <div className="max-lg:order-1 empty:hidden">
+            <BannerBorrador
+              fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+              ultimoAutoguardadoIso={ultimoAutoguardado}
+              onRecuperar={recuperarBorrador}
+              onDescartar={descartarBorrador}
+            />
           </div>
-        ) : null}
 
-        {avisoMapa ? (
-          <div
-            role="alert"
-            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
-          >
-            {avisoMapa}
-          </div>
-        ) : null}
-
-        {erroresServidor.length > 0 ? (
-          <div
-            role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-          >
-            <ul className="list-disc pl-5">
-              {erroresServidor.map((err, i) => (
-                <li key={i}>{err}</li>
+          {/* Buscador por localidad y "Mi ubicación" */}
+          <div className="flex flex-col gap-2 sm:flex-row max-lg:order-4">
+            <label htmlFor="buscar-localidad-mapa" className="sr-only">
+              Ir a una localidad de Jujuy
+            </label>
+            <select
+              id="buscar-localidad-mapa"
+              defaultValue=""
+              onChange={(e) => volarALocalidad(e.target.value)}
+              className={`${CAMPO} flex-1`}
+            >
+              <option value="">Ir a una localidad de Jujuy…</option>
+              {todasLasLocalidades.map((loc) => (
+                <option key={loc.clave} value={loc.clave}>
+                  {loc.etiqueta}
+                </option>
               ))}
-            </ul>
+            </select>
+            <Boton variante="contorno" onClick={centrarEnMiUbicacion} disabled={buscandoUbicacion}>
+              {buscandoUbicacion ? "Ubicando…" : "📍 Mi ubicación"}
+            </Boton>
           </div>
-        ) : null}
 
-        {/* Panel plegable debajo del mapa (Esp. 02, 6.2) */}
-        <section className="rounded-xl border border-stone-200 bg-white shadow-xs">
-          <button
-            type="button"
-            aria-expanded={panelAbierto}
-            onClick={() => setPanelAbierto((v) => !v)}
-            className="flex min-h-12 w-full items-center justify-between px-4 py-3 text-left"
-          >
-            <div>
-              <p className="text-sm font-bold text-stone-900">
-                Datos, paleta y sectores ({sectores.length})
-              </p>
-              <p className="text-xs text-stone-600">
-                {superficieTotalHa !== null
-                  ? `Total: ${formatearHectareas(superficieTotalHa)} · Dibujado: ${formatearHectareas(superficieDistribuida)} · Libre: ${formatearHectareas(restanteHa ?? 0)}`
-                  : "Dibujá el contorno para calcular la superficie total"}
-              </p>
+          {/* Herramientas de dibujo */}
+          <div className="flex flex-wrap gap-2 max-lg:order-5" role="group" aria-label="Herramientas del mapa">
+            <button
+              type="button"
+              aria-pressed={modo === "dibujar_contorno"}
+              onClick={() => {
+                setModo("dibujar_contorno");
+                setVerticesEnCurso([]);
+                setIndiceSeleccionado(null);
+              }}
+              className={claseHerramienta(modo === "dibujar_contorno")}
+            >
+              ⬠ {contorno ? "Marcar de nuevo el borde" : "Marcar el borde"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={modo === "dibujar_sector"}
+              disabled={!contorno}
+              onClick={() => {
+                setModo("dibujar_sector");
+                setVerticesEnCurso([]);
+                setIndiceSeleccionado(null);
+              }}
+              className={claseHerramienta(modo === "dibujar_sector")}
+            >
+              ✏️ Dibujar sector
+            </button>
+            <button
+              type="button"
+              aria-pressed={modo === "navegar"}
+              onClick={() => {
+                setModo("navegar");
+                setVerticesEnCurso([]);
+              }}
+              className={claseHerramienta(modo === "navegar")}
+            >
+              ✋ Mover y elegir sector
+            </button>
+          </div>
+
+          {avisoMapa ? (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-2xl border-[1.5px] border-[#f0c987] bg-[#fff3df] px-4 py-3 text-[0.95rem] font-semibold text-[#7a4100] max-lg:order-5"
+            >
+              <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+              {avisoMapa}
             </div>
-            <span className="text-xs font-semibold text-emerald-800">
-              {panelAbierto ? "Ocultar ▲" : "Mostrar ▼"}
-            </span>
-          </button>
+          ) : null}
 
-          {panelAbierto ? (
-            <div className="flex flex-col gap-4 border-t border-stone-100 p-4">
-              {contorno ? (
-                <PaletaSectores cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
-              ) : null}
+          {/* Aviso si las imágenes satelitales no cargan (CA-02-23) */}
+          {imagenesFallaron ? (
+            <div
+              role="status"
+              className="flex items-start gap-3 rounded-2xl border-[1.5px] border-[#f0c987] bg-[#fff3df] px-4 py-3 text-[0.95rem] text-[#7a4100] max-lg:order-5"
+            >
+              <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+              Las fotos satelitales no pudieron cargarse por mala señal. Podés seguir dibujando sobre el fondo
+              liso y guardar normalmente.
+            </div>
+          ) : null}
 
-              {sectorEditado !== null && indiceSeleccionado !== null ? (
-                <div className="flex flex-col gap-3 rounded-xl border border-emerald-300 bg-emerald-50/30 p-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-bold text-stone-900">
-                        Editando: {nombresCalculados[indiceSeleccionado]}
-                      </p>
-                      <p className="text-xs text-stone-600">
-                        Superficie:{" "}
-                        {formatearSuperficieCompleta(superficiesSectores[indiceSeleccionado])}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => borrarSector(indiceSeleccionado)}
-                      className="min-h-10 rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-700"
-                    >
-                      Borrar sector
-                    </button>
-                  </div>
+          {erroresServidor.length > 0 ? (
+            <div className="max-lg:order-5">
+              <Aviso tipo="error">
+                <ul className="list-disc pl-5">
+                  {erroresServidor.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </Aviso>
+            </div>
+          ) : null}
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        actualizarSectorSeleccionado({
-                          tipo: "cultivo",
-                          subtipoFlores: null,
-                          cultivoId: primerCultivo?.id ?? null,
-                        })
-                      }
-                      className={`min-h-10 rounded-lg border text-sm font-semibold ${
-                        sectorEditado.tipo === "cultivo"
-                          ? "border-emerald-700 bg-emerald-50 text-emerald-900"
-                          : "border-stone-300 bg-white text-stone-700"
-                      }`}
-                    >
-                      🌱 Cultivo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        actualizarSectorSeleccionado({
-                          tipo: "sector_flores",
-                          cultivoId: null,
-                          cultivoOtro: "",
-                        })
-                      }
-                      className={`min-h-10 rounded-lg border text-sm font-semibold ${
-                        sectorEditado.tipo === "sector_flores"
-                          ? "border-purple-700 bg-purple-50 text-purple-900"
-                          : "border-stone-300 bg-white text-stone-700"
-                      }`}
-                    >
-                      🌼 Sector de flores
-                    </button>
-                  </div>
+          {/* Mapa (RD-03, CA-02-22). Su alto se ajusta para que, en la computadora, entre en la pantalla. */}
+          <div className="relative w-full overflow-hidden rounded-[28px] border-2 border-borde bg-papel max-lg:order-6">
+            <div
+              ref={contenedorMapaRef}
+              className="h-[52vh] min-h-[320px] w-full lg:h-[calc(100dvh-21rem)] lg:min-h-[360px]"
+              aria-label="Mapa satelital interactivo del establecimiento"
+            />
+          </div>
 
-                  {sectorEditado.tipo === "cultivo" ? (
-                    <div className="flex flex-col gap-2">
-                      <select
-                        value={sectorEditado.cultivoId ?? VALOR_OTRO_CULTIVO}
-                        onChange={(e) =>
-                          actualizarSectorSeleccionado({
-                            cultivoId: e.target.value === VALOR_OTRO_CULTIVO ? null : e.target.value,
-                            cultivoOtro:
-                              e.target.value === VALOR_OTRO_CULTIVO ? sectorEditado.cultivoOtro : "",
-                          })
-                        }
-                        className="min-h-10 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900"
-                      >
-                        {cultivos.map((c) => (
-                          <option
-                            key={c.id}
-                            value={c.id}
-                            disabled={!c.activo && sectorEditado.cultivoId !== c.id}
-                          >
-                            {c.nombre}
-                            {!c.activo ? " (inactivo)" : ""}
-                          </option>
-                        ))}
-                        <option value={VALOR_OTRO_CULTIVO}>Otro cultivo…</option>
-                      </select>
-                      {sectorEditado.cultivoId === null ? (
-                        <input
-                          type="text"
-                          maxLength={80}
-                          value={sectorEditado.cultivoOtro}
-                          onChange={(e) =>
-                            actualizarSectorSeleccionado({ cultivoOtro: e.target.value })
-                          }
-                          placeholder="Nombre del cultivo"
-                          className="min-h-10 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900"
-                        />
-                      ) : null}
-                    </div>
-                  ) : (
-                    <select
-                      value={sectorEditado.subtipoFlores ?? ""}
-                      onChange={(e) =>
-                        actualizarSectorSeleccionado({
-                          subtipoFlores: (e.target.value || null) as SubtipoFlores | null,
-                        })
-                      }
-                      className="min-h-10 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900"
-                    >
-                      <option value="">Subtipo sin especificar</option>
-                      {SUBTIPOS_FLORES.map((sub) => (
-                        <option key={sub} value={sub}>
-                          {ETIQUETAS_SUBTIPO_FLORES[sub]}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+          {/* Botones grandes para terminar / deshacer / borrar el trazo activo (debajo del mapa, a mano mientras se dibuja) */}
+          {modo !== "navegar" ? (
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-menta px-4 py-3 max-lg:order-7">
+              <p className="w-full text-[0.95rem] font-semibold text-bosque sm:w-auto sm:flex-1">
+                {modo === "dibujar_contorno"
+                  ? `Paso 1 de 2. Tocá el mapa para marcar las esquinas de tu finca (${verticesEnCurso.length} marcadas; hacen falta al menos 3).`
+                  : `Paso 2 de 2. Tocá dentro del borde para marcar el sector «${paleta.etiqueta}» (${verticesEnCurso.length} marcadas; hacen falta al menos 3).`}
+              </p>
+              <Boton
+                variante="contorno"
+                disabled={verticesEnCurso.length < 3}
+                onClick={finalizarTrazoActual}
+                className="min-h-11 px-5"
+              >
+                {modo === "dibujar_contorno" ? "Terminar borde" : "Terminar sector"}
+              </Boton>
+              <Boton
+                variante="texto"
+                disabled={verticesEnCurso.length === 0}
+                onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
+                className="min-h-11"
+              >
+                Deshacer
+              </Boton>
+              <Boton
+                variante="texto"
+                disabled={verticesEnCurso.length === 0}
+                onClick={() => setVerticesEnCurso([])}
+                className="min-h-11"
+              >
+                Borrar trazo
+              </Boton>
+            </div>
+          ) : null}
 
-                  <input
-                    type="text"
-                    maxLength={60}
-                    value={sectorEditado.nombrePersonalizado}
-                    onChange={(e) =>
-                      actualizarSectorSeleccionado({ nombrePersonalizado: e.target.value })
-                    }
-                    placeholder={`Nombre automático: ${nombresCalculados[indiceSeleccionado]}`}
-                    className="min-h-10 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900"
-                  />
-                </div>
-              ) : null}
-
-              {sectores.length > 0 ? (
-                <ul className="flex flex-col gap-2">
+          {/* Lista de lo dibujado */}
+          <div className="max-lg:order-10">
+            <Tarjeta
+              titulo="Lo que dibujaste"
+              extra={<span className="text-[0.95rem] font-semibold text-tinta-suave">{sectores.length}</span>}
+            >
+              {sectores.length === 0 ? (
+                <p className="text-tinta-suave">
+                  {contorno
+                    ? "Todavía no dibujaste sectores dentro del borde."
+                    : "Primero marcá el borde de tu finca sobre el mapa."}
+                </p>
+              ) : (
+                <ul className="flex flex-col divide-y-[1.5px] divide-borde">
                   {sectores.map((s, idx) => (
                     <li
                       key={s.claveLocal}
-                      className={`flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 ${
-                        indiceSeleccionado === idx
-                          ? "border-emerald-600 bg-emerald-50/40"
-                          : "border-stone-200 bg-white"
+                      className={`flex items-center justify-between gap-2 py-1.5 ${
+                        indiceSeleccionado === idx ? "-mx-3 rounded-2xl bg-menta px-3" : ""
                       }`}
                     >
                       <button
                         type="button"
                         onClick={() => setIndiceSeleccionado(idx)}
-                        className="flex flex-1 flex-col text-left"
+                        className="flex min-h-12 flex-1 flex-col justify-center text-left"
                       >
-                        <span className="text-sm font-semibold text-stone-900">
+                        <span className="font-semibold text-tinta">
                           {s.tipo === "sector_flores" ? "🌼" : "🌱"} {nombresCalculados[idx]}
                         </span>
-                        <span className="text-xs text-stone-600">
+                        <span className="text-sm text-tinta-suave">
                           {formatearSuperficieCompleta(superficiesSectores[idx])}
                         </span>
                       </button>
                       <button
                         type="button"
                         onClick={() => borrarSector(idx)}
-                        className="min-h-10 rounded-lg px-2.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                        aria-label={`Quitar ${nombresCalculados[idx]}`}
+                        className="inline-flex min-h-10 items-center rounded-full px-3 text-[0.95rem] font-bold text-error transition hover:bg-error-claro"
                       >
                         Quitar
                       </button>
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="text-sm text-stone-600">
-                  {contorno
-                    ? "Todavía no dibujaste sectores dentro del contorno."
-                    : "Primero marcá el contorno del terreno sobre el mapa."}
-                </p>
               )}
+            </Tarjeta>
+          </div>
+        </div>
+
+        {/* Derecha: superficie, paleta y sector elegido */}
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
+          {/* Cuánta superficie tiene la finca y cuánta llevás dibujada. En la computadora lleva el botón Guardar. */}
+          <aside
+            aria-live="polite"
+            className="flex flex-col gap-3 rounded-[28px] border-2 border-menta-fuerte bg-menta p-5 max-lg:order-2"
+          >
+            <h2 className="text-xl font-bold text-bosque">Tu superficie</h2>
+            {superficieTotalHa !== null ? (
+              <>
+                <p className="flex flex-wrap items-baseline gap-x-2">
+                  <strong className="font-titulos text-3xl font-extrabold text-bosque">
+                    {formatearHectareas(superficieDistribuida)}
+                  </strong>
+                  <span className="text-tinta-suave">de {formatearHectareas(superficieTotalHa)}</span>
+                </p>
+                <div className="h-4 overflow-hidden rounded-full bg-white" aria-hidden="true">
+                  <div
+                    className={`h-full rounded-full transition-all ${colorBarra}`}
+                    style={{ width: `${porcentajeUsado}%` }}
+                  />
+                </div>
+                <p className="font-titulos text-lg font-bold text-bosque">
+                  {restanteHa !== null && restanteHa > 0
+                    ? `Te quedan ${formatearHectareas(restanteHa)} libres.`
+                    : "Ya dibujaste toda la finca."}
+                </p>
+              </>
+            ) : (
+              <p className="text-tinta-suave">
+                Cuando marques el borde de tu finca, acá vas a ver cuántas hectáreas tiene.
+              </p>
+            )}
+            <div className="flex flex-col gap-1 max-lg:hidden">
+              {botonGuardar}
+              <BotonEnlace href={`/fincas/${establecimientoId}`} variante="texto">
+                Cancelar
+              </BotonEnlace>
+            </div>
+          </aside>
+
+          {contorno ? (
+            <div className="max-lg:order-3">
+              <PaletaSectores cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
             </div>
           ) : null}
-        </section>
 
-        <div className="flex flex-col-reverse gap-3 border-t border-stone-200 pt-4 sm:flex-row sm:justify-end">
-          <Link
-            href={`/fincas/${establecimientoId}`}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-          >
-            Cancelar
-          </Link>
-          <button
-            type="button"
-            onClick={manejarGuardado}
-            disabled={guardando || !contorno}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {guardando ? "Guardando…" : "Guardar"}
-          </button>
+          {/* Sector elegido: se puede cambiar el tipo, el cultivo y el nombre */}
+          {sectorEditado !== null && indiceSeleccionado !== null ? (
+            <div className="max-lg:order-9">
+              <Tarjeta
+                titulo={`Editando: ${nombresCalculados[indiceSeleccionado]}`}
+                extra={
+                  <Boton
+                    variante="peligro"
+                    onClick={() => borrarSector(indiceSeleccionado)}
+                    className="min-h-10 px-4 text-sm"
+                  >
+                    Borrar sector
+                  </Boton>
+                }
+              >
+                <p className="text-tinta-suave">
+                  Mide{" "}
+                  <strong className="text-tinta">
+                    {formatearSuperficieCompleta(superficiesSectores[indiceSeleccionado])}
+                  </strong>
+                  .
+                </p>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  <button
+                    type="button"
+                    aria-pressed={sectorEditado.tipo === "cultivo"}
+                    onClick={() =>
+                      actualizarSectorSeleccionado({
+                        tipo: "cultivo",
+                        subtipoFlores: null,
+                        cultivoId: primerCultivo?.id ?? null,
+                      })
+                    }
+                    className={`min-h-12 rounded-2xl border-2 px-3 text-[0.95rem] font-bold transition ${
+                      sectorEditado.tipo === "cultivo"
+                        ? "border-hoja bg-menta text-bosque"
+                        : "border-borde bg-white text-tinta-suave hover:border-hoja"
+                    }`}
+                  >
+                    🌱 Cultivo
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={sectorEditado.tipo === "sector_flores"}
+                    onClick={() =>
+                      actualizarSectorSeleccionado({
+                        tipo: "sector_flores",
+                        cultivoId: null,
+                        cultivoOtro: "",
+                      })
+                    }
+                    className={`min-h-12 rounded-2xl border-2 px-3 text-[0.95rem] font-bold transition ${
+                      sectorEditado.tipo === "sector_flores"
+                        ? "border-purple-700 bg-purple-50 text-bosque"
+                        : "border-borde bg-white text-tinta-suave hover:border-hoja"
+                    }`}
+                  >
+                    🌼 Flores
+                  </button>
+                </div>
+
+                {sectorEditado.tipo === "cultivo" ? (
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="editar-cultivo-mapa" className="text-[0.95rem] font-semibold text-tinta">
+                      ¿Qué cultivo es?
+                    </label>
+                    <select
+                      id="editar-cultivo-mapa"
+                      value={sectorEditado.cultivoId ?? VALOR_OTRO_CULTIVO}
+                      onChange={(e) =>
+                        actualizarSectorSeleccionado({
+                          cultivoId: e.target.value === VALOR_OTRO_CULTIVO ? null : e.target.value,
+                          cultivoOtro: e.target.value === VALOR_OTRO_CULTIVO ? sectorEditado.cultivoOtro : "",
+                        })
+                      }
+                      className={CAMPO}
+                    >
+                      {cultivos.map((c) => (
+                        <option key={c.id} value={c.id} disabled={!c.activo && sectorEditado.cultivoId !== c.id}>
+                          {c.nombre}
+                          {!c.activo ? " (inactivo)" : ""}
+                        </option>
+                      ))}
+                      <option value={VALOR_OTRO_CULTIVO}>Otro cultivo…</option>
+                    </select>
+                    {sectorEditado.cultivoId === null ? (
+                      <input
+                        type="text"
+                        maxLength={80}
+                        value={sectorEditado.cultivoOtro}
+                        onChange={(e) => actualizarSectorSeleccionado({ cultivoOtro: e.target.value })}
+                        placeholder="Nombre del cultivo"
+                        aria-label="Nombre del cultivo"
+                        className={CAMPO}
+                      />
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="editar-subtipo-mapa" className="text-[0.95rem] font-semibold text-tinta">
+                      ¿Qué tipo de flores o vegetación?
+                    </label>
+                    <select
+                      id="editar-subtipo-mapa"
+                      value={sectorEditado.subtipoFlores ?? ""}
+                      onChange={(e) =>
+                        actualizarSectorSeleccionado({
+                          subtipoFlores: (e.target.value || null) as SubtipoFlores | null,
+                        })
+                      }
+                      className={CAMPO}
+                    >
+                      <option value="">No sé / sin especificar</option>
+                      {SUBTIPOS_FLORES.map((sub) => (
+                        <option key={sub} value={sub}>
+                          {ETIQUETAS_SUBTIPO_FLORES[sub]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="editar-nombre-mapa" className="text-[0.95rem] font-semibold text-tinta">
+                    Nombre del sector (si querés ponerle uno)
+                  </label>
+                  <input
+                    id="editar-nombre-mapa"
+                    type="text"
+                    maxLength={60}
+                    value={sectorEditado.nombrePersonalizado}
+                    onChange={(e) => actualizarSectorSeleccionado({ nombrePersonalizado: e.target.value })}
+                    placeholder={nombresCalculados[indiceSeleccionado]}
+                    className={CAMPO}
+                  />
+                </div>
+              </Tarjeta>
+            </div>
+          ) : null}
+
+          {/* En el celular, Guardar va al final */}
+          <div className="flex flex-col gap-1 lg:hidden max-lg:order-11">
+            {botonGuardar}
+            <BotonEnlace href={`/fincas/${establecimientoId}`} variante="texto">
+              Cancelar
+            </BotonEnlace>
+          </div>
         </div>
       </div>
     </div>

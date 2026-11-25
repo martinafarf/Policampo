@@ -2,12 +2,12 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { EditorCroquis } from "@/componentes/croquis/EditorCroquis";
-
-export const metadata = { title: "Dibujá tu finca · PoliCampo" };
 import type { PoligonoGeoJson } from "@/dominio/establecimientos";
 import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
+
+export const metadata = { title: "Dibujá tu finca · PoliCampo" };
 
 interface Props {
   params: Promise<{ id: string }>;

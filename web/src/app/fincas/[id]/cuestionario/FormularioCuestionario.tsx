@@ -286,6 +286,7 @@ export function FormularioCuestionario({
         {/* Lado izquierdo: los sectores */}
         <div className="flex flex-col gap-4 max-lg:order-2">
           <BannerBorrador
+            variante="aviso"
             fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
             ultimoAutoguardadoIso={ultimoAutoguardado}
             onRecuperar={recuperarBorrador}
@@ -612,6 +613,14 @@ export function FormularioCuestionario({
               </p>
             ) : null}
           </div>
+
+          <BannerBorrador
+            variante="nota"
+            fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+            ultimoAutoguardadoIso={ultimoAutoguardado}
+            onRecuperar={recuperarBorrador}
+            onDescartar={descartarBorrador}
+          />
 
           {/* En el celular, Guardar va al final de la lista */}
           <div className="lg:hidden">{botonGuardar}</div>

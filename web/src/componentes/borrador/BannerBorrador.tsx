@@ -7,6 +7,11 @@ import { IconoInfo } from "@/componentes/marca/Iconos";
 import { Boton } from "@/componentes/ui/boton";
 
 interface Props {
+  /**
+   * "aviso": solo el aviso de borrador encontrado (va arriba). "nota": solo el texto chico de "Borrador guardado
+   * a las…" (va abajo, para que al aparecer no corra lo que se está dibujando). Sin valor: las dos cosas.
+   */
+  variante?: "aviso" | "nota";
   fechaBorradorIso: string | null;
   ultimoAutoguardadoIso: string | null;
   onRecuperar: () => void;
@@ -36,12 +41,13 @@ function formatearHora(iso: string): string {
 }
 
 export function BannerBorrador({
+  variante,
   fechaBorradorIso,
   ultimoAutoguardadoIso,
   onRecuperar,
   onDescartar,
 }: Props) {
-  if (fechaBorradorIso) {
+  if (fechaBorradorIso && variante !== "nota") {
     return (
       <div
         role="status"
@@ -65,7 +71,7 @@ export function BannerBorrador({
     );
   }
 
-  if (ultimoAutoguardadoIso) {
+  if (ultimoAutoguardadoIso && !fechaBorradorIso && variante !== "aviso") {
     return (
       <p className="text-right text-sm text-tinta-suave">
         Borrador guardado en este dispositivo a las {formatearHora(ultimoAutoguardadoIso)}.

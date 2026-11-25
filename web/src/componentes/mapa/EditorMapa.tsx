@@ -591,6 +591,7 @@ export function EditorMapa({
         <div className="contents lg:flex lg:flex-col lg:gap-4">
           <div className="max-lg:order-1 empty:hidden">
             <BannerBorrador
+              variante="aviso"
               fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
               ultimoAutoguardadoIso={ultimoAutoguardado}
               onRecuperar={recuperarBorrador}
@@ -701,6 +702,16 @@ export function EditorMapa({
               ref={contenedorMapaRef}
               className="h-[52vh] min-h-[320px] w-full lg:h-[calc(100dvh-21rem)] lg:min-h-[360px]"
               aria-label="Mapa satelital interactivo del establecimiento"
+            />
+          </div>
+
+          <div className="max-lg:order-6 empty:hidden">
+            <BannerBorrador
+              variante="nota"
+              fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+              ultimoAutoguardadoIso={ultimoAutoguardado}
+              onRecuperar={recuperarBorrador}
+              onDescartar={descartarBorrador}
             />
           </div>
 

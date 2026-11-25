@@ -4,12 +4,15 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { emitirInformeAccion } from "@/app/fincas/[id]/informes/acciones";
+import { clasesBoton } from "@/componentes/ui/boton";
 
 interface Props {
   establecimientoId: string;
   cumpleRequisitos: boolean;
   mensajeFaltante: string | null;
   nombrePerfilCompleto: string | null;
+  /** false cuando hay otra acción más importante en la pantalla: el botón va con borde (contorno). */
+  principal?: boolean;
 }
 
 export function BotonEmitirInforme({
@@ -17,6 +20,7 @@ export function BotonEmitirInforme({
   cumpleRequisitos,
   mensajeFaltante,
   nombrePerfilCompleto,
+  principal = true,
 }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [incluirNombre, setIncluirNombre] = useState(false);
@@ -26,14 +30,10 @@ export function BotonEmitirInforme({
   if (!cumpleRequisitos) {
     return (
       <div className="flex flex-col items-start gap-1">
-        <button
-          type="button"
-          disabled
-          className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg bg-stone-200 px-4 py-2 text-sm font-semibold text-stone-500"
-        >
-          📄 Generar informe
+        <button type="button" disabled className={clasesBoton("contorno")}>
+          Generar informe
         </button>
-        <p className="text-xs font-medium text-amber-800">{mensajeFaltante}</p>
+        <p className="text-sm font-semibold text-tinta-suave">{mensajeFaltante}</p>
       </div>
     );
   }
@@ -56,24 +56,24 @@ export function BotonEmitirInforme({
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+        className={clasesBoton(principal ? "principal" : "contorno")}
       >
-        📄 Generar informe
+        Generar informe
       </button>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
-      <p className="text-sm font-bold text-emerald-950">Emitir informe técnico PDF</p>
-      <p className="text-xs text-stone-700">
+    <div className="flex flex-col gap-3 rounded-2xl border-[1.5px] border-menta-fuerte bg-menta p-4">
+      <p className="font-bold text-bosque">Generar el informe en PDF</p>
+      <p className="text-sm text-tinta-suave">
         Se guarda una foto fija del diagnóstico, la propuesta elegida y el calendario actual con un
         código único.
       </p>
 
       <label
-        className={`inline-flex items-start gap-2.5 text-xs ${
-          nombrePerfilCompleto ? "cursor-pointer text-stone-800" : "cursor-not-allowed text-stone-500"
+        className={`inline-flex items-start gap-2.5 text-sm ${
+          nombrePerfilCompleto ? "cursor-pointer text-tinta" : "cursor-not-allowed text-tinta-suave"
         }`}
       >
         <input
@@ -81,16 +81,16 @@ export function BotonEmitirInforme({
           disabled={!nombrePerfilCompleto || pendiente}
           checked={Boolean(nombrePerfilCompleto && incluirNombre)}
           onChange={(e) => setIncluirNombre(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-emerald-700"
+          className="mt-0.5 h-5 w-5"
         />
         <span>
           <strong>Incluir mi nombre en el informe</strong>
           {nombrePerfilCompleto ? (
-            <span className="block text-[11px] text-stone-600">
+            <span className="block text-sm text-tinta-suave">
               Aparecerá como: «Preparado para: {nombrePerfilCompleto}»
             </span>
           ) : (
-            <span className="block text-[11px] text-amber-800">
+            <span className="block text-sm text-tinta-suave">
               Cargá tu nombre en{" "}
               <Link href="/perfil" className="font-semibold underline">
                 Mi perfil
@@ -102,7 +102,10 @@ export function BotonEmitirInforme({
       </label>
 
       {error ? (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+        <p
+          role="alert"
+          className="rounded-2xl border-[1.5px] border-[#f5c2bd] bg-error-claro px-3 py-2 text-sm font-semibold text-error"
+        >
           {error}
         </p>
       ) : null}
@@ -112,7 +115,7 @@ export function BotonEmitirInforme({
           type="button"
           disabled={pendiente}
           onClick={confirmarEmision}
-          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+          className={clasesBoton("principal")}
         >
           {pendiente ? "Emitiendo informe…" : "Confirmar y emitir"}
         </button>
@@ -120,7 +123,7 @@ export function BotonEmitirInforme({
           type="button"
           disabled={pendiente}
           onClick={() => setAbierto(false)}
-          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-stone-700"
+          className={clasesBoton("texto")}
         >
           Cancelar
         </button>

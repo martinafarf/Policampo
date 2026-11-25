@@ -1,15 +1,20 @@
 "use client";
 
 // Listado interactivo de Mis fincas con buscador y filtro por estado de diagnóstico (RD-03, CA-04-18).
+//
+// Cada finca es UNA tarjeta que se toca entera (más fácil con el dedo que dos botoncitos): muestra su
+// croquis en miniatura, dónde está, cuánto mide y en qué estado está ("Falta diagnóstico", "Crítico"...).
+// El buscador y los filtros aparecen solo si hay más de 3 fincas: con pocas, solo agregan ruido.
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
-import type { NivelRiesgo } from "@/dominio/diagnostico";
-import {
-  ETIQUETAS_METODO,
-  formatearSuperficieCompleta,
-  type MetodoCaracterizacion,
-} from "@/dominio/establecimientos";
+import { IconoFinca, IconoFlecha, IconoLupa } from "@/componentes/marca/Iconos";
+import { Boton } from "@/componentes/ui/boton";
+import { Etiqueta } from "@/componentes/ui/etiqueta";
+import { formatearNumeroEsAr, type NivelRiesgo } from "@/dominio/diagnostico";
+import type { MetodoCaracterizacion } from "@/dominio/establecimientos";
+import { VistaPreviaDibujo } from "./[id]/VistaPreviaDibujo";
+import type { DibujoFinca } from "./_lib/consultas";
 
 export interface FincaEnListado {
   id: string;
@@ -24,6 +29,8 @@ export interface FincaEnListado {
     porcentajeFlores: number;
     desactualizado: boolean;
   } | null;
+  /** Para la miniatura del croquis o del mapa (null en el cuestionario, que no tiene dibujo). */
+  dibujo: DibujoFinca | null;
 }
 
 type FiltroEstadoDiagnostico =
@@ -34,6 +41,18 @@ type FiltroEstadoDiagnostico =
   | "critico"
   | "desactualizado";
 
+const FILTROS: readonly { valor: FiltroEstadoDiagnostico; texto: string }[] = [
+  { valor: "todos", texto: "Todas" },
+  { valor: "sin_diagnostico", texto: "Sin diagnóstico" },
+  { valor: "adecuado", texto: "Adecuado" },
+  { valor: "moderado", texto: "Moderado" },
+  { valor: "critico", texto: "Crítico" },
+  { valor: "desactualizado", texto: "Desactualizado" },
+];
+
+/** Con más fincas que esto se muestran el buscador y los filtros. */
+const FINCAS_PARA_MOSTRAR_FILTROS = 3;
+
 interface Props {
   fincas: readonly FincaEnListado[];
   enfoqueDiagnostico?: boolean;
@@ -42,14 +61,31 @@ interface Props {
 function normalizarTexto(texto: string): string {
   return texto
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim();
+}
+
+/** El estado de la finca en una etiqueta: lo próximo que le falta, o cómo le fue en el diagnóstico. */
+function EstadoFinca({ finca }: { finca: FincaEnListado }) {
+  if (finca.cantidadSectores === 0) return <Etiqueta tono="ahora">Falta cargar el terreno</Etiqueta>;
+  if (!finca.diagnostico) return <Etiqueta tono="ahora">Falta diagnóstico</Etiqueta>;
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      <BadgeNivelDiagnostico nivel={finca.diagnostico.nivelRiesgo} desactualizado={finca.diagnostico.desactualizado} />
+      {!finca.diagnostico.desactualizado && (
+        <span className="text-sm font-semibold text-tinta-suave">
+          {formatearNumeroEsAr(finca.diagnostico.porcentajeFlores, 1)} % con flores
+        </span>
+      )}
+    </span>
+  );
 }
 
 export function ListadoFincasConFiltro({ fincas, enfoqueDiagnostico = false }: Props) {
   const [busqueda, setBusqueda] = useState("");
   const [estadoDiag, setEstadoDiag] = useState<FiltroEstadoDiagnostico>("todos");
+  const mostrarFiltros = fincas.length > FINCAS_PARA_MOSTRAR_FILTROS;
 
   const fincasFiltradas = useMemo(() => {
     const termino = normalizarTexto(busqueda);
@@ -77,155 +113,103 @@ export function ListadoFincasConFiltro({ fincas, enfoqueDiagnostico = false }: P
     });
   }, [fincas, busqueda, estadoDiag]);
 
-  const hayFiltroActivo = busqueda.trim().length > 0 || estadoDiag !== "todos";
+  function limpiarFiltros() {
+    setBusqueda("");
+    setEstadoDiag("todos");
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Barra de búsqueda y filtro */}
-      <section
-        aria-label="Filtrar fincas"
-        className="grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-3.5 shadow-xs sm:grid-cols-3"
-      >
-        <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700 sm:col-span-2">
-          Buscar finca
-          <input
-            type="search"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Nombre de la finca, localidad o departamento…"
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-normal text-stone-900 placeholder:text-stone-400 focus:border-emerald-700 focus:outline-none"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-          Estado del diagnóstico
-          <select
-            value={estadoDiag}
-            onChange={(e) => setEstadoDiag(e.target.value as FiltroEstadoDiagnostico)}
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-normal text-stone-900 focus:border-emerald-700 focus:outline-none"
-          >
-            <option value="todos">Todas las fincas</option>
-            <option value="sin_diagnostico">Sin diagnóstico</option>
-            <option value="adecuado">Adecuado (≥ 20 %)</option>
-            <option value="moderado">Moderado (10–19 %)</option>
-            <option value="critico">Crítico (&lt; 10 %)</option>
-            <option value="desactualizado">Desactualizado</option>
-          </select>
-        </label>
-
-        {hayFiltroActivo ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 pt-2 text-xs text-stone-600 sm:col-span-3">
-            <span>
-              Mostrando <strong>{fincasFiltradas.length}</strong> de {fincas.length}{" "}
-              {fincas.length === 1 ? "finca" : "fincas"}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setBusqueda("");
-                setEstadoDiag("todos");
-              }}
-              className="font-semibold text-emerald-800 hover:underline"
-            >
-              Limpiar filtros
-            </button>
+    <div className="flex flex-col gap-5">
+      {mostrarFiltros && (
+        <section aria-label="Buscar y filtrar fincas" className="flex flex-col gap-3">
+          <label className="relative block">
+            <span className="sr-only">Buscar finca</span>
+            <IconoLupa className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-tinta-suave" />
+            <input
+              type="search"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por nombre o lugar"
+              className="min-h-12 w-full rounded-full border-[1.5px] border-borde bg-white pr-4 pl-12 text-base outline-none placeholder:text-tinta-suave focus:border-hoja focus:ring-4 focus:ring-naranja/45"
+            />
+          </label>
+          <div role="group" aria-label="Filtrar por diagnóstico" className="flex flex-wrap gap-2">
+            {FILTROS.map((f) => {
+              const activo = estadoDiag === f.valor;
+              return (
+                <button
+                  key={f.valor}
+                  type="button"
+                  aria-pressed={activo}
+                  onClick={() => setEstadoDiag(f.valor)}
+                  className={`min-h-10 rounded-full border-[1.5px] px-4 text-[0.95rem] font-semibold transition ${
+                    activo ? "border-hoja bg-hoja text-white" : "border-borde bg-white text-tinta hover:bg-menta"
+                  }`}
+                >
+                  {f.texto}
+                </button>
+              );
+            })}
           </div>
-        ) : null}
-      </section>
+          {(busqueda.trim() || estadoDiag !== "todos") && (
+            <p className="text-sm text-tinta-suave" aria-live="polite">
+              Mostrando <strong className="text-tinta">{fincasFiltradas.length}</strong> de {fincas.length}{" "}
+              fincas.
+            </p>
+          )}
+        </section>
+      )}
 
       {fincasFiltradas.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-10 text-center">
-          <p className="text-base font-semibold text-stone-900">
-            No encontramos fincas con ese filtro
-          </p>
-          <p className="mt-1 text-sm text-stone-600">
-            Probá con otro nombre o limpiá los filtros para ver todas tus fincas.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setBusqueda("");
-              setEstadoDiag("todos");
-            }}
-            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg border border-emerald-700 px-4 py-1.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-          >
-            Ver todas las fincas
-          </button>
+        <section className="flex flex-col items-center gap-3 rounded-[28px] border-2 border-borde bg-white px-6 py-10 text-center">
+          <p className="text-lg font-bold text-bosque">No hay fincas con ese filtro</p>
+          <Boton variante="contorno" onClick={limpiarFiltros}>
+            Ver todas mis fincas
+          </Boton>
         </section>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {fincasFiltradas.map((finca) => (
-            <li
-              key={finca.id}
-              className="flex flex-col justify-between gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs"
-            >
-              <div className="flex flex-col gap-1.5">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="min-w-0 flex-1 break-words text-lg font-bold text-stone-900">
-                    {finca.nombre}
-                  </h2>
-                  <span className="shrink-0 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
-                    {ETIQUETAS_METODO[finca.metodoCaracterizacion]}
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {fincasFiltradas.map((finca) => {
+            const href = enfoqueDiagnostico ? `/fincas/${finca.id}/diagnostico` : `/fincas/${finca.id}`;
+            const datos = [
+              `${finca.localidad}, ${finca.departamento}`,
+              ...(finca.superficieTotalHa !== null ? [`${formatearNumeroEsAr(finca.superficieTotalHa, 2)} ha`] : []),
+            ].join(" · ");
+            return (
+              <li key={finca.id}>
+                <Link
+                  href={href}
+                  className="group flex h-full items-center gap-4 rounded-[28px] border-2 border-borde bg-white p-4 transition duration-200 hover:-translate-y-0.5 hover:border-hoja hover:shadow-suave"
+                >
+                  <span className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-papel text-hoja sm:h-24 sm:w-24">
+                    {finca.dibujo && (finca.dibujo.contorno || finca.dibujo.sectores.length > 0) ? (
+                      <VistaPreviaDibujo
+                        compacta
+                        metodo={finca.metodoCaracterizacion}
+                        superficieTotalHa={finca.superficieTotalHa}
+                        contorno={finca.dibujo.contorno}
+                        sectores={finca.dibujo.sectores}
+                      />
+                    ) : (
+                      <IconoFinca className="h-9 w-9" />
+                    )}
                   </span>
-                </div>
-                <p className="text-sm text-stone-600">
-                  {finca.localidad}, {finca.departamento}
-                </p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  {finca.diagnostico ? (
-                    <BadgeNivelDiagnostico
-                      nivel={finca.diagnostico.nivelRiesgo}
-                      desactualizado={finca.diagnostico.desactualizado}
-                    />
-                  ) : (
-                    <span className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-600">
-                      Sin diagnóstico
-                    </span>
-                  )}
-                </div>
-                <dl className="mt-2 grid grid-cols-2 gap-2 border-t border-stone-100 pt-2.5 text-xs text-stone-600">
-                  <div>
-                    <dt className="font-medium text-stone-500">Superficie total</dt>
-                    <dd className="mt-0.5 font-semibold text-stone-900">
-                      {finca.superficieTotalHa !== null
-                        ? formatearSuperficieCompleta(finca.superficieTotalHa)
-                        : "Se calcula al dibujar el terreno"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-medium text-stone-500">Sectores</dt>
-                    <dd className="mt-0.5 font-semibold text-stone-900">
-                      {finca.cantidadSectores}{" "}
-                      {finca.cantidadSectores === 1 ? "sector" : "sectores"}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href={`/fincas/${finca.id}`}
-                  className={`inline-flex min-h-11 items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold ${
-                    enfoqueDiagnostico
-                      ? "border border-stone-300 bg-white text-stone-700 hover:bg-stone-50"
-                      : "border border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50"
-                  }`}
-                >
-                  Ver ficha
+                  <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <span className="font-titulos text-xl font-bold break-words text-bosque">{finca.nombre}</span>
+                    <span className="text-[0.95rem] text-tinta-suave">{datos}</span>
+                    <EstadoFinca finca={finca} />
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-hoja text-white transition group-hover:bg-hoja-oscura"
+                  >
+                    <IconoFlecha className="h-5 w-5" />
+                  </span>
+                  <span className="sr-only">{enfoqueDiagnostico ? "Ver diagnóstico" : "Abrir la finca"}</span>
                 </Link>
-                <Link
-                  href={`/fincas/${finca.id}/diagnostico`}
-                  className={`inline-flex min-h-11 items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold ${
-                    enfoqueDiagnostico
-                      ? "bg-emerald-700 text-white hover:bg-emerald-800"
-                      : "border border-stone-300 bg-stone-50 text-stone-800 hover:bg-stone-100"
-                  }`}
-                >
-                  Diagnóstico →
-                </Link>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

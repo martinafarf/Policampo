@@ -1,8 +1,15 @@
-// Herramientas del usuario, en la ruta /inicio («Inicio» en pantalla es la landing) (especificación 01, 5.1): saludo, próximas tareas y accesos a los módulos.
+// Herramientas del usuario, en la ruta /inicio («Inicio» en pantalla es la landing) (especificación 01, 5.1): saludo y accesos a los módulos.
+// Las tareas no van acá: tienen su lugar en la barra de arriba ("Tareas", con un número si hay algo para hacer ya),
+// así esta pantalla se enfoca en las herramientas.
 // Reutiliza el fondo con cielo menta y PaisajeIlustrado de la portada + AbejaCursor siempre visible.
+//
+// Las herramientas van en dos grupos, para que lo que más se busca se encuentre primero:
+// - Principales (Mis fincas, Diagnóstico, Rediseño): el recorrido central de PoliCampo. Tarjetas grandes
+//   y resaltadas, justo debajo del saludo.
+// - Más herramientas (Mis tareas, Informes, Guía): tarjetas más chicas, al final.
+// Todas las tarjetas se tocan enteras (un solo toque, sin botones "Abrir" compitiendo entre sí).
 import Link from "next/link";
 import { Suspense, type ComponentType } from "react";
-import { BadgeEstadoTarea } from "@/componentes/calendario/BadgeEstadoTarea";
 import { AbejaCursor } from "@/componentes/marca/AbejaCursor";
 import {
   Hoja,
@@ -16,63 +23,79 @@ import {
 } from "@/componentes/marca/Iconos";
 import { PaisajeIlustrado } from "@/componentes/marca/PaisajeIlustrado";
 import { Aviso } from "@/componentes/ui/formulario";
-import { formatearFechaCortaEsAr } from "@/dominio/calendario";
-import { obtenerResumenTareasParaInicio } from "@/dominio/calendario/servicio";
 import { requerirUsuario } from "@/lib/sesion";
 
 export const metadata = { title: "Herramientas · PoliCampo" };
 
-const MODULOS: readonly {
+type Modulo = {
   titulo: string;
   Icono: ComponentType<{ className?: string }>;
   texto: string;
   href: string;
-}[] = [
-  {
-    titulo: "Mis fincas",
-    Icono: IconoFinca,
-    texto: "Cargá tus fincas y cómo está distribuido el terreno.",
-    href: "/fincas",
-  },
-  {
-    titulo: "Guía de especies",
-    Icono: IconoGuia,
-    texto: "Consultá plantas de servicio, períodos de floración y compatibilidades publicadas.",
-    href: "/guia-especies",
-  },
+};
+
+/** El recorrido central: cargar la finca → ver cuántas flores tiene → decidir dónde sumar más. */
+const PRINCIPALES: readonly Modulo[] = [
+  { titulo: "Mis fincas", Icono: IconoFinca, texto: "Cargá tus fincas y mirá lo que tiene cada una.", href: "/fincas" },
   {
     titulo: "Diagnóstico",
     Icono: IconoLupa,
-    texto: "Mirá cuánta superficie tiene flores frente al 20 % recomendado.",
+    texto: "Cuántas flores tiene tu finca y cuántas le faltan.",
     href: "/fincas?enfoque=diagnostico",
   },
-  {
-    titulo: "Rediseño",
-    Icono: IconoFlor,
-    texto: "Dónde ubicar franjas florales y qué plantas sembrar.",
-    href: "/fincas",
-  },
-  {
-    titulo: "Mis tareas",
-    Icono: IconoCalendario,
-    texto: "Calendario de siembra, fechas límite, corte y avisos de todas tus fincas.",
-    href: "/tareas",
-  },
-  {
-    titulo: "Informes",
-    Icono: IconoDocumento,
-    texto: "Descargá el informe técnico en PDF de cada finca.",
-    href: "/informes",
-  },
+  { titulo: "Rediseño", Icono: IconoFlor, texto: "Dónde sumar flores y qué plantas sembrar.", href: "/fincas" },
 ];
+
+const SECUNDARIAS: readonly Modulo[] = [
+  { titulo: "Mis tareas", Icono: IconoCalendario, texto: "Qué hacer y cuándo.", href: "/tareas" },
+  { titulo: "Informes", Icono: IconoDocumento, texto: "El PDF de cada finca.", href: "/informes" },
+  { titulo: "Guía de especies", Icono: IconoGuia, texto: "Plantas que atraen abejas.", href: "/guia-especies" },
+];
+
+/** Tarjeta grande y resaltada: borde oliva, ícono en círculo naranja y título grande. */
+function TarjetaPrincipal({ titulo, Icono, texto, href }: Modulo) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-full flex-col gap-4 rounded-[28px] border-2 border-hoja bg-white p-6 shadow-suave transition duration-200 hover:-translate-y-1 hover:bg-menta/40"
+    >
+      <span className="grid h-14 w-14 place-items-center rounded-full bg-naranja text-bosque">
+        <Icono className="h-7 w-7" />
+      </span>
+      <span className="flex flex-1 flex-col gap-1.5">
+        <span className="font-titulos text-2xl font-bold text-bosque">{titulo}</span>
+        <span className="text-tinta-suave">{texto}</span>
+      </span>
+      <span className="inline-flex items-center gap-1.5 font-bold text-hoja">
+        Entrar
+        <IconoFlecha className="h-5 w-5 transition group-hover:translate-x-1" />
+      </span>
+    </Link>
+  );
+}
+
+/** Tarjeta chica: para lo que se usa menos seguido. */
+function TarjetaSecundaria({ titulo, Icono, texto, href }: Modulo) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-full items-center gap-3 rounded-3xl border-2 border-borde bg-white/80 px-4 py-3 transition duration-200 hover:border-hoja hover:bg-white"
+    >
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-menta text-bosque">
+        <Icono className="h-5 w-5" />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="font-titulos font-bold text-bosque">{titulo}</span>
+        <span className="text-sm text-tinta-suave">{texto}</span>
+      </span>
+      <IconoFlecha className="h-5 w-5 shrink-0 text-hoja transition group-hover:translate-x-0.5" />
+    </Link>
+  );
+}
 
 async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: string }> }) {
   const usuario = await requerirUsuario("/inicio");
-  const [{ confirmada }, resumenTareas] = await Promise.all([
-    searchParams,
-    obtenerResumenTareasParaInicio(usuario.id),
-  ]);
-  const listaInicio = [...resumenTareas.atrasadas, ...resumenTareas.proximasOEnCurso];
+  const { confirmada } = await searchParams;
 
   return (
     <>
@@ -87,47 +110,18 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
         <h1 className="titulo-onda text-3xl font-bold text-bosque sm:text-4xl">
           Hola, {usuario.nombreParaMostrar}
         </h1>
-        <p className="max-w-[46ch] text-base text-tinta-suave">
-          Elegí por dónde empezar para diagnosticar, rediseñar y seguir el calendario de tus fincas.
-        </p>
+        <p className="max-w-[46ch] text-base text-tinta-suave">¿Qué querés hacer hoy?</p>
       </header>
 
-      {listaInicio.length > 0 ? (
-        <section className="mt-6 rounded-[28px] border-2 border-menta-fuerte bg-white/90 p-5 shadow-chica backdrop-blur-[2px] sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-xl font-bold text-bosque">Próximas tareas</h2>
-            <Link
-              href="/tareas"
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-hoja transition hover:bg-menta hover:text-hoja-oscura"
-            >
-              Ver todas ({resumenTareas.totalPendientes})
-              <IconoFlecha className="h-4 w-4" />
-            </Link>
-          </div>
-          <ul className="mt-4 flex flex-col gap-2.5">
-            {listaInicio.map((t) => (
-              <li
-                key={t.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-[1.5px] border-borde bg-papel px-4 py-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <BadgeEstadoTarea estado={t.estado} />
-                  <Link
-                    href={`/fincas/${t.establecimientoId}/calendario`}
-                    className="font-semibold text-bosque hover:text-hoja hover:underline"
-                  >
-                    {t.titulo}
-                  </Link>
-                  <span className="text-tinta-suave">· {t.establecimientoNombre}</span>
-                </div>
-                <span className="font-semibold text-tinta-suave">
-                  {formatearFechaCortaEsAr(t.fechaInicio)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      {/* Lo principal, primero y resaltado */}
+      <ul className="mt-6 grid gap-5 md:grid-cols-3" aria-label="Herramientas principales">
+        {PRINCIPALES.map((m) => (
+          <li key={m.titulo}>
+            <TarjetaPrincipal {...m} />
+          </li>
+        ))}
+      </ul>
+
     </>
   );
 }
@@ -143,28 +137,11 @@ export default function PaginaInicio({ searchParams }: PageProps<"/inicio">) {
           <Saludo searchParams={searchParams as Promise<{ confirmada?: string }>} />
         </Suspense>
 
-        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULOS.map(({ titulo, Icono, texto, href }) => (
-            <li
-              key={titulo}
-              className="flex flex-col justify-between gap-5 rounded-[28px] border-2 border-borde bg-white/95 p-6 shadow-chica backdrop-blur-[2px] transition hover:-translate-y-1 hover:shadow-suave"
-            >
-              <div className="flex flex-col gap-3">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-menta text-bosque">
-                  <Icono className="h-6 w-6" />
-                </div>
-                <h2 className="text-xl font-bold text-bosque">{titulo}</h2>
-                <p className="text-sm leading-relaxed text-tinta-suave">{texto}</p>
-              </div>
-              <div>
-                <Link
-                  href={href}
-                  className="inline-flex min-h-12 items-center gap-2 rounded-full bg-hoja px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-hoja-oscura hover:shadow-chica"
-                >
-                  Abrir
-                  <IconoFlecha className="h-4 w-4" />
-                </Link>
-              </div>
+        <h2 className="mt-10 text-lg font-bold text-bosque">Más herramientas</h2>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+          {SECUNDARIAS.map((m) => (
+            <li key={m.titulo}>
+              <TarjetaSecundaria {...m} />
             </li>
           ))}
         </ul>

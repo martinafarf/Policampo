@@ -168,3 +168,31 @@ export function IconoMas({ className = "h-5 w-5" }: Props) {
     </svg>
   );
 }
+
+/** Lista con tildes: cargar la finca respondiendo preguntas (cuestionario). */
+export function IconoLista({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="m4 6 1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6.5h9M11 12.5h9M11 18.5h9" />
+    </svg>
+  );
+}
+
+/** Lápiz sobre un plano: dibujar la finca (croquis). */
+export function IconoLapiz({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />
+    </svg>
+  );
+}
+
+/** Marca de lugar: ubicar la finca en el mapa satelital. */
+export function IconoMapa({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  );
+}

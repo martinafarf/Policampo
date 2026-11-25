@@ -559,6 +559,18 @@ export async function listarMisTareas(usuarioId: string, hoyIso = obtenerHoyJuju
   );
 }
 
+// Número de la barra de navegación junto a "Tareas": lo que hay que hacer ya (atrasadas o en curso).
+// No cuenta las próximas: si no, el número estaría casi siempre prendido y dejaría de llamar la atención.
+export async function contarTareasParaHacerAhora(
+  usuarioId: string,
+  hoyIso = obtenerHoyJujuyIso(),
+): Promise<number> {
+  const tareas = await listarMisTareas(usuarioId, hoyIso);
+  return tareas.filter(
+    (t) => !t.esInformativa && (t.estado === "atrasada" || t.estado === "en_curso"),
+  ).length;
+}
+
 // Inicio: atrasadas primero y después las 5 próximas o en curso (CA-06-12).
 export async function obtenerResumenTareasParaInicio(
   usuarioId: string,

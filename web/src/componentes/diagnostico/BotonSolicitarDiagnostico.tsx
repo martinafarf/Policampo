@@ -3,11 +3,12 @@
 // Botón cliente para disparar la acción "Solicitar diagnóstico" / "Actualizar diagnóstico" (Esp. 04).
 import { useState, useTransition } from "react";
 import { solicitarDiagnosticoAccion } from "@/app/fincas/[id]/diagnostico/acciones";
+import { clasesBoton } from "@/componentes/ui/boton";
 
 interface Props {
   establecimientoId: string;
   texto: string;
-  variante?: "primario" | "alerta";
+  variante?: "primario" | "alerta" | "contorno";
 }
 
 export function BotonSolicitarDiagnostico({
@@ -28,25 +29,19 @@ export function BotonSolicitarDiagnostico({
     });
   }
 
-  const estilo =
-    variante === "alerta"
-      ? "bg-amber-700 text-white hover:bg-amber-800"
-      : "bg-emerald-700 text-white hover:bg-emerald-800";
+  // Botones de DESIGN.md: "primario" y "alerta" (actualizar uno viejo) son la acción principal de la
+  // pantalla; "contorno" es para cuando hay otra acción más importante al lado.
+  const estilo = clasesBoton(variante === "contorno" ? "contorno" : "principal");
 
   return (
     <div className="flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={alHacerClic}
-        disabled={pendiente}
-        className={`inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${estilo}`}
-      >
+      <button type="button" onClick={alHacerClic} disabled={pendiente} className={estilo}>
         {pendiente ? "Calculando diagnóstico…" : texto}
       </button>
       {error ? (
         <p
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800"
+          className="rounded-2xl border-[1.5px] border-[#f5c2bd] bg-error-claro px-3 py-2 text-sm font-semibold text-error"
         >
           {error}
         </p>

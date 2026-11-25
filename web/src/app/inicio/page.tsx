@@ -21,6 +21,7 @@ import {
   IconoLupa,
 } from "@/componentes/marca/Iconos";
 import { PaisajeIlustrado } from "@/componentes/marca/PaisajeIlustrado";
+import { Etiqueta } from "@/componentes/ui/etiqueta";
 import { Aviso } from "@/componentes/ui/formulario";
 import { formatearFechaCortaEsAr } from "@/dominio/calendario";
 import { obtenerResumenTareasParaInicio } from "@/dominio/calendario/servicio";
@@ -52,6 +53,9 @@ const SECUNDARIAS: readonly Modulo[] = [
   { titulo: "Informes", Icono: IconoDocumento, texto: "El PDF de cada finca.", href: "/informes" },
   { titulo: "Guía de especies", Icono: IconoGuia, texto: "Plantas que atraen abejas.", href: "/guia-especies" },
 ];
+
+/** Cuántas tareas se ven en Herramientas: un vistazo, no la lista entera (esa está en /tareas). */
+const MAX_TAREAS_EN_HERRAMIENTAS = 3;
 
 /** Tarjeta grande y resaltada: borde oliva, ícono en círculo naranja y título grande. */
 function TarjetaPrincipal({ titulo, Icono, texto, href }: Modulo) {
@@ -100,7 +104,12 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
     searchParams,
     obtenerResumenTareasParaInicio(usuario.id),
   ]);
-  const listaInicio = [...resumenTareas.atrasadas, ...resumenTareas.proximasOEnCurso];
+  // Solo un vistazo: las más urgentes primero (atrasadas) y como mucho 3. El resto está en "Ver todas".
+  const listaInicio = [...resumenTareas.atrasadas, ...resumenTareas.proximasOEnCurso].slice(
+    0,
+    MAX_TAREAS_EN_HERRAMIENTAS,
+  );
+  const cantidadAtrasadas = resumenTareas.atrasadas.length;
 
   return (
     <>
@@ -130,7 +139,14 @@ async function Saludo({ searchParams }: { searchParams: Promise<{ confirmada?: s
       {listaInicio.length > 0 ? (
         <section className="mt-8 rounded-[28px] border-2 border-menta-fuerte bg-white p-5 shadow-chica sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-xl font-bold text-bosque">Próximas tareas</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-bold text-bosque">Próximas tareas</h2>
+              {cantidadAtrasadas > 0 && (
+                <Etiqueta tono="error">
+                  {cantidadAtrasadas === 1 ? "1 atrasada" : `${cantidadAtrasadas} atrasadas`}
+                </Etiqueta>
+              )}
+            </div>
             <Link
               href="/tareas"
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-hoja transition hover:bg-menta hover:text-hoja-oscura"

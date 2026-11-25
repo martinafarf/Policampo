@@ -227,6 +227,10 @@
 .encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]):not([data-desplazado]) .texto-encabezado {
   text-shadow: 0 1px 10px rgb(0 0 0 / 0.4);
 }
+/* El logo es un dibujo (no texto): la sombra equivalente es un filtro drop-shadow. */
+.encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]):not([data-desplazado]) .logo-encabezado {
+  filter: drop-shadow(0 1px 8px rgb(0 0 0 / 0.45));
+}
 .encabezado-sitio:is([data-pagina="landing"], [data-pagina="app"]) .borde-encabezado {
   border-color: rgb(255 255 255 / 0.7);
 }

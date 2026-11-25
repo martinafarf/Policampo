@@ -24,6 +24,10 @@ interface Props {
   superficieLibre?: GeometriaLibreGeoJson | null;
   /** Miniatura (Mis fincas): solo el dibujo, chico y sin leyenda. Si no hay dibujo, no muestra nada. */
   compacta?: boolean;
+  /** Alto del dibujo (clases de Tailwind). Por defecto h-56; la ficha lo agranda. */
+  claseAlto?: string;
+  /** Lienzo cuadrado en vez de apaisado: para cuando el dibujo va en una columna angosta (ficha). */
+  cuadrada?: boolean;
 }
 
 function puntosDePoligono(poligono: PoligonoGeoJson): Posicion2D[] {
@@ -50,6 +54,8 @@ export function VistaPreviaDibujo({
   sectores,
   superficieLibre = null,
   compacta = false,
+  claseAlto = "h-56",
+  cuadrada = false,
 }: Props) {
   if (metodo === "cuestionario") return null;
 
@@ -95,8 +101,8 @@ export function VistaPreviaDibujo({
   const alto = Math.max(maxY - minY, 0.0001);
 
   // La miniatura es cuadrada para que entre en la tarjeta del listado.
-  const anchoSvg = compacta ? 200 : 400;
-  const altoSvg = compacta ? 200 : 260;
+  const anchoSvg = compacta ? 200 : cuadrada ? 300 : 400;
+  const altoSvg = compacta ? 200 : cuadrada ? 300 : 260;
   const margen = compacta ? 12 : 16;
   const escala = Math.min((anchoSvg - margen * 2) / ancho, (altoSvg - margen * 2) / alto);
   const offsetX = (anchoSvg - ancho * escala) / 2;
@@ -172,7 +178,7 @@ export function VistaPreviaDibujo({
             ? "Dibujo esquemático del terreno, sus sectores y la superficie libre disponible"
             : "Dibujo esquemático del terreno y sus sectores"
         }
-        className="h-56 w-full rounded-2xl bg-papel"
+        className={`${claseAlto} w-full rounded-2xl bg-papel`}
       >
         <defs>
           <pattern

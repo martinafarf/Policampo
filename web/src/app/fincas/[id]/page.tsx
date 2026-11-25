@@ -6,9 +6,9 @@
 //    cada uno y su botón. Solo el paso que te toca tiene el botón principal (oliva).
 // 3. Cómo está la finca: el dibujo con sus sectores, y cuántas flores tiene frente al 20 %.
 //
-// En la computadora todo entra en una pantalla, en dos columnas: a la izquierda los pasos; a la derecha
-// las flores y el dibujo (en pantallas anchas, el dibujo y su lista van uno al lado del otro). En el celular
-// va una cosa debajo de la otra: pasos, flores, dibujo.
+// En la computadora va en dos columnas: a la izquierda los pasos (cada botón en su renglón, centrado);
+// a la derecha las flores y el dibujo, con el dibujo al lado de su lista. En el celular va una cosa
+// debajo de la otra: pasos, flores, dibujo.
 //
 // Los requisitos (qué hace falta para pedir el diagnóstico, generar el informe, etc.) son los mismos
 // de antes: solo cambia cómo se muestran.
@@ -242,7 +242,7 @@ async function ContenidoFicha({ params, searchParams }: Props) {
         <Aviso>Esta finca se carga con {BOTON_EDICION_METODO[finca.metodoCaracterizacion].replace("Editar ", "")}.</Aviso>
       )}
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         {/* Columna izquierda: los pasos */}
         <div className="flex flex-col gap-5">
           {/* Camino de pasos: qué hiciste, qué te toca y qué viene después */}
@@ -276,7 +276,10 @@ async function ContenidoFicha({ params, searchParams }: Props) {
                           : paso.detalle}
                       </p>
                     </div>
-                    {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
+                    {/* Los botones van en su propio renglón, centrados, para que todos los pasos queden parejos */}
+                    {acciones && (
+                      <div className="flex basis-full flex-wrap items-center justify-center gap-2">{acciones}</div>
+                    )}
                   </li>
                 );
               })}
@@ -358,7 +361,7 @@ async function ContenidoFicha({ params, searchParams }: Props) {
               className={
                 finca.metodoCaracterizacion === "cuestionario"
                   ? "flex flex-col gap-4"
-                  : "grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
+                  : "grid items-start gap-4 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
               }
             >
               <VistaPreviaDibujo
@@ -366,6 +369,8 @@ async function ContenidoFicha({ params, searchParams }: Props) {
                 superficieTotalHa={finca.superficieTotalHa}
                 contorno={finca.contorno}
                 sectores={finca.sectores}
+                claseAlto="h-64 sm:h-72"
+                cuadrada
               />
               <div className="flex flex-col gap-3">
                 {finca.sectores.length === 0 ? (

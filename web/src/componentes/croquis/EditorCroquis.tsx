@@ -106,6 +106,35 @@ function crearRectanguloEnMetros(a: Posicion2D, b: Posicion2D): PoligonoGeoJson 
   };
 }
 
+/** Mueve un polígono sumando dx, dy (en metros). Redondea a 2 decimales, como el resto del plano. */
+function trasladarPoligono(poligono: PoligonoGeoJson, dx: number, dy: number): PoligonoGeoJson {
+  return {
+    type: "Polygon",
+    coordinates: poligono.coordinates.map((anillo) =>
+      anillo.map(([x, y]) => [Math.round((x + dx) * 100) / 100, Math.round((y + dy) * 100) / 100] as Posicion2D),
+    ),
+  };
+}
+
+/** Rectángulo mínimo que contiene al polígono (para que al arrastrarlo no se salga del plano). */
+function limitesDelPoligono(poligono: PoligonoGeoJson): { minX: number; maxX: number; minY: number; maxY: number } {
+  const puntos = poligono.coordinates[0] ?? [];
+  const xs = puntos.map((p) => p[0]);
+  const ys = puntos.map((p) => p[1]);
+  return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
+}
+
+/** Un sector que se está arrastrando: cuánto se movió (en metros) y si ahí puede quedar. */
+interface ArrastreSector {
+  indice: number;
+  /** Dónde se tocó el plano al empezar. */
+  inicio: Posicion2D;
+  dx: number;
+  dy: number;
+  /** Mensaje si en esa posición no puede quedar (se pisa con otro o se sale del terreno); null si está bien. */
+  problema: string | null;
+}
+
 function centroidePoligono(poligono: PoligonoGeoJson): Posicion2D {
   const anillo = poligono.coordinates[0] ?? [];
   const n = Math.max(1, anillo.length - 1);
@@ -173,6 +202,8 @@ export function EditorCroquis({
   const [verticesPoligono, setVerticesPoligono] = useState<Posicion2D[]>([]);
 
   const [avisoDibujo, setAvisoDibujo] = useState<string | null>(null);
+  // Sector que se está moviendo con el dedo o el mouse (herramienta "Mover o elegir").
+  const [arrastre, setArrastre] = useState<ArrastreSector | null>(null);
   const [erroresServidor, setErroresServidor] = useState<string[]>([]);
   const [guardando, iniciarTransicion] = useTransition();
 
@@ -222,7 +253,7 @@ export function EditorCroquis({
     superficieTotalHa * (1 + LIMITES_ESTABLECIMIENTO.toleranciaSumaSectores);
   const cercaDeCero = !excedida && restanteHa <= superficieTotalHa * 0.1;
 
-  function eventoAMetros(evento: React.PointerEvent<SVGSVGElement>): Posicion2D | null {
+  function eventoAMetros(evento: React.PointerEvent<Element>): Posicion2D | null {
     const svg = svgRef.current;
     if (!svg) return null;
     const rect = svg.getBoundingClientRect();
@@ -304,6 +335,68 @@ export function EditorCroquis({
     setIndiceSeleccionado(nuevoIndice);
   }
 
+  /** Dónde quedaría el sector "indice" si se lo mueve dx, dy: sin salirse del plano y, si se puede, sin pisar a otro. */
+  function evaluarMovimiento(indice: number, dx: number, dy: number) {
+    const original = sectores[indice].geometria;
+    const lim = limitesDelPoligono(original);
+    // El plano es el borde: el sector no se puede arrastrar más allá.
+    const dxOk = Math.max(-lim.minX, Math.min(ladoM - lim.maxX, dx));
+    const dyOk = Math.max(-lim.minY, Math.min(ladoM - lim.maxY, dy));
+    const geometria = trasladarPoligono(original, dxOk, dyOk);
+
+    let problema: string | null = null;
+    const dentro = validarSectorDentroDelContorno(geometria, contornoCroquis, "croquis");
+    if (!dentro.valido) {
+      problema = dentro.error ?? "El sector sobresale del terreno.";
+    } else {
+      const sinChoque = validarSectoresSinSuperposicion(
+        [...sectores.filter((_, i) => i !== indice).map((sec) => sec.geometria), geometria],
+        "croquis",
+      );
+      if (!sinChoque.valido) problema = "Ahí se pisa con otro sector. Soltalo en un lugar libre.";
+    }
+    return { geometria, dx: dxOk, dy: dyOk, problema };
+  }
+
+  function empezarArrastre(evento: React.PointerEvent<Element>, indice: number) {
+    const punto = eventoAMetros(evento);
+    if (!punto) return;
+    evento.stopPropagation();
+    setIndiceSeleccionado(indice);
+    setAvisoDibujo(null);
+    // El plano sigue recibiendo el movimiento aunque el dedo o el mouse salgan del sector.
+    svgRef.current?.setPointerCapture(evento.pointerId);
+    setArrastre({ indice, inicio: punto, dx: 0, dy: 0, problema: null });
+  }
+
+  function seguirArrastre(evento: React.PointerEvent<SVGSVGElement>) {
+    if (!arrastre) return;
+    const punto = eventoAMetros(evento);
+    if (!punto) return;
+    const m = evaluarMovimiento(arrastre.indice, punto[0] - arrastre.inicio[0], punto[1] - arrastre.inicio[1]);
+    setArrastre({ ...arrastre, dx: m.dx, dy: m.dy, problema: m.problema });
+  }
+
+  function soltarArrastre(evento: React.PointerEvent<SVGSVGElement>) {
+    if (!arrastre) return;
+    if (evento.currentTarget.hasPointerCapture(evento.pointerId)) {
+      evento.currentTarget.releasePointerCapture(evento.pointerId);
+    }
+    const { indice, dx, dy, problema } = arrastre;
+    setArrastre(null);
+
+    // Un toque sin mover solo elige el sector.
+    if (Math.abs(dx) < ladoM * 0.005 && Math.abs(dy) < ladoM * 0.005) return;
+
+    if (problema) {
+      // No puede quedar ahí: vuelve a donde estaba y se explica por qué.
+      setAvisoDibujo(problema);
+      return;
+    }
+    const { geometria } = evaluarMovimiento(indice, dx, dy);
+    setSectores((previos) => previos.map((sec, i) => (i === indice ? { ...sec, geometria } : sec)));
+  }
+
   function manejarPointerDown(evento: React.PointerEvent<SVGSVGElement>) {
     const punto = eventoAMetros(evento);
     if (!punto) return;
@@ -327,6 +420,10 @@ export function EditorCroquis({
   }
 
   function manejarPointerMove(evento: React.PointerEvent<SVGSVGElement>) {
+    if (arrastre) {
+      seguirArrastre(evento);
+      return;
+    }
     if (herramienta !== "rectangulo" || !inicioRect) return;
     const punto = eventoAMetros(evento);
     if (punto) {
@@ -335,6 +432,10 @@ export function EditorCroquis({
   }
 
   function manejarPointerUp(evento: React.PointerEvent<SVGSVGElement>) {
+    if (arrastre) {
+      soltarArrastre(evento);
+      return;
+    }
     if (herramienta !== "rectangulo" || !inicioRect || !finRect) return;
     if (evento.currentTarget.hasPointerCapture(evento.pointerId)) {
       evento.currentTarget.releasePointerCapture(evento.pointerId);
@@ -520,7 +621,7 @@ export function EditorCroquis({
               }}
               className={claseHerramienta(herramienta === "seleccionar")}
             >
-              👆 Elegir sector
+              👆 Mover o elegir
             </button>
           </div>
 
@@ -592,6 +693,7 @@ export function EditorCroquis({
                 onPointerDown={manejarPointerDown}
                 onPointerMove={manejarPointerMove}
                 onPointerUp={manejarPointerUp}
+                onPointerCancel={() => setArrastre(null)}
                 className="block aspect-square w-full touch-none select-none"
                 role="application"
                 aria-label="Plano interactivo del croquis"
@@ -612,24 +714,33 @@ export function EditorCroquis({
                   const claveCultivo = s.cultivoId ? mapaCultivos.get(s.cultivoId)?.clave : undefined;
                   const color = colorDeSector(s.tipo, claveCultivo);
                   const seleccionado = indiceSeleccionado === indice;
-                  const [cx, cy] = metrosASvg(centroidePoligono(s.geometria));
+                  // Mientras se arrastra, se dibuja en la posición nueva (si no puede quedar ahí, en rojo).
+                  const moviendo = arrastre?.indice === indice ? arrastre : null;
+                  const geometriaMostrada = moviendo
+                    ? trasladarPoligono(s.geometria, moviendo.dx, moviendo.dy)
+                    : s.geometria;
+                  const [cx, cy] = metrosASvg(centroidePoligono(geometriaMostrada));
 
                   return (
                     <g
                       key={s.claveLocal}
                       onPointerDown={(e) => {
-                        if (herramienta === "seleccionar") {
-                          e.stopPropagation();
-                          setIndiceSeleccionado(indice);
-                        }
+                        if (herramienta === "seleccionar") empezarArrastre(e, indice);
                       }}
-                      className={herramienta === "seleccionar" ? "cursor-pointer" : undefined}
+                      className={
+                        herramienta === "seleccionar"
+                          ? moviendo
+                            ? "cursor-grabbing"
+                            : "cursor-grab"
+                          : undefined
+                      }
                     >
                       <polygon
-                        points={poligonoAPointsSvg(s.geometria)}
-                        fill={color.relleno}
-                        stroke={seleccionado ? "#003300" : color.borde}
+                        points={poligonoAPointsSvg(geometriaMostrada)}
+                        fill={moviendo?.problema ? "rgba(179, 38, 30, 0.25)" : color.relleno}
+                        stroke={moviendo?.problema ? "#b42318" : seleccionado ? "#003300" : color.borde}
                         strokeWidth={seleccionado ? 3 : 1.8}
+                        strokeDasharray={moviendo?.problema ? "6 3" : undefined}
                       />
                       <text
                         x={cx}
@@ -710,7 +821,7 @@ export function EditorCroquis({
             <div className="max-lg:order-6">
                 <Desplegable pregunta="¿Cómo se dibuja?">
                   Elegí qué vas a dibujar y marcá el sector en el plano: arrastrando (rectángulo) o tocando las
-                  esquinas (forma libre). Para cambiar uno que ya dibujaste, usá «Elegir sector» y tocalo.
+                  esquinas (forma libre). Para mover uno que ya dibujaste, usá «Mover o elegir» y arrastralo. Si lo soltás encima de otro, vuelve a donde estaba.
                 </Desplegable>
               </div>
           ) : null}

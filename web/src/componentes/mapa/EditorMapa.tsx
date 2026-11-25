@@ -607,11 +607,11 @@ export function EditorMapa({
             </span>
             <span className="mt-1 block">
               <strong>2.</strong> Tocá «Borde» y después cada esquina de tu finca en el mapa. Al terminar, tocá
-              «Terminar borde».
+              «Terminar».
             </span>
             <span className="mt-1 block">
               <strong>3.</strong> Elegí a la izquierda qué vas a dibujar, tocá «Sector» y marcá sus esquinas
-              dentro del borde. Al terminar, «Terminar sector».
+              dentro del borde. Al terminar, «Terminar».
             </span>
             <span className="mt-1 block">
               <strong>4.</strong> Para cambiar uno, usá «Mover» y tocalo. Cuando termines, tocá «Guardar mi
@@ -755,8 +755,9 @@ export function EditorMapa({
             </Boton>
           </div>
 
-          {/* Mapa (RD-03, CA-02-22). En la computadora ocupa todo el alto que queda. */}
-          <div className="relative h-[52vh] min-h-[320px] overflow-hidden rounded-3xl border-2 border-borde bg-papel lg:h-auto lg:min-h-0 lg:flex-1">
+          {/* Mapa (RD-03, CA-02-22). En la computadora ocupa todo el alto que queda. "isolate" encierra los z-index altos de
+              Leaflet (400 a 1000) para que no tapen burbujas ni menús de la página, como el ⓘ del título. */}
+          <div className="relative isolate h-[52vh] min-h-[320px] overflow-hidden rounded-3xl border-2 border-borde bg-papel lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={contenedorMapaRef}
               className="absolute inset-0"

@@ -6,13 +6,20 @@
 // Para que se entienda sin conocer la plataforma: cada método es una tarjeta grande con un dibujo y
 // una frase que dice qué vas a hacer (no cómo se llama la técnica). El más fácil está marcado.
 // En la computadora las tres opciones van una al lado de la otra; en el celular, una debajo de la otra.
-import { useActionState, useState, type ComponentType } from "react";
+//
+// El método elegido va en la dirección de la página (/fincas/nueva?metodo=croquis) y no solo en la memoria
+// del componente. Así el botón "atrás" del navegador o del celular vuelve a la elección del método, y entrar
+// de nuevo a "Nueva finca" siempre arranca desde el paso 1 (Next.js guarda la memoria de las páginas que
+// visitaste, y antes volvía a aparecer el método elegido la vez anterior).
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useActionState, type ComponentType } from "react";
 import { IconoFlecha, IconoLapiz, IconoLista, IconoMapa } from "@/componentes/marca/Iconos";
 import { Boton, BotonEnlace, clasesBoton } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { Etiqueta } from "@/componentes/ui/etiqueta";
 import { Desplegable } from "@/componentes/ui/mas-info";
 import type { MetodoCaracterizacion } from "@/dominio/establecimientos";
+import { esMetodoCaracterizacionValido } from "@/dominio/establecimientos/validacion";
 import { crearEstablecimiento, type EstadoFormularioEstablecimiento } from "../acciones";
 import { CamposUbicacionYDatos } from "../_componentes/CamposUbicacionYDatos";
 
@@ -62,7 +69,16 @@ function IndicadorPaso({ actual }: { actual: 1 | 2 }) {
 }
 
 export function FormularioNuevaFinca() {
-  const [metodo, setMetodo] = useState<MetodoCaracterizacion | null>(null);
+  const router = useRouter();
+  const ruta = usePathname();
+  const parametro = useSearchParams().get("metodo") ?? "";
+  // Si en la dirección hay algo que no es un método válido, se muestra el paso 1.
+  const metodo: MetodoCaracterizacion | null = esMetodoCaracterizacionValido(parametro) ? parametro : null;
+
+  /** Elegir un método agrega un paso al historial: "atrás" vuelve a la elección. */
+  const elegirMetodo = (id: MetodoCaracterizacion) => router.push(`${ruta}?metodo=${id}`, { scroll: true });
+  /** "Cambiar" vuelve al paso 1. */
+  const volverAElegir = () => router.push(ruta, { scroll: true });
   const [estado, accionFormulario, enviando] = useActionState(crearEstablecimiento, ESTADO_INICIAL);
 
   if (!metodo) {
@@ -76,7 +92,7 @@ export function FormularioNuevaFinca() {
             <li key={id} className="h-full">
               <button
                 type="button"
-                onClick={() => setMetodo(id)}
+                onClick={() => elegirMetodo(id)}
                 className="group flex h-full w-full items-center gap-4 rounded-[28px] border-2 border-borde bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-hoja hover:shadow-suave md:flex-col md:items-start md:p-6"
               >
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-menta text-bosque">
@@ -119,7 +135,7 @@ export function FormularioNuevaFinca() {
             <p className="flex flex-wrap items-center gap-2 text-[0.95rem] text-tinta-suave">
               <metodoSeleccionado.Icono className="h-5 w-5 text-hoja" />
               {metodoSeleccionado.titulo}
-              <Boton variante="texto" onClick={() => setMetodo(null)} className="min-h-10">
+              <Boton variante="texto" onClick={volverAElegir} className="min-h-10">
                 Cambiar
               </Boton>
             </p>

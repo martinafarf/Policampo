@@ -6,6 +6,10 @@
 //    cada uno y su botón. Solo el paso que te toca tiene el botón principal (oliva).
 // 3. Cómo está la finca: el dibujo con sus sectores, y cuántas flores tiene frente al 20 %.
 //
+// En la computadora todo entra en una pantalla, en dos columnas: a la izquierda los pasos; a la derecha
+// las flores y el dibujo (en pantallas anchas, el dibujo y su lista van uno al lado del otro). En el celular
+// va una cosa debajo de la otra: pasos, flores, dibujo.
+//
 // Los requisitos (qué hace falta para pedir el diagnóstico, generar el informe, etc.) son los mismos
 // de antes: solo cambia cómo se muestran.
 import Link from "next/link";
@@ -19,7 +23,7 @@ import { BotonEnlace } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { Etiqueta, type TonoEtiqueta } from "@/componentes/ui/etiqueta";
 import { Aviso } from "@/componentes/ui/formulario";
-import { Desplegable } from "@/componentes/ui/mas-info";
+import { MasInfo } from "@/componentes/ui/mas-info";
 import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { obtenerNombreEcorregion } from "@/datos/jujuy";
 import { formatearNumeroEsAr } from "@/dominio/diagnostico";
@@ -202,6 +206,7 @@ async function ContenidoFicha({ params, searchParams }: Props) {
   const topeBarra = Math.max(40, Math.ceil(metricas.porcentajeFlores ?? 0));
 
   const datos = [
+    ...(finca.direccion ? [finca.direccion] : []),
     `${finca.localidad}, ${finca.departamento}`,
     ...(metricas.superficieTotalHa !== null ? [hectareas(metricas.superficieTotalHa)] : []),
     cantidadCultivos === 1 ? "1 cultivo" : `${cantidadCultivos} cultivos`,
@@ -209,11 +214,10 @@ async function ContenidoFicha({ params, searchParams }: Props) {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <EncabezadoPagina
         migas={[{ texto: "Mis fincas", href: "/fincas" }]}
         titulo={finca.nombre}
-        bajada={finca.direccion}
         datos={datos}
         acciones={
           <>
@@ -238,165 +242,181 @@ async function ContenidoFicha({ params, searchParams }: Props) {
         <Aviso>Esta finca se carga con {BOTON_EDICION_METODO[finca.metodoCaracterizacion].replace("Editar ", "")}.</Aviso>
       )}
 
-      {/* Camino de pasos: qué hiciste, qué te toca y qué viene después */}
-      <Tarjeta titulo="Tus pasos">
-        <ol className="flex flex-col divide-y-[1.5px] divide-borde">
-          {pasos.map((paso) => {
-            const actual = paso.estado === "ahora" || paso.estado === "atencion";
-            const acciones = accionesDelPaso(paso);
-            return (
-              <li
-                key={paso.clave}
-                aria-current={actual ? "step" : undefined}
-                className={`flex flex-wrap items-center gap-x-4 gap-y-3 py-4 ${actual ? "-mx-3 rounded-2xl border-0 bg-menta px-3" : ""}`}
-              >
-                <CirculoPaso paso={paso} />
-                <div className="flex min-w-0 flex-1 basis-48 flex-col gap-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className={`text-lg font-bold ${paso.estado === "espera" ? "text-tinta-suave" : "text-bosque"}`}>
-                      {paso.titulo}
-                    </h3>
-                    <Etiqueta tono={TONO_PASO[paso.estado]} conIcono={paso.estado !== "disponible"}>
-                      {paso.etiqueta}
-                    </Etiqueta>
-                    {paso.clave === "diagnostico" && resumenDiag && !resumenDiag.desactualizado && (
-                      <BadgeNivelDiagnostico nivel={resumenDiag.nivelRiesgo} />
-                    )}
-                  </div>
-                  <p className="text-[0.95rem] text-tinta-suave">
-                    {paso.clave === "rediseno" && propuestaElegida
-                      ? `${propuestaElegida.nombre ?? ETIQUETAS_DISPOSICION[propuestaElegida.disposicion]}: llega al ${formatearNumeroEsAr(propuestaElegida.porcentajeLogrado, 1)} % de flores.`
-                      : paso.detalle}
-                  </p>
-                </div>
-                {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
-              </li>
-            );
-          })}
-        </ol>
-      </Tarjeta>
-
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        {/* Así está tu finca: dibujo + sectores, con los mismos colores */}
-        <Tarjeta
-          titulo="Así está tu finca"
-          extra={
-            <BotonEnlace href={rutaMetodo} variante="texto">
-              Editar
-            </BotonEnlace>
-          }
-        >
-          <VistaPreviaDibujo
-            metodo={finca.metodoCaracterizacion}
-            superficieTotalHa={finca.superficieTotalHa}
-            contorno={finca.contorno}
-            sectores={finca.sectores}
-          />
-
-          {finca.sectores.length === 0 ? (
-            <p className="text-tinta-suave">
-              Todavía no cargaste cultivos ni flores.{" "}
-              <Link href={rutaMetodo} className="font-semibold text-hoja underline">
-                Cargarlos ahora
-              </Link>
-            </p>
-          ) : (
-            <ul className="flex flex-col divide-y-[1.5px] divide-borde" aria-label="Sectores de la finca">
-              {finca.sectores.map((s) => {
-                const esFlores = s.tipo === "sector_flores";
-                const detalle = esFlores
-                  ? s.subtipoFlores
-                    ? ETIQUETAS_SUBTIPO_FLORES[s.subtipoFlores]
-                    : "Flores"
-                  : (s.cultivoNombre ?? s.cultivoOtro ?? "Cultivo");
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+        {/* Columna izquierda: los pasos */}
+        <div className="flex flex-col gap-5">
+          {/* Camino de pasos: qué hiciste, qué te toca y qué viene después */}
+          <Tarjeta titulo="Tus pasos">
+            <ol className="flex flex-col divide-y-[1.5px] divide-borde">
+              {pasos.map((paso) => {
+                const actual = paso.estado === "ahora" || paso.estado === "atencion";
+                const acciones = accionesDelPaso(paso);
                 return (
-                  <li key={s.id} className="flex items-center gap-3 py-2.5">
-                    <span
-                      aria-hidden="true"
-                      className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
-                        esFlores ? "border-purple-700 bg-purple-600/35" : "border-green-700 bg-green-600/35"
-                      }`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold break-words text-tinta">{s.nombre}</p>
-                      <p className="text-sm text-tinta-suave">
-                        {esFlores ? "Flores" : "Cultivo"}
-                        {detalle !== s.nombre && detalle !== "Flores" ? ` · ${detalle}` : ""}
-                        {s.ubicacionRelativa ? ` · ${ETIQUETAS_UBICACION[s.ubicacionRelativa]}` : ""}
+                  <li
+                    key={paso.clave}
+                    aria-current={actual ? "step" : undefined}
+                    className={`flex flex-wrap items-center gap-x-4 gap-y-2 py-3 ${actual ? "-mx-3 rounded-2xl border-0 bg-menta px-3" : ""}`}
+                  >
+                    <CirculoPaso paso={paso} />
+                    <div className="flex min-w-0 flex-1 basis-48 flex-col gap-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className={`text-lg font-bold ${paso.estado === "espera" ? "text-tinta-suave" : "text-bosque"}`}>
+                          {paso.titulo}
+                        </h3>
+                        <Etiqueta tono={TONO_PASO[paso.estado]} conIcono={paso.estado !== "disponible"}>
+                          {paso.etiqueta}
+                        </Etiqueta>
+                        {paso.clave === "diagnostico" && resumenDiag && !resumenDiag.desactualizado && (
+                          <BadgeNivelDiagnostico nivel={resumenDiag.nivelRiesgo} />
+                        )}
+                      </div>
+                      <p className="text-[0.95rem] text-tinta-suave">
+                        {paso.clave === "rediseno" && propuestaElegida
+                          ? `${propuestaElegida.nombre ?? ETIQUETAS_DISPOSICION[propuestaElegida.disposicion]}: llega al ${formatearNumeroEsAr(propuestaElegida.porcentajeLogrado, 1)} % de flores.`
+                          : paso.detalle}
                       </p>
                     </div>
-                    <p className="shrink-0 font-semibold text-tinta">{hectareas(s.superficieHa)}</p>
+                    {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
                   </li>
                 );
               })}
-            </ul>
-          )}
+            </ol>
+          </Tarjeta>
+        </div>
 
-          {metricas.superficieRestanteHa !== null && metricas.superficieRestanteHa > 0 && (
-            <p className="text-sm text-tinta-suave">
-              Sin cargar: <strong className="text-tinta">{hectareas(metricas.superficieRestanteHa)}</strong> de{" "}
-              {hectareas(metricas.superficieTotalHa ?? 0)}.
-            </p>
-          )}
-        </Tarjeta>
+        {/* Columna derecha: las flores y el dibujo de la finca */}
+        <div className="flex flex-col gap-5">
+          {/* Flores en tu finca: el dato primero, la explicación escondida */}
+          <Tarjeta
+            titulo="Flores en tu finca"
+            extra={
+              <span className="flex items-center gap-1.5">
+                {metricas.porcentajeFlores !== null &&
+                  (metricas.llegaAl20PorCiento ? (
+                    <Etiqueta tono="listo">Llega al {objetivo} %</Etiqueta>
+                  ) : (
+                    <Etiqueta tono="atencion">Bajo el {objetivo} %</Etiqueta>
+                  ))}
+                {/* El porqué del 20 %, escondido en una burbuja para que la tarjeta quede corta */}
+                <MasInfo sobre={`por qué el ${objetivo} %`}>
+                  Con al menos un {objetivo} % de la finca con flores y vegetación natural llegan más abejas y
+                  bichos que se comen las plagas, y mejoran las cosechas (Garibaldi y otros).
+                </MasInfo>
+              </span>
+            }
+          >
+            {metricas.porcentajeFlores === null ? (
+              <p className="text-tinta-suave">Se calcula cuando cargues la superficie total de la finca.</p>
+            ) : (
+              <>
+                <p className="flex items-baseline gap-2">
+                  <strong className="font-titulos text-4xl font-extrabold text-bosque">
+                    {formatearNumeroEsAr(metricas.porcentajeFlores, 1)} %
+                  </strong>
+                  <span className="text-tinta-suave">con flores</span>
+                </p>
 
-        {/* Flores en tu finca: el dato primero, la explicación escondida */}
-        <Tarjeta
-          titulo="Flores en tu finca"
-          extra={
-            metricas.porcentajeFlores !== null ? (
-              metricas.llegaAl20PorCiento ? (
-                <Etiqueta tono="listo">Llega al {objetivo} %</Etiqueta>
-              ) : (
-                <Etiqueta tono="atencion">Bajo el {objetivo} %</Etiqueta>
-              )
-            ) : null
-          }
-        >
-          {metricas.porcentajeFlores === null ? (
-            <p className="text-tinta-suave">Se calcula cuando cargues la superficie total de la finca.</p>
-          ) : (
-            <>
-              <p className="flex items-baseline gap-2">
-                <strong className="font-titulos text-5xl font-extrabold text-bosque">
-                  {formatearNumeroEsAr(metricas.porcentajeFlores, 1)} %
-                </strong>
-                <span className="text-tinta-suave">con flores</span>
-              </p>
-
-              {/* Barra: cuánto hay (naranja) y dónde está la meta del 20 % (marca bosque) */}
-              <div className="relative pt-6" aria-hidden="true">
-                <span
-                  className="absolute top-0 -translate-x-1/2 text-xs font-bold whitespace-nowrap text-bosque"
-                  style={{ left: `${(objetivo / topeBarra) * 100}%` }}
-                >
-                  Meta {objetivo} %
-                </span>
-                <div className="h-4 overflow-hidden rounded-full bg-menta">
-                  <div
-                    className="h-full rounded-full bg-naranja"
-                    style={{ width: `${Math.min(100, (metricas.porcentajeFlores / topeBarra) * 100)}%` }}
+                {/* Barra: cuánto hay (naranja) y dónde está la meta del 20 % (marca bosque) */}
+                <div className="relative pt-6" aria-hidden="true">
+                  <span
+                    className="absolute top-0 -translate-x-1/2 text-xs font-bold whitespace-nowrap text-bosque"
+                    style={{ left: `${(objetivo / topeBarra) * 100}%` }}
+                  >
+                    Meta {objetivo} %
+                  </span>
+                  <div className="h-4 overflow-hidden rounded-full bg-menta">
+                    <div
+                      className="h-full rounded-full bg-naranja"
+                      style={{ width: `${Math.min(100, (metricas.porcentajeFlores / topeBarra) * 100)}%` }}
+                    />
+                  </div>
+                  <span
+                    className="absolute top-5 bottom-[-4px] w-[3px] -translate-x-1/2 rounded-full bg-bosque"
+                    style={{ left: `${(objetivo / topeBarra) * 100}%` }}
                   />
                 </div>
-                <span
-                  className="absolute top-5 bottom-[-4px] w-[3px] -translate-x-1/2 rounded-full bg-bosque"
-                  style={{ left: `${(objetivo / topeBarra) * 100}%` }}
-                />
+
+                <p className="font-titulos text-lg font-bold text-bosque">
+                  {faltaFloresHa !== null && faltaFloresHa > 0
+                    ? `Te falta sumar ${hectareas(faltaFloresHa)} de flores.`
+                    : "Tu finca ya tiene las flores recomendadas."}
+                </p>
+              </>
+            )}
+          </Tarjeta>
+          {/* Así está tu finca: dibujo + sectores, con los mismos colores */}
+          <Tarjeta
+            titulo="Así está tu finca"
+            extra={
+              <BotonEnlace href={rutaMetodo} variante="texto">
+                Editar
+              </BotonEnlace>
+            }
+          >
+            {/* Con dibujo (croquis o mapa), en pantallas anchas el dibujo va a la izquierda y la lista a la derecha */}
+            <div
+              className={
+                finca.metodoCaracterizacion === "cuestionario"
+                  ? "flex flex-col gap-4"
+                  : "grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
+              }
+            >
+              <VistaPreviaDibujo
+                metodo={finca.metodoCaracterizacion}
+                superficieTotalHa={finca.superficieTotalHa}
+                contorno={finca.contorno}
+                sectores={finca.sectores}
+              />
+              <div className="flex flex-col gap-3">
+                {finca.sectores.length === 0 ? (
+                  <p className="text-tinta-suave">
+                    Todavía no cargaste cultivos ni flores.{" "}
+                    <Link href={rutaMetodo} className="font-semibold text-hoja underline">
+                      Cargarlos ahora
+                    </Link>
+                  </p>
+                ) : (
+                  <ul className="flex flex-col divide-y-[1.5px] divide-borde" aria-label="Sectores de la finca">
+                    {finca.sectores.map((s) => {
+                      const esFlores = s.tipo === "sector_flores";
+                      const detalle = esFlores
+                        ? s.subtipoFlores
+                          ? ETIQUETAS_SUBTIPO_FLORES[s.subtipoFlores]
+                          : "Flores"
+                        : (s.cultivoNombre ?? s.cultivoOtro ?? "Cultivo");
+                      return (
+                        <li key={s.id} className="flex items-center gap-3 py-2.5">
+                          <span
+                            aria-hidden="true"
+                            className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
+                              esFlores ? "border-purple-700 bg-purple-600/35" : "border-green-700 bg-green-600/35"
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold break-words text-tinta">{s.nombre}</p>
+                            <p className="text-sm text-tinta-suave">
+                              {esFlores ? "Flores" : "Cultivo"}
+                              {detalle !== s.nombre && detalle !== "Flores" ? ` · ${detalle}` : ""}
+                              {s.ubicacionRelativa ? ` · ${ETIQUETAS_UBICACION[s.ubicacionRelativa]}` : ""}
+                            </p>
+                          </div>
+                          <p className="shrink-0 font-semibold text-tinta">{hectareas(s.superficieHa)}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+
+                {metricas.superficieRestanteHa !== null && metricas.superficieRestanteHa > 0 && (
+                  <p className="text-sm text-tinta-suave">
+                    Sin cargar: <strong className="text-tinta">{hectareas(metricas.superficieRestanteHa)}</strong> de{" "}
+                    {hectareas(metricas.superficieTotalHa ?? 0)}.
+                  </p>
+                )}
               </div>
-
-              <p className="font-titulos text-lg font-bold text-bosque">
-                {faltaFloresHa !== null && faltaFloresHa > 0
-                  ? `Te falta sumar ${hectareas(faltaFloresHa)} de flores.`
-                  : "Tu finca ya tiene las flores recomendadas."}
-              </p>
-            </>
-          )}
-
-          <Desplegable pregunta={`¿Por qué ${objetivo} %?`}>
-            Con al menos un {objetivo} % de la finca con flores y vegetación natural llegan más abejas y bichos
-            que se comen las plagas, y mejoran las cosechas (Garibaldi y otros).
-          </Desplegable>
-        </Tarjeta>
+            </div>
+          </Tarjeta>
+        </div>
       </div>
     </div>
   );
@@ -404,7 +424,7 @@ async function ContenidoFicha({ params, searchParams }: Props) {
 
 export default function PaginaFichaFinca(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
       <Suspense fallback={<p className="text-tinta-suave">Cargando tu finca…</p>}>
         <ContenidoFicha params={props.params} searchParams={props.searchParams} />
       </Suspense>

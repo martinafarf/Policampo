@@ -168,7 +168,7 @@ export function ListadoFincasConFiltro({ fincas, enfoqueDiagnostico = false }: P
           </Boton>
         </section>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {fincasFiltradas.map((finca) => {
             const href = enfoqueDiagnostico ? `/fincas/${finca.id}/diagnostico` : `/fincas/${finca.id}`;
             const datos = [

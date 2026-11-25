@@ -93,31 +93,31 @@ export function MenuMasFicha({
         type="button"
         aria-expanded={menuAbierto}
         onClick={() => setMenuAbierto((abierto) => !abierto)}
-        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 px-6 text-base font-bold transition duration-200 disabled:cursor-not-allowed disabled:opacity-55 border-hoja bg-transparent text-hoja hover:bg-white"
       >
-        Más ▾
+        Más
       </button>
 
       {menuAbierto ? (
-        <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-stone-200 bg-white p-1.5 shadow-lg">
+        <div className="absolute right-0 z-20 mt-2 w-64 rounded-3xl border-[1.5px] border-borde bg-white p-2 shadow-suave">
           <button
             type="button"
             onClick={() => {
               setMenuAbierto(false);
               setModalMetodoAbierto(true);
             }}
-            className="flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm font-semibold text-stone-800 hover:bg-stone-100"
+            className="flex min-h-12 w-full items-center rounded-2xl px-4 text-left font-semibold text-tinta hover:bg-menta"
           >
             Cargar de nuevo con otro método
           </button>
-          <hr className="my-1 border-stone-100" />
+          <hr className="my-1 border-borde" />
           <button
             type="button"
             onClick={() => {
               setMenuAbierto(false);
               setModalBorrarAbierto(true);
             }}
-            className="flex min-h-10 w-full items-center rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
+            className="flex min-h-12 w-full items-center rounded-2xl px-4 text-left font-semibold text-error hover:bg-error-claro"
           >
             Borrar finca
           </button>
@@ -130,13 +130,13 @@ export function MenuMasFicha({
           role="dialog"
           aria-modal="true"
           aria-labelledby="titulo-cambiar-metodo"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bosque/60 p-4"
         >
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-            <h2 id="titulo-cambiar-metodo" className="text-lg font-bold text-stone-900">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-suave">
+            <h2 id="titulo-cambiar-metodo" className="text-xl font-bold text-bosque">
               Cargar de nuevo con otro método
             </h2>
-            <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+            <p className="mt-3 rounded-2xl border-[1.5px] border-[#f3d3a6] bg-[#fff3df] p-3 text-[0.95rem] text-[#7a4100]">
               Se van a borrar los <strong>{cantidadSectores}</strong>{" "}
               {cantidadSectores === 1 ? "sector" : "sectores"} y el dibujo de esta finca. Los datos
               generales se conservan.
@@ -146,16 +146,16 @@ export function MenuMasFicha({
               <input type="hidden" name="version" value={version} />
 
               <fieldset className="flex flex-col gap-2">
-                <legend className="text-sm font-semibold text-stone-800">
+                <legend className="text-[0.95rem] font-semibold text-tinta">
                   Elegí el nuevo método
                 </legend>
                 {otrosMetodos.map((m) => (
                   <label
                     key={m}
-                    className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                    className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] px-4 font-semibold ${
                       nuevoMetodo === m
-                        ? "border-emerald-700 bg-emerald-50 text-emerald-950"
-                        : "border-stone-300 bg-white text-stone-800"
+                        ? "border-hoja bg-menta text-bosque"
+                        : "border-borde bg-white text-tinta hover:bg-papel"
                     }`}
                   >
                     <input
@@ -171,7 +171,7 @@ export function MenuMasFicha({
               </fieldset>
 
               {nuevoMetodo === "mapa" ? (
-                <p className="text-xs text-stone-600">
+                <p className="text-sm text-tinta-suave">
                   Al pasar al mapa, la superficie total quedará vacía hasta que dibujes el contorno
                   del terreno.
                 </p>
@@ -181,9 +181,9 @@ export function MenuMasFicha({
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="superficieCambioMetodo"
-                    className="text-sm font-semibold text-stone-800"
+                    className="text-[0.95rem] font-semibold text-tinta"
                   >
-                    Superficie total (hectáreas) <span className="text-red-600">*</span>
+                    Superficie total (hectáreas) <span className="text-error">*</span>
                   </label>
                   <input
                     id="superficieCambioMetodo"
@@ -194,13 +194,13 @@ export function MenuMasFicha({
                     value={superficieNueva}
                     onChange={(e) => setSuperficieNueva(e.target.value)}
                     placeholder="Ej.: 4,5"
-                    className="min-h-11 w-full rounded-lg border border-stone-300 px-3 py-2 text-base text-stone-900"
+                    className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base outline-none focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
                   />
                 </div>
               ) : null}
 
               {estadoMetodo.error ? (
-                <p role="alert" className="text-sm text-red-700">
+                <p role="alert" className="text-sm font-semibold text-error">
                   {estadoMetodo.error}
                 </p>
               ) : null}
@@ -209,14 +209,14 @@ export function MenuMasFicha({
                 <button
                   type="button"
                   onClick={() => setModalMetodoAbierto(false)}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 px-6 text-base font-bold transition duration-200 disabled:cursor-not-allowed disabled:opacity-55 border-transparent bg-transparent px-4 text-hoja hover:bg-menta"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={cambiandoMetodo}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 px-6 text-base font-bold transition duration-200 disabled:cursor-not-allowed disabled:opacity-55 border-transparent bg-hoja text-white hover:bg-hoja-oscura"
                 >
                   {cambiandoMetodo ? "Cambiando…" : "Confirmar y empezar de nuevo"}
                 </button>
@@ -232,13 +232,13 @@ export function MenuMasFicha({
           role="dialog"
           aria-modal="true"
           aria-labelledby="titulo-borrar-finca"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bosque/60 p-4"
         >
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-            <h2 id="titulo-borrar-finca" className="text-lg font-bold text-stone-900">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-suave">
+            <h2 id="titulo-borrar-finca" className="text-xl font-bold text-bosque">
               Borrar finca definitivamente
             </h2>
-            <p className="mt-2 text-sm text-stone-700">
+            <p className="mt-3 text-[0.95rem] text-tinta">
               Se van a borrar el establecimiento, sus sectores y dibujos, y cualquier diagnóstico,
               propuesta o informe asociado en el futuro.{" "}
               <strong>Esta acción no se puede deshacer.</strong>
@@ -246,8 +246,8 @@ export function MenuMasFicha({
 
             <form action={formActionBorrar} className="mt-4 flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="confirmacionNombre" className="text-sm font-semibold text-stone-800">
-                  Escribí <span className="font-mono text-red-700">{nombreEstablecimiento}</span>{" "}
+                <label htmlFor="confirmacionNombre" className="text-[0.95rem] font-semibold text-tinta">
+                  Escribí <span className="font-bold text-error">{nombreEstablecimiento}</span>{" "}
                   para confirmar
                 </label>
                 <input
@@ -258,12 +258,12 @@ export function MenuMasFicha({
                   value={textoConfirmacion}
                   onChange={(e) => setTextoConfirmacion(e.target.value)}
                   placeholder={nombreEstablecimiento}
-                  className="min-h-11 w-full rounded-lg border border-stone-300 px-3 py-2 text-base text-stone-900 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+                  className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base outline-none focus:border-error focus:bg-white focus:ring-4 focus:ring-error/20"
                 />
               </div>
 
               {estadoBorrar.error ? (
-                <p role="alert" className="text-sm text-red-700">
+                <p role="alert" className="text-sm font-semibold text-error">
                   {estadoBorrar.error}
                 </p>
               ) : null}
@@ -275,14 +275,14 @@ export function MenuMasFicha({
                     setModalBorrarAbierto(false);
                     setTextoConfirmacion("");
                   }}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 px-6 text-base font-bold transition duration-200 disabled:cursor-not-allowed disabled:opacity-55 border-transparent bg-transparent px-4 text-hoja hover:bg-menta"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={!nombreCoincide || borrando}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 px-6 text-base font-bold transition duration-200 disabled:cursor-not-allowed disabled:opacity-55 border-transparent bg-error text-white hover:bg-[#8f1c13]"
                 >
                   {borrando ? "Borrando…" : "Confirmar borrado"}
                 </button>

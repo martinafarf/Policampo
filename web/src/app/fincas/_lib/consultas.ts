@@ -2,7 +2,7 @@
 // Regla RS-02: toda consulta filtra siempre por usuario_id = usuario de la sesión.
 // Ni siquiera un administrador puede consultar establecimientos ajenos (CA-02-05).
 import "server-only";
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
 import { cultivo, establecimiento, sector } from "@/db/schema";
 import {
@@ -154,4 +154,36 @@ export async function obtenerEstablecimientoDelUsuario(
       orden: s.orden,
     })),
   };
+}
+
+/** Dibujo de una finca para la miniatura del listado: contorno (si es mapa) y sectores con geometría. */
+export interface DibujoFinca {
+  contorno: PoligonoGeoJson | null;
+  sectores: { tipo: TipoSector; geometria: PoligonoGeoJson }[];
+}
+
+/**
+ * Dibujos de todas las fincas del usuario, para mostrar el croquis en miniatura en Mis fincas.
+ * Dos consultas para todo el listado (no una por finca). Filtra por usuario (RS-02).
+ */
+export async function listarDibujosDeFincasDelUsuario(usuarioId: string): Promise<Map<string, DibujoFinca>> {
+  const [fincas, sectores] = await Promise.all([
+    db
+      .select({ id: establecimiento.id, contorno: establecimiento.contorno })
+      .from(establecimiento)
+      .where(eq(establecimiento.usuarioId, usuarioId)),
+    db
+      .select({ establecimientoId: sector.establecimientoId, tipo: sector.tipo, geometria: sector.geometria })
+      .from(sector)
+      .innerJoin(establecimiento, eq(sector.establecimientoId, establecimiento.id))
+      .where(and(eq(establecimiento.usuarioId, usuarioId), isNotNull(sector.geometria)))
+      .orderBy(asc(sector.orden)),
+  ]);
+
+  const dibujos = new Map<string, DibujoFinca>();
+  for (const f of fincas) dibujos.set(f.id, { contorno: f.contorno ?? null, sectores: [] });
+  for (const s of sectores) {
+    if (s.geometria) dibujos.get(s.establecimientoId)?.sectores.push({ tipo: s.tipo, geometria: s.geometria });
+  }
+  return dibujos;
 }

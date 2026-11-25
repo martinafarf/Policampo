@@ -22,6 +22,8 @@ interface Props {
   contorno: PoligonoGeoJson | null;
   sectores: readonly SectorDibujable[];
   superficieLibre?: GeometriaLibreGeoJson | null;
+  /** Miniatura (Mis fincas): solo el dibujo, chico y sin leyenda. Si no hay dibujo, no muestra nada. */
+  compacta?: boolean;
 }
 
 function puntosDePoligono(poligono: PoligonoGeoJson): Posicion2D[] {
@@ -47,6 +49,7 @@ export function VistaPreviaDibujo({
   contorno,
   sectores,
   superficieLibre = null,
+  compacta = false,
 }: Props) {
   if (metodo === "cuestionario") return null;
 
@@ -61,8 +64,9 @@ export function VistaPreviaDibujo({
   );
 
   if (!poligonoContorno && sectoresConGeometria.length === 0) {
+    if (compacta) return null;
     return (
-      <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-8 text-center text-sm text-stone-600">
+      <div className="rounded-2xl bg-papel px-4 py-8 text-center text-tinta-suave">
         {metodo === "mapa"
           ? "Todavía no dibujaste el contorno de la finca en el mapa."
           : "Todavía no dibujaste sectores en el croquis."}
@@ -90,9 +94,10 @@ export function VistaPreviaDibujo({
   const ancho = Math.max(maxX - minX, 0.0001);
   const alto = Math.max(maxY - minY, 0.0001);
 
-  const anchoSvg = 400;
-  const altoSvg = 260;
-  const margen = 16;
+  // La miniatura es cuadrada para que entre en la tarjeta del listado.
+  const anchoSvg = compacta ? 200 : 400;
+  const altoSvg = compacta ? 200 : 260;
+  const margen = compacta ? 12 : 16;
   const escala = Math.min((anchoSvg - margen * 2) / ancho, (altoSvg - margen * 2) / alto);
   const offsetX = (anchoSvg - ancho * escala) / 2;
   const offsetY = (altoSvg - alto * escala) / 2;
@@ -128,8 +133,37 @@ export function VistaPreviaDibujo({
       .join(" ");
   }
 
+  if (compacta) {
+    return (
+      <svg viewBox={`0 0 ${anchoSvg} ${altoSvg}`} aria-hidden="true" className="h-full w-full">
+        {poligonoContorno ? (
+          <polygon
+            points={proyectar(poligonoContorno)}
+            fill="#ffffff"
+            stroke="#45573a"
+            strokeWidth={3}
+            strokeDasharray={metodo === "croquis" ? "8 6" : undefined}
+          />
+        ) : null}
+        {sectoresConGeometria.map((s, idx) => {
+          const esFlores = s.tipo === "sector_flores";
+          return (
+            <polygon
+              key={s.id ?? `${s.tipo}-${idx}`}
+              points={proyectar(s.geometria)}
+              fill={esFlores ? "rgba(147, 51, 234, 0.45)" : "rgba(22, 163, 74, 0.35)"}
+              stroke={esFlores ? "#7e22ce" : "#15803d"}
+              strokeWidth={2.5}
+            />
+          );
+        })}
+      </svg>
+    );
+  }
+
   return (
-    <figure className="flex flex-col gap-2 rounded-xl border border-stone-200 bg-white p-3">
+    // Sin borde propio: va dentro de una Tarjeta (DESIGN.md → sin tarjeta en tarjeta).
+    <figure className="flex flex-col gap-3">
       <svg
         viewBox={`0 0 ${anchoSvg} ${altoSvg}`}
         role="img"
@@ -138,7 +172,7 @@ export function VistaPreviaDibujo({
             ? "Dibujo esquemático del terreno, sus sectores y la superficie libre disponible"
             : "Dibujo esquemático del terreno y sus sectores"
         }
-        className="h-56 w-full rounded-lg bg-stone-50"
+        className="h-56 w-full rounded-2xl bg-papel"
       >
         <defs>
           <pattern
@@ -156,8 +190,8 @@ export function VistaPreviaDibujo({
         {poligonoContorno ? (
           <polygon
             points={proyectar(poligonoContorno)}
-            fill="#f5f5f4"
-            stroke="#57534e"
+            fill="#ffffff"
+            stroke="#45573a"
             strokeWidth={2}
             strokeDasharray={metodo === "croquis" ? "6 4" : undefined}
           />
@@ -192,24 +226,25 @@ export function VistaPreviaDibujo({
         })}
       </svg>
 
-      <figcaption className="flex flex-wrap items-center gap-4 px-1 text-xs text-stone-600">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-xs border border-green-700 bg-green-600/35" />
-          Cultivo
+      {/* Leyenda: cada muestra con el mismo color que en el dibujo. */}
+      <figcaption className="flex flex-wrap items-center gap-2 text-sm font-semibold text-tinta-suave">
+        <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
+          <span className="h-3 w-3 rounded-full border border-green-700 bg-green-600/35" />
+          Cultivos
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-xs border border-purple-700 bg-purple-600/35" />
-          Sector de flores
+        <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
+          <span className="h-3 w-3 rounded-full border border-purple-700 bg-purple-600/35" />
+          Flores
         </span>
         {superficieLibre ? (
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-xs border border-amber-700 bg-amber-200/70" />
-            Superficie libre
+          <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
+            <span className="h-3 w-3 rounded-full border border-amber-700 bg-amber-200/70" />
+            Lugar libre
           </span>
         ) : null}
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-xs border border-stone-600 bg-stone-100" />
-          Contorno del terreno
+        <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
+          <span className="h-3 w-3 rounded-full border border-[#45573a] bg-white" />
+          Borde del terreno
         </span>
       </figcaption>
     </figure>

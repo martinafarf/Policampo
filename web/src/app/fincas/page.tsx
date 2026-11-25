@@ -1,10 +1,17 @@
 // Ruta /fincas: listado "Mis fincas" ordenado por última modificación (Esp. 02 §5.1, Esp. 04 §5.5).
-import Link from "next/link";
+// Con ?enfoque=diagnostico (desde Herramientas → Diagnóstico) cada finca lleva directo a su diagnóstico.
 import { Suspense } from "react";
+import { IconoFinca, IconoMas } from "@/componentes/marca/Iconos";
+import { BotonEnlace } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { EstadoVacio } from "@/componentes/ui/estado-vacio";
+import { Aviso } from "@/componentes/ui/formulario";
 import { obtenerResumenDiagnosticosPorEstablecimientos } from "@/dominio/diagnostico/entrada";
 import { requerirUsuario } from "@/lib/sesion";
 import { ListadoFincasConFiltro, type FincaEnListado } from "./ListadoFincasConFiltro";
-import { listarEstablecimientosDelUsuario } from "./_lib/consultas";
+import { listarDibujosDeFincasDelUsuario, listarEstablecimientosDelUsuario } from "./_lib/consultas";
+
+export const metadata = { title: "Mis fincas · PoliCampo" };
 
 interface Props {
   searchParams: Promise<{ borrada?: string; enfoque?: string }>;
@@ -12,9 +19,10 @@ interface Props {
 
 async function ContenidoMisFincas({ searchParams }: Props) {
   const usuario = await requerirUsuario("/fincas");
-  const [{ borrada, enfoque }, fincas] = await Promise.all([
+  const [{ borrada, enfoque }, fincas, dibujos] = await Promise.all([
     searchParams,
     listarEstablecimientosDelUsuario(usuario.id),
+    listarDibujosDeFincasDelUsuario(usuario.id),
   ]);
   const resumenesDiag = await obtenerResumenDiagnosticosPorEstablecimientos(fincas);
   const nombreBorrada = borrada?.trim().slice(0, 150) || null;
@@ -37,58 +45,36 @@ async function ContenidoMisFincas({ searchParams }: Props) {
             desactualizado: diag.desactualizado,
           }
         : null,
+      dibujo: dibujos.get(finca.id) ?? null,
     };
   });
 
+  const botonNueva = (
+    <BotonEnlace href="/fincas/nueva">
+      <IconoMas /> Nueva finca
+    </BotonEnlace>
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">
-            {enfoqueDiagnostico ? "Consultar diagnóstico" : "Mis fincas"}
-          </h1>
-          <p className="text-sm text-stone-600">
-            {enfoqueDiagnostico
-              ? "Buscá y elegí la finca para ver o solicitar su diagnóstico agroecológico."
-              : "Administrá tus establecimientos, filtralos por estado y consultá su diagnóstico."}
-          </p>
-        </div>
-        <Link
-          href="/fincas/nueva"
-          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-        >
-          + Nueva finca
-        </Link>
-      </header>
+      <EncabezadoPagina
+        migas={[{ texto: "Herramientas", href: "/inicio" }]}
+        titulo={enfoqueDiagnostico ? "Elegí una finca" : "Mis fincas"}
+        bajada={enfoqueDiagnostico ? "Tocá la finca para ver o pedir su diagnóstico." : undefined}
+        acciones={fincasSerializadas.length > 0 ? botonNueva : undefined}
+      />
 
-      {nombreBorrada ? (
-        <div
-          role="status"
-          className="break-words rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900"
-        >
-          Se borró la finca {nombreBorrada}.
-        </div>
-      ) : null}
+      {nombreBorrada && <Aviso tipo="exito">Se borró la finca {nombreBorrada}.</Aviso>}
 
       {fincasSerializadas.length === 0 ? (
-        <section className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-stone-300 bg-white px-6 py-12 text-center">
-          <p className="text-lg font-semibold text-stone-900">Todavía no cargaste fincas</p>
-          <p className="max-w-md text-sm text-stone-600">
-            Cargá tu primer establecimiento con cuestionario, croquis o mapa para ver su
-            distribución y preparar el diagnóstico de biodiversidad.
-          </p>
-          <Link
-            href="/fincas/nueva"
-            className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            Cargar mi primera finca
-          </Link>
-        </section>
-      ) : (
-        <ListadoFincasConFiltro
-          fincas={fincasSerializadas}
-          enfoqueDiagnostico={enfoqueDiagnostico}
+        <EstadoVacio
+          Icono={IconoFinca}
+          titulo="Todavía no tenés fincas"
+          texto="Cargá tu finca para ver cuántas flores tiene y qué le conviene sembrar."
+          accion={<BotonEnlace href="/fincas/nueva">Cargar mi primera finca</BotonEnlace>}
         />
+      ) : (
+        <ListadoFincasConFiltro fincas={fincasSerializadas} enfoqueDiagnostico={enfoqueDiagnostico} />
       )}
     </div>
   );
@@ -96,8 +82,8 @@ async function ContenidoMisFincas({ searchParams }: Props) {
 
 export default function PaginaMisFincas(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando tus fincas…</p>}>
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando tus fincas…</p>}>
         <ContenidoMisFincas searchParams={props.searchParams} />
       </Suspense>
     </main>

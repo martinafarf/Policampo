@@ -21,9 +21,9 @@ export const ETIQUETAS_METODO: Readonly<Record<MetodoCaracterizacion, string>> =
 };
 
 export const BOTON_EDICION_METODO: Readonly<Record<MetodoCaracterizacion, string>> = {
-  cuestionario: "📝 Editar en el cuestionario",
-  croquis: "📐 Editar el croquis",
-  mapa: "🗺️ Editar en el mapa",
+  cuestionario: "Editar el cuestionario",
+  croquis: "Editar el croquis",
+  mapa: "Editar el mapa",
 };
 
 export const RUTA_EDICION_METODO: Readonly<Record<MetodoCaracterizacion, string>> = {

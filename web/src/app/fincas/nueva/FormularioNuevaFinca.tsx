@@ -5,6 +5,7 @@
 //
 // Para que se entienda sin conocer la plataforma: cada método es una tarjeta grande con un dibujo y
 // una frase que dice qué vas a hacer (no cómo se llama la técnica). El más fácil está marcado.
+// En la computadora las tres opciones van una al lado de la otra; en el celular, una debajo de la otra.
 import { useActionState, useState, type ComponentType } from "react";
 import { IconoFlecha, IconoLapiz, IconoLista, IconoMapa } from "@/componentes/marca/Iconos";
 import { Boton, BotonEnlace, clasesBoton } from "@/componentes/ui/boton";
@@ -67,16 +68,16 @@ export function FormularioNuevaFinca() {
   if (!metodo) {
     return (
       <section className="flex flex-col gap-6">
-        <EncabezadoPagina migas={MIGAS} titulo="¿Cómo querés cargar tu finca?" />
-        <IndicadorPaso actual={1} />
+        {/* "Paso 1 de 2" va a la derecha del título (en el celular, debajo) para ahorrar un renglón */}
+        <EncabezadoPagina migas={MIGAS} titulo="¿Cómo querés cargar tu finca?" acciones={<IndicadorPaso actual={1} />} />
 
-        <ul className="grid grid-cols-1 gap-4">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {OPCIONES_METODO.map(({ id, Icono, titulo, descripcion, etiquetaExtra }) => (
-            <li key={id}>
+            <li key={id} className="h-full">
               <button
                 type="button"
                 onClick={() => setMetodo(id)}
-                className="group flex w-full items-center gap-4 rounded-[28px] border-2 border-borde bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-hoja hover:shadow-suave"
+                className="group flex h-full w-full items-center gap-4 rounded-[28px] border-2 border-borde bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-hoja hover:shadow-suave md:flex-col md:items-start md:p-6"
               >
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-menta text-bosque">
                   <Icono className="h-7 w-7" />
@@ -88,7 +89,10 @@ export function FormularioNuevaFinca() {
                   </span>
                   <span className="text-tinta-suave">{descripcion}</span>
                 </span>
-                <IconoFlecha className="h-6 w-6 shrink-0 text-hoja transition group-hover:translate-x-0.5" />
+                <IconoFlecha className="h-6 w-6 shrink-0 text-hoja transition group-hover:translate-x-0.5 md:hidden" />
+                <span className="inline-flex items-center gap-1.5 font-bold text-hoja max-md:hidden">
+                  Elegir <IconoFlecha className="h-5 w-5 transition group-hover:translate-x-1" />
+                </span>
               </button>
             </li>
           ))}
@@ -105,22 +109,27 @@ export function FormularioNuevaFinca() {
   const metodoSeleccionado = OPCIONES_METODO.find((op) => op.id === metodo)!;
 
   return (
-    <section className="flex flex-col gap-6">
-      <EncabezadoPagina migas={MIGAS} titulo="Datos de tu finca" />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <IndicadorPaso actual={2} />
-        <p className="flex flex-wrap items-center gap-2 text-[0.95rem] text-tinta-suave">
-          <metodoSeleccionado.Icono className="h-5 w-5 text-hoja" />
-          {metodoSeleccionado.titulo}
-          <Boton variante="texto" onClick={() => setMetodo(null)} className="min-h-10">
-            Cambiar
-          </Boton>
-        </p>
-      </div>
+    <section className="flex flex-col gap-5">
+      <EncabezadoPagina
+        migas={MIGAS}
+        titulo="Datos de tu finca"
+        acciones={
+          <div className="flex flex-col gap-1 sm:items-end">
+            <IndicadorPaso actual={2} />
+            <p className="flex flex-wrap items-center gap-2 text-[0.95rem] text-tinta-suave">
+              <metodoSeleccionado.Icono className="h-5 w-5 text-hoja" />
+              {metodoSeleccionado.titulo}
+              <Boton variante="texto" onClick={() => setMetodo(null)} className="min-h-10">
+                Cambiar
+              </Boton>
+            </p>
+          </div>
+        }
+      />
 
       <form
         action={accionFormulario}
-        className="flex flex-col gap-6 rounded-[28px] border-2 border-borde bg-white p-5 sm:p-7"
+        className="flex flex-col gap-5 rounded-[28px] border-2 border-borde bg-white p-5 sm:p-6"
       >
         <input type="hidden" name="metodoCaracterizacion" value={metodo} />
         <CamposUbicacionYDatos metodo={metodo} errores={estado.errores} />

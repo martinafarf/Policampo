@@ -74,12 +74,14 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
     }
   }
 
+  // En la computadora los campos van de a dos por renglón (nombre | dirección, departamento | localidad,
+  // ecorregión | superficie) para que el formulario entre en la pantalla sin bajar.
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
       {errores.general ? (
         <div
           role="alert"
-          className="rounded-2xl border-[1.5px] border-[#f5c2bd] bg-error-claro px-4 py-3 text-[0.95rem] font-semibold text-error"
+          className="rounded-2xl lg:col-span-2 border-[1.5px] border-[#f5c2bd] bg-error-claro px-4 py-3 text-[0.95rem] font-semibold text-error"
         >
           {errores.general}
         </div>
@@ -121,7 +123,7 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
         {errores.direccion ? <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.direccion}</p> : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:col-span-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="departamento" className="text-[0.95rem] font-semibold text-tinta">
             Departamento

@@ -14,17 +14,20 @@ type Props = {
   /** Nivel del título: h2 por defecto; h3 si la tarjeta va dentro de una sección con su propio h2. */
   nivel?: 2 | 3;
   className?: string;
+  /** Menos relleno y letra más chica: para paneles al costado de un editor, donde todo tiene que entrar en pantalla. */
+  compacta?: boolean;
   children: ReactNode;
 };
 
-export function Tarjeta({ titulo, extra, tono = "blanca", nivel = 2, className = "", children }: Props) {
+export function Tarjeta({ titulo, extra, tono = "blanca", nivel = 2, className = "", compacta = false, children }: Props) {
   const fondo = tono === "menta" ? "border-menta-fuerte bg-menta" : "border-borde bg-white";
   const Titulo = nivel === 2 ? "h2" : "h3";
+  const medidas = compacta ? "gap-3 rounded-3xl p-4" : "gap-4 rounded-[28px] p-5 sm:p-6";
   return (
-    <section className={`flex flex-col gap-4 rounded-[28px] border-2 p-5 sm:p-6 ${fondo} ${className}`}>
+    <section className={`flex flex-col border-2 ${medidas} ${fondo} ${className}`}>
       {(titulo || extra) && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          {titulo && <Titulo className="text-xl font-bold text-bosque">{titulo}</Titulo>}
+          {titulo && <Titulo className={`font-bold text-bosque ${compacta ? "text-lg" : "text-xl"}`}>{titulo}</Titulo>}
           {extra}
         </div>
       )}

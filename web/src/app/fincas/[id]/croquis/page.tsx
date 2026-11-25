@@ -59,7 +59,7 @@ async function ContenidoCroquis({ params }: Props) {
 
 export default function PaginaCroquis(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-3 sm:px-6 sm:py-4">
       <Suspense fallback={<p className="text-tinta-suave">Cargando tu plano…</p>}>
         <ContenidoCroquis params={props.params} />
       </Suspense>

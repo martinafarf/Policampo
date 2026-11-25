@@ -19,7 +19,7 @@ import { IconoAlerta } from "@/componentes/marca/Iconos";
 import { Boton, BotonEnlace } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { Aviso } from "@/componentes/ui/formulario";
-import { Desplegable } from "@/componentes/ui/mas-info";
+import { MasInfo } from "@/componentes/ui/mas-info";
 import { Tarjeta } from "@/componentes/ui/tarjeta";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
@@ -29,7 +29,6 @@ import {
   calcularLadoCroquisMetros,
   crearContornoCroquis,
   formatearHectareas,
-  formatearSuperficieCompleta,
   generarNombresSectores,
   redondearHectareas,
   validarPoligonoBasico,
@@ -50,8 +49,6 @@ import {
 
 const VALOR_OTRO_CULTIVO = "__OTRO__";
 
-const CAMPO =
-  "min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45";
 const TAMANO_SVG = 400;
 const DIVISIONES_GRILLA = 10;
 
@@ -752,7 +749,7 @@ export function EditorCroquis({
     verticesPoligono.length > 0
       ? null
       : indiceSeleccionado !== null && sectorEditado
-        ? `Elegiste «${nombresCalculados[indiceSeleccionado]}». Arrastralo para moverlo, tirá de los cuadraditos para cambiarle el tamaño, o apretá Supr (o clic derecho) para borrarlo.`
+        ? `«${nombresCalculados[indiceSeleccionado]}»: arrastralo para moverlo · tirá de los cuadraditos para cambiar el tamaño · Supr o clic derecho para borrarlo`
         : sectores.length > 0
           ? "Tocá un sector del plano para elegirlo, moverlo o cambiarle el tamaño."
           : null;
@@ -765,22 +762,27 @@ export function EditorCroquis({
   const celda = (ladoM / DIVISIONES_GRILLA).toLocaleString("es-AR", { maximumFractionDigits: 1 });
 
   const botonGuardar = (
-    <Boton onClick={manejarGuardado} disabled={guardando} anchoCompleto>
+    <Boton onClick={manejarGuardado} disabled={guardando} anchoCompleto className="min-h-11">
       {guardando ? "Guardando…" : "Guardar mi terreno"}
     </Boton>
   );
 
   /** Cada herramienta es una píldora; la elegida va en oliva. */
   const claseHerramienta = (activa: boolean) =>
-    `inline-flex min-h-12 items-center gap-2 rounded-full border-2 px-4 text-[0.95rem] font-bold transition ${
+    `inline-flex min-h-9 items-center gap-1.5 rounded-full border-2 px-3.5 text-sm font-bold transition ${
       activa
         ? "border-transparent bg-hoja text-white"
         : "border-borde bg-white text-tinta-suave hover:border-hoja hover:text-tinta"
     }`;
 
+  /** Campos más bajos para el panel de la derecha. */
+  const CAMPO_CHICO =
+    "min-h-10 w-full rounded-xl border-[1.5px] border-borde bg-papel px-3 text-sm text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45";
+
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-7.5rem)] lg:min-h-[32rem]">
       <EncabezadoPagina
+        compacto
         migas={[
           { texto: "Mis fincas", href: "/fincas" },
           { texto: nombreEstablecimiento, href: `/fincas/${establecimientoId}` },
@@ -788,104 +790,328 @@ export function EditorCroquis({
         titulo="Dibujá tu finca"
       />
 
-      {/* Computadora: el plano a la izquierda; a la derecha la superficie, la paleta y lo dibujado.
+      <div className="empty:hidden">
+        <BannerBorrador
+          variante="aviso"
+          fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
+          ultimoAutoguardadoIso={ultimoAutoguardado}
+          onRecuperar={recuperarBorrador}
+          onDescartar={descartarBorrador}
+        />
+      </div>
+
+      {/* Computadora: tres paneles que entran en la pantalla sin bajar. A la izquierda qué se va a dibujar, en el
+          medio el plano (lo más grande que entre) y a la derecha cuánto llevás, el sector elegido y la lista.
           Celular: una cosa debajo de la otra, en el orden en que se usan (ver "max-lg:order-N"). */}
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-x-6">
-        {/* Izquierda: herramientas y plano */}
-        <div className="contents lg:flex lg:flex-col lg:gap-4">
-          <div className="max-lg:order-1 empty:hidden">
+      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[17.5rem_minmax(0,1fr)_19.5rem] lg:gap-4">
+        {/* Izquierda: la forma y qué dibujar */}
+        <div className="contents lg:flex lg:min-h-0 lg:flex-col lg:gap-2 lg:overflow-y-auto">
+          <div className="flex flex-col gap-1.5 max-lg:order-5">
+            <p className="text-sm font-semibold text-tinta-suave">Forma del sector</p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Herramientas de dibujo">
+              <button
+                type="button"
+                aria-pressed={herramienta === "rectangulo"}
+                onClick={() => {
+                  setHerramienta("rectangulo");
+                  setVerticesPoligono([]);
+                }}
+                className={claseHerramienta(herramienta === "rectangulo")}
+              >
+                ▭ Rectángulo
+              </button>
+              <button
+                type="button"
+                aria-pressed={herramienta === "poligono"}
+                onClick={() => {
+                  setHerramienta("poligono");
+                  setInicioRect(null);
+                  setFinRect(null);
+                }}
+                className={claseHerramienta(herramienta === "poligono")}
+              >
+                ⬠ Forma libre
+              </button>
+            </div>
+          </div>
+
+          {/* Controles para la forma libre en curso (RD-03, CA-02-22) */}
+          {herramienta === "poligono" ? (
+            <div className="flex flex-col gap-1.5 rounded-2xl bg-menta px-3 py-2.5 max-lg:order-5">
+              <p className="text-sm font-semibold text-bosque">
+                Tocá el plano para marcar las esquinas ({verticesPoligono.length} marcadas; hacen falta al menos 3).
+              </p>
+              <Boton
+                variante="contorno"
+                disabled={verticesPoligono.length < 3}
+                onClick={cerrarPoligonoEnCurso}
+                anchoCompleto
+                className="min-h-9 text-sm"
+              >
+                Terminar forma
+              </Boton>
+              <div className="grid grid-cols-2 gap-1">
+                <Boton
+                  variante="texto"
+                  disabled={verticesPoligono.length === 0}
+                  onClick={() => setVerticesPoligono((prev) => prev.slice(0, -1))}
+                  className="min-h-9 px-2 text-sm"
+                >
+                  Deshacer
+                </Boton>
+                <Boton
+                  variante="texto"
+                  disabled={verticesPoligono.length === 0}
+                  onClick={() => setVerticesPoligono([])}
+                  className="min-h-9 px-2 text-sm"
+                >
+                  Borrar trazo
+                </Boton>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="max-lg:order-3">
+            <PaletaSectores compacta cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
+          </div>
+        </div>
+
+        {/* Medio: el plano, lo más grande que entre en la pantalla */}
+        <div className="flex flex-col gap-1.5 max-lg:order-6 lg:min-h-0">
+          <p className="text-center text-[0.95rem] font-semibold text-tinta-suave">
+            Tu finca es un cuadrado de {lado} m por {lado} m ({formatearHectareas(superficieTotalHa)})
+            <MasInfo sobre="cómo se dibuja">
+              Elegí qué dibujar a la izquierda y marcá el sector en el plano: arrastrando en un lugar vacío
+              (rectángulo) o tocando las esquinas (forma libre). Para cambiar uno que ya dibujaste, tocalo: arrastralo
+              para moverlo, tirá de los cuadraditos blancos para cambiarle el tamaño, o apretá Supr (o clic derecho)
+              para borrarlo. Si lo dejás encima de otro, vuelve a donde estaba.
+            </MasInfo>
+          </p>
+          {sectores.length > 0 ? (
+            <p className="flex min-h-[2.6rem] items-center justify-center text-center text-sm font-semibold text-hoja-oscura">
+              {pista}
+            </p>
+          ) : null}
+
+          {/* En la computadora el plano mide lo menor entre el ancho y el alto que le queda (cqmin) */}
+          <div className="flex items-center justify-center lg:min-h-0 lg:flex-1 lg:[container-type:size]">
+            <div ref={contenedorPlanoRef} className="relative w-full lg:h-[100cqmin] lg:w-[100cqmin]">
+              <div className="w-full overflow-hidden rounded-2xl border-2 border-borde bg-papel">
+                  <svg
+                    ref={svgRef}
+                    viewBox={`0 0 ${TAMANO_SVG} ${TAMANO_SVG}`}
+                    onPointerDown={manejarPointerDown}
+                    onPointerMove={manejarPointerMove}
+                    onPointerUp={manejarPointerUp}
+                    onPointerCancel={() => setManipulacion(null)}
+                    className="block aspect-square w-full touch-none select-none"
+                    role="application"
+                    aria-label="Plano interactivo del croquis"
+                  >
+                    {/* Grilla de referencia 10×10 */}
+                    {Array.from({ length: DIVISIONES_GRILLA - 1 }, (_, i) => {
+                      const pos = ((i + 1) / DIVISIONES_GRILLA) * TAMANO_SVG;
+                      return (
+                        <g key={i} stroke="#d3e0cc" strokeWidth={0.8}>
+                          <line x1={pos} y1={0} x2={pos} y2={TAMANO_SVG} />
+                          <line x1={0} y1={pos} x2={TAMANO_SVG} y2={pos} />
+                        </g>
+                      );
+                    })}
+    
+                    {/* Sectores ya dibujados */}
+                    {sectores.map((s, indice) => {
+                      const claveCultivo = s.cultivoId ? mapaCultivos.get(s.cultivoId)?.clave : undefined;
+                      const color = colorDeSector(s.tipo, claveCultivo);
+                      const seleccionado = indiceSeleccionado === indice;
+                      // Mientras se arrastra, se dibuja como quedaría (si así no puede quedar, en rojo y punteado).
+                      const moviendo = manipulacion?.indice === indice ? manipulacion : null;
+                      const geometriaMostrada = moviendo ? moviendo.geometria : s.geometria;
+                      const [cx, cy] = metrosASvg(centroidePoligono(geometriaMostrada));
+    
+                      return (
+                        <g
+                          key={s.claveLocal}
+                          onPointerDown={(e) => {
+                            // En medio de una forma libre, tocar suma una esquina; si no, tocar un sector lo elige y lo mueve.
+                            if (verticesPoligono.length === 0) empezarManipulacion(e, indice, "mover");
+                          }}
+                          onContextMenu={(e) => abrirMenuContextual(e, indice)}
+                          className={verticesPoligono.length === 0 ? (moviendo ? "cursor-grabbing" : "cursor-grab") : undefined}
+                        >
+                          <polygon
+                            points={poligonoAPointsSvg(geometriaMostrada)}
+                            fill={moviendo?.problema ? "rgba(179, 38, 30, 0.25)" : color.relleno}
+                            stroke={moviendo?.problema ? "#b42318" : seleccionado ? "#003300" : color.borde}
+                            strokeWidth={seleccionado ? 3 : 1.8}
+                            strokeDasharray={moviendo?.problema ? "6 3" : undefined}
+                          />
+                          <text
+                            x={cx}
+                            y={cy - 4}
+                            textAnchor="middle"
+                            fontSize={11}
+                            fontWeight="bold"
+                            fill="#0f220f"
+                            className="pointer-events-none"
+                          >
+                            {nombresCalculados[indice]}
+                          </text>
+                          <text
+                            x={cx}
+                            y={cy + 10}
+                            textAnchor="middle"
+                            fontSize={10}
+                            fill="#45573a"
+                            className="pointer-events-none"
+                          >
+                            {formatearHectareas(superficiesSectores[indice])}
+                          </text>
+                        </g>
+                      );
+                    })}
+    
+                    {/* Cuadraditos del sector elegido: tirar de ellos cambia el tamaño (o mueve la esquina) */}
+                    {asasElegido.map((asa) => {
+                      const [sx, sy] = metrosASvg([asa.x, asa.y]);
+                      const hayProblema = !!manipulacion?.problema;
+                      return (
+                        <g
+                          key={asa.clave}
+                          className={cursorDeAsa(asa)}
+                          onPointerDown={(e) =>
+                            indiceSeleccionado !== null &&
+                            empezarManipulacion(e, indiceSeleccionado, asa.vertice !== undefined ? "vertice" : "redimensionar", asa)
+                          }
+                        >
+                          {/* Zona más grande y transparente, para agarrarlo bien con el dedo */}
+                          <rect x={sx - 16} y={sy - 16} width={32} height={32} fill="transparent" />
+                          <rect
+                            x={sx - 5.5}
+                            y={sy - 5.5}
+                            width={11}
+                            height={11}
+                            rx={2}
+                            fill="#ffffff"
+                            stroke={hayProblema ? "#b42318" : "#003300"}
+                            strokeWidth={2}
+                            className="pointer-events-none"
+                          />
+                        </g>
+                      );
+                    })}
+    
+                    {/* Vista previa de rectángulo en arrastre */}
+                    {rectanguloPreview ? (
+                      <polygon
+                        points={poligonoAPointsSvg(rectanguloPreview)}
+                        fill="rgba(89, 121, 49, 0.25)"
+                        stroke="#597931"
+                        strokeWidth={2}
+                        strokeDasharray="6 3"
+                      />
+                    ) : null}
+    
+                    {/* Vista previa de la forma libre en curso */}
+                    {verticesPoligono.length > 0 ? (
+                      <g>
+                        <polyline
+                          points={verticesPoligono
+                            .map((p) => {
+                              const [sx, sy] = metrosASvg(p);
+                              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+                            })
+                            .join(" ")}
+                          fill="none"
+                          stroke="#597931"
+                          strokeWidth={2}
+                          strokeDasharray="5 3"
+                        />
+                        {verticesPoligono.map((p, i) => {
+                          const [sx, sy] = metrosASvg(p);
+                          return (
+                            <circle
+                              key={i}
+                              cx={sx}
+                              cy={sy}
+                              r={5}
+                              fill={i === 0 ? "#597931" : "#ffffff"}
+                              stroke="#597931"
+                              strokeWidth={2}
+                            />
+                          );
+                        })}
+                      </g>
+                    ) : null}
+                  </svg>
+              </div>
+
+              {/* Avisos que flotan abajo del plano: no corren el dibujo al aparecer y no tapan los toques */}
+              {avisoDibujo || ultimoBorrado ? (
+                <div className="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex flex-col gap-2">
+                  {avisoDibujo ? (
+                    <div
+                      role="alert"
+                      className="flex items-start gap-3 rounded-2xl border-[1.5px] border-[#f0c987] bg-[#fff3df] px-4 py-2.5 text-[0.95rem] font-semibold text-[#7a4100] shadow-suave"
+                    >
+                      <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+                      {avisoDibujo}
+                    </div>
+                  ) : null}
+                  {ultimoBorrado ? (
+                    <div
+                      role="status"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-[1.5px] border-menta-fuerte bg-menta px-4 py-1 text-[0.95rem] font-semibold text-bosque shadow-suave"
+                    >
+                      <span>Borraste «{ultimoBorrado.nombre}».</span>
+                      <Boton variante="texto" onClick={deshacerBorrado} className="pointer-events-auto min-h-10">
+                        Deshacer
+                      </Boton>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {menuContextual && sectores[menuContextual.indice] ? (
+                <div
+                  ref={menuRef}
+                  role="menu"
+                  aria-label="Opciones del sector"
+                  className="absolute z-20 w-56 rounded-2xl border-[1.5px] border-borde bg-white p-1.5 shadow-suave"
+                  style={{ left: menuContextual.x, top: menuContextual.y }}
+                >
+                  <p className="truncate px-3 py-1 text-sm font-semibold text-tinta-suave">
+                    {nombresCalculados[menuContextual.indice]}
+                  </p>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => borrarSector(menuContextual.indice)}
+                    className="flex min-h-11 w-full items-center rounded-xl px-3 text-left font-bold text-error transition hover:bg-error-claro"
+                  >
+                    Borrar este sector
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-x-3 text-sm text-tinta-suave">
+            <span>
+              Cada cuadradito de la grilla mide {celda} m por {celda} m.
+            </span>
             <BannerBorrador
-              variante="aviso"
+              variante="nota"
               fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
               ultimoAutoguardadoIso={ultimoAutoguardado}
               onRecuperar={recuperarBorrador}
               onDescartar={descartarBorrador}
             />
           </div>
+        </div>
 
-          {/* Ayuda: con el plano vacío son 3 pasos a la vista */}
-          <div className="max-lg:order-4 empty:hidden">
-            {sectores.length === 0 ? (
-              <ol className="grid gap-2 rounded-[28px] border-2 border-menta-fuerte bg-menta p-4 sm:grid-cols-3">
-                {[
-                  "Elegí qué vas a dibujar.",
-                  herramienta === "poligono"
-                    ? "Tocá las esquinas del sector en el plano."
-                    : "Arrastrá el dedo o el mouse sobre el plano.",
-                  "Cuando termines, tocá «Guardar mi terreno».",
-                ].map((texto, i) => (
-                  <li key={texto} className="flex items-center gap-3 text-[0.95rem] font-semibold text-bosque">
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-naranja text-sm font-extrabold text-bosque">
-                      {i + 1}
-                    </span>
-                    {texto}
-                  </li>
-                ))}
-              </ol>
-            ) : null}
-          </div>
-
-          {/* Herramientas de dibujo */}
-          <div className="flex flex-wrap items-center gap-2 max-lg:order-5" role="group" aria-label="Herramientas de dibujo">
-            <button
-              type="button"
-              aria-pressed={herramienta === "rectangulo"}
-              onClick={() => {
-                setHerramienta("rectangulo");
-                setVerticesPoligono([]);
-              }}
-              className={claseHerramienta(herramienta === "rectangulo")}
-            >
-              ▭ Rectángulo
-            </button>
-            <button
-              type="button"
-              aria-pressed={herramienta === "poligono"}
-              onClick={() => {
-                setHerramienta("poligono");
-                setInicioRect(null);
-                setFinRect(null);
-              }}
-              className={claseHerramienta(herramienta === "poligono")}
-            >
-              ⬠ Forma libre
-            </button>
-          </div>
-
-          {/* Controles grandes para la forma libre en curso (RD-03, CA-02-22) */}
-          {herramienta === "poligono" ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-menta px-4 py-3 max-lg:order-5">
-              <p className="w-full text-[0.95rem] font-semibold text-bosque sm:w-auto sm:flex-1">
-                Tocá el plano para marcar las esquinas ({verticesPoligono.length} marcadas; hacen falta al
-                menos 3).
-              </p>
-              <Boton
-                variante="contorno"
-                disabled={verticesPoligono.length < 3}
-                onClick={cerrarPoligonoEnCurso}
-                className="min-h-11 px-5"
-              >
-                Terminar forma
-              </Boton>
-              <Boton
-                variante="texto"
-                disabled={verticesPoligono.length === 0}
-                onClick={() => setVerticesPoligono((prev) => prev.slice(0, -1))}
-                className="min-h-11"
-              >
-                Deshacer
-              </Boton>
-              <Boton
-                variante="texto"
-                disabled={verticesPoligono.length === 0}
-                onClick={() => setVerticesPoligono([])}
-                className="min-h-11"
-              >
-                Borrar trazo
-              </Boton>
-            </div>
-          ) : null}
-
+        {/* Derecha: cuánto llevás, el sector elegido y la lista */}
+        <div className="contents lg:flex lg:min-h-0 lg:flex-col lg:gap-3 lg:overflow-y-auto">
           {erroresServidor.length > 0 ? (
             <div className="max-lg:order-5">
               <Aviso tipo="error">
@@ -898,461 +1124,222 @@ export function EditorCroquis({
             </div>
           ) : null}
 
-          {/* Plano cuadrado SVG táctil a escala. Su ancho se limita para que, en la computadora, entre entero en la pantalla. */}
-          <div className="mx-auto flex w-full max-w-[min(100%,max(20rem,calc(100dvh-19rem)))] flex-col items-center gap-1.5 max-lg:order-6">
-            <p className="text-center text-[0.95rem] font-semibold text-tinta-suave">
-              Tu finca es un cuadrado de {lado} m por {lado} m ({formatearHectareas(superficieTotalHa)})
-            </p>
-            {sectores.length > 0 ? (
-              <p className="flex min-h-[3.4rem] items-center text-center text-sm font-semibold text-hoja-oscura">
-                {pista}
-              </p>
-            ) : null}
-            <div ref={contenedorPlanoRef} className="relative w-full">
-            <div className="w-full overflow-hidden rounded-2xl border-2 border-borde bg-papel">
-              <svg
-                ref={svgRef}
-                viewBox={`0 0 ${TAMANO_SVG} ${TAMANO_SVG}`}
-                onPointerDown={manejarPointerDown}
-                onPointerMove={manejarPointerMove}
-                onPointerUp={manejarPointerUp}
-                onPointerCancel={() => setManipulacion(null)}
-                className="block aspect-square w-full touch-none select-none"
-                role="application"
-                aria-label="Plano interactivo del croquis"
-              >
-                {/* Grilla de referencia 10×10 */}
-                {Array.from({ length: DIVISIONES_GRILLA - 1 }, (_, i) => {
-                  const pos = ((i + 1) / DIVISIONES_GRILLA) * TAMANO_SVG;
-                  return (
-                    <g key={i} stroke="#d3e0cc" strokeWidth={0.8}>
-                      <line x1={pos} y1={0} x2={pos} y2={TAMANO_SVG} />
-                      <line x1={0} y1={pos} x2={TAMANO_SVG} y2={pos} />
-                    </g>
-                  );
-                })}
-
-                {/* Sectores ya dibujados */}
-                {sectores.map((s, indice) => {
-                  const claveCultivo = s.cultivoId ? mapaCultivos.get(s.cultivoId)?.clave : undefined;
-                  const color = colorDeSector(s.tipo, claveCultivo);
-                  const seleccionado = indiceSeleccionado === indice;
-                  // Mientras se arrastra, se dibuja como quedaría (si así no puede quedar, en rojo y punteado).
-                  const moviendo = manipulacion?.indice === indice ? manipulacion : null;
-                  const geometriaMostrada = moviendo ? moviendo.geometria : s.geometria;
-                  const [cx, cy] = metrosASvg(centroidePoligono(geometriaMostrada));
-
-                  return (
-                    <g
-                      key={s.claveLocal}
-                      onPointerDown={(e) => {
-                        // En medio de una forma libre, tocar suma una esquina; si no, tocar un sector lo elige y lo mueve.
-                        if (verticesPoligono.length === 0) empezarManipulacion(e, indice, "mover");
-                      }}
-                      onContextMenu={(e) => abrirMenuContextual(e, indice)}
-                      className={verticesPoligono.length === 0 ? (moviendo ? "cursor-grabbing" : "cursor-grab") : undefined}
-                    >
-                      <polygon
-                        points={poligonoAPointsSvg(geometriaMostrada)}
-                        fill={moviendo?.problema ? "rgba(179, 38, 30, 0.25)" : color.relleno}
-                        stroke={moviendo?.problema ? "#b42318" : seleccionado ? "#003300" : color.borde}
-                        strokeWidth={seleccionado ? 3 : 1.8}
-                        strokeDasharray={moviendo?.problema ? "6 3" : undefined}
-                      />
-                      <text
-                        x={cx}
-                        y={cy - 4}
-                        textAnchor="middle"
-                        fontSize={11}
-                        fontWeight="bold"
-                        fill="#0f220f"
-                        className="pointer-events-none"
-                      >
-                        {nombresCalculados[indice]}
-                      </text>
-                      <text
-                        x={cx}
-                        y={cy + 10}
-                        textAnchor="middle"
-                        fontSize={10}
-                        fill="#45573a"
-                        className="pointer-events-none"
-                      >
-                        {formatearHectareas(superficiesSectores[indice])}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Cuadraditos del sector elegido: tirar de ellos cambia el tamaño (o mueve la esquina) */}
-                {asasElegido.map((asa) => {
-                  const [sx, sy] = metrosASvg([asa.x, asa.y]);
-                  const hayProblema = !!manipulacion?.problema;
-                  return (
-                    <g
-                      key={asa.clave}
-                      className={cursorDeAsa(asa)}
-                      onPointerDown={(e) =>
-                        indiceSeleccionado !== null &&
-                        empezarManipulacion(e, indiceSeleccionado, asa.vertice !== undefined ? "vertice" : "redimensionar", asa)
-                      }
-                    >
-                      {/* Zona más grande y transparente, para agarrarlo bien con el dedo */}
-                      <rect x={sx - 16} y={sy - 16} width={32} height={32} fill="transparent" />
-                      <rect
-                        x={sx - 5.5}
-                        y={sy - 5.5}
-                        width={11}
-                        height={11}
-                        rx={2}
-                        fill="#ffffff"
-                        stroke={hayProblema ? "#b42318" : "#003300"}
-                        strokeWidth={2}
-                        className="pointer-events-none"
-                      />
-                    </g>
-                  );
-                })}
-
-                {/* Vista previa de rectángulo en arrastre */}
-                {rectanguloPreview ? (
-                  <polygon
-                    points={poligonoAPointsSvg(rectanguloPreview)}
-                    fill="rgba(89, 121, 49, 0.25)"
-                    stroke="#597931"
-                    strokeWidth={2}
-                    strokeDasharray="6 3"
-                  />
-                ) : null}
-
-                {/* Vista previa de la forma libre en curso */}
-                {verticesPoligono.length > 0 ? (
-                  <g>
-                    <polyline
-                      points={verticesPoligono
-                        .map((p) => {
-                          const [sx, sy] = metrosASvg(p);
-                          return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-                        })
-                        .join(" ")}
-                      fill="none"
-                      stroke="#597931"
-                      strokeWidth={2}
-                      strokeDasharray="5 3"
-                    />
-                    {verticesPoligono.map((p, i) => {
-                      const [sx, sy] = metrosASvg(p);
-                      return (
-                        <circle
-                          key={i}
-                          cx={sx}
-                          cy={sy}
-                          r={5}
-                          fill={i === 0 ? "#597931" : "#ffffff"}
-                          stroke="#597931"
-                          strokeWidth={2}
-                        />
-                      );
-                    })}
-                  </g>
-                ) : null}
-              </svg>
-            </div>
-            {/* Avisos que flotan abajo del plano: no corren el dibujo al aparecer y no tapan los toques */}
-            {avisoDibujo || ultimoBorrado ? (
-              <div className="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex flex-col gap-2">
-                {avisoDibujo ? (
-                  <div
-                    role="alert"
-                    className="flex items-start gap-3 rounded-2xl border-[1.5px] border-[#f0c987] bg-[#fff3df] px-4 py-2.5 text-[0.95rem] font-semibold text-[#7a4100] shadow-suave"
-                  >
-                    <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
-                    {avisoDibujo}
-                  </div>
-                ) : null}
-                {ultimoBorrado ? (
-                  <div
-                    role="status"
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-[1.5px] border-menta-fuerte bg-menta px-4 py-1 text-[0.95rem] font-semibold text-bosque shadow-suave"
-                  >
-                    <span>Borraste «{ultimoBorrado.nombre}».</span>
-                    <Boton variante="texto" onClick={deshacerBorrado} className="pointer-events-auto min-h-10">
-                      Deshacer
-                    </Boton>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {menuContextual && sectores[menuContextual.indice] ? (
-              <div
-                ref={menuRef}
-                role="menu"
-                aria-label="Opciones del sector"
-                className="absolute z-20 w-56 rounded-2xl border-[1.5px] border-borde bg-white p-1.5 shadow-suave"
-                style={{ left: menuContextual.x, top: menuContextual.y }}
-              >
-                <p className="truncate px-3 py-1 text-sm font-semibold text-tinta-suave">
-                  {nombresCalculados[menuContextual.indice]}
-                </p>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => borrarSector(menuContextual.indice)}
-                  className="flex min-h-11 w-full items-center rounded-xl px-3 text-left font-bold text-error transition hover:bg-error-claro"
-                >
-                  Borrar este sector
-                </button>
-              </div>
-            ) : null}
-            </div>
-            <p className="text-sm text-tinta-suave">
-              Cada cuadradito de la grilla mide {celda} m por {celda} m.
-            </p>
-            <BannerBorrador
-              variante="nota"
-              fechaBorradorIso={borradorPendiente?.guardadoEn ?? null}
-              ultimoAutoguardadoIso={ultimoAutoguardado}
-              onRecuperar={recuperarBorrador}
-              onDescartar={descartarBorrador}
-            />
-          </div>
-
-          {/* Cuando ya hay sectores, la ayuda queda a mano pero cerrada, debajo del plano */}
-          {sectores.length > 0 ? (
-            <div className="max-lg:order-6">
-                <Desplegable pregunta="¿Cómo se dibuja?">
-                  Elegí qué vas a dibujar y marcá el sector en el plano: arrastrando en un lugar vacío (rectángulo) o
-                  tocando las esquinas (forma libre). Para cambiar uno que ya dibujaste, tocalo: arrastralo para moverlo,
-                  tirá de los cuadraditos blancos para cambiarle el tamaño, o apretá Supr (o clic derecho) para borrarlo.
-                  Si lo dejás encima de otro, vuelve a donde estaba.
-                </Desplegable>
-              </div>
-          ) : null}
-
-          {/* Lista de lo dibujado */}
-          <div className="max-lg:order-8">
-            <Tarjeta titulo="Lo que dibujaste" extra={<span className="text-[0.95rem] font-semibold text-tinta-suave">{sectores.length}</span>}>
-              {sectores.length === 0 ? (
-                <p className="text-tinta-suave">Todavía no dibujaste nada. Elegí qué dibujar y marcalo en el plano.</p>
-              ) : (
-                <ul className="flex flex-col divide-y-[1.5px] divide-borde">
-                  {sectores.map((s, idx) => (
-                    <li
-                      key={s.claveLocal}
-                      className={`flex items-center justify-between gap-2 py-1.5 ${
-                        indiceSeleccionado === idx ? "-mx-3 rounded-2xl bg-menta px-3" : ""
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setIndiceSeleccionado(idx)}
-                        className="flex min-h-12 flex-1 flex-col justify-center text-left"
-                      >
-                        <span className="font-semibold text-tinta">
-                          {s.tipo === "sector_flores" ? "🌼" : "🌱"} {nombresCalculados[idx]}
-                        </span>
-                        <span className="text-sm text-tinta-suave">
-                          {formatearSuperficieCompleta(superficiesSectores[idx])}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => borrarSector(idx)}
-                        aria-label={`Quitar ${nombresCalculados[idx]}`}
-                        className="inline-flex min-h-10 items-center rounded-full px-3 text-[0.95rem] font-bold text-error transition hover:bg-error-claro"
-                      >
-                        Quitar
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Tarjeta>
-          </div>
-        </div>
-
-        {/* Derecha: superficie, paleta y el sector elegido */}
-        <div className="contents lg:flex lg:flex-col lg:gap-4">
           {/* Cuánta superficie llevás dibujada. En la computadora lleva el botón Guardar. */}
           <aside
             aria-live="polite"
-            className="flex flex-col gap-3 rounded-[28px] border-2 border-menta-fuerte bg-menta p-5 max-lg:order-2"
+            className="flex flex-col gap-2 rounded-3xl border-2 border-menta-fuerte bg-menta p-4 max-lg:order-2"
           >
-            <h2 className="text-xl font-bold text-bosque">Tu superficie</h2>
+            <h2 className="text-sm font-semibold text-tinta-suave">Tu superficie</h2>
             <p className="flex flex-wrap items-baseline gap-x-2">
-              <strong className="font-titulos text-3xl font-extrabold text-bosque">
+              <strong className="font-titulos text-2xl font-extrabold text-bosque">
                 {formatearHectareas(superficieDistribuida)}
               </strong>
-              <span className="text-tinta-suave">de {formatearHectareas(superficieTotalHa)}</span>
+              <span className="text-sm text-tinta-suave">de {formatearHectareas(superficieTotalHa)}</span>
             </p>
-            <div className="h-4 overflow-hidden rounded-full bg-white" aria-hidden="true">
+            <div className="h-3 overflow-hidden rounded-full bg-white" aria-hidden="true">
               <div
                 className={`h-full rounded-full transition-all ${colorBarra}`}
                 style={{ width: `${porcentajeUsado}%` }}
               />
             </div>
             {excedida ? (
-              <p className="flex items-start gap-2 font-semibold text-error">
-                <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+              <p className="flex items-start gap-2 text-sm font-semibold text-error">
+                <IconoAlerta className="mt-0.5 h-4 w-4 shrink-0" />
                 Dibujaste de más: los sectores suman más que tu finca.
               </p>
             ) : (
-              <p className="font-titulos text-lg font-bold text-bosque">
+              <p className="font-titulos text-base font-bold text-bosque">
                 {restanteHa > 0 ? `Te quedan ${formatearHectareas(restanteHa)} libres.` : "Ya dibujaste toda la finca."}
               </p>
             )}
-            <div className="flex flex-col gap-1 max-lg:hidden">
+            <div className="flex flex-col gap-0.5 max-lg:hidden">
               {botonGuardar}
-              <BotonEnlace href={`/fincas/${establecimientoId}`} variante="texto">
-                Cancelar
-              </BotonEnlace>
             </div>
           </aside>
 
-          <div className="max-lg:order-3">
-            <PaletaSectores cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
+          {/* Lo que ya está dibujado; el sector elegido se abre ahí mismo para cambiarle el tipo, el cultivo o el nombre
+              (Esp. 02, 5.3). Con el plano vacío, cómo empezar en 3 pasos. */}
+          <div className="max-lg:order-10">
+            <Tarjeta
+              compacta
+              titulo="Lo que dibujaste"
+              extra={<span className="text-sm font-semibold text-tinta-suave">{sectores.length}</span>}
+            >
+              {sectores.length === 0 ? (
+                <ol className="flex flex-col gap-2">
+                  {[
+                    "Elegí qué vas a dibujar.",
+                    herramienta === "poligono"
+                      ? "Tocá las esquinas del sector en el plano."
+                      : "Arrastrá el dedo o el mouse sobre el plano.",
+                    "Cuando termines, tocá «Guardar mi terreno».",
+                  ].map((texto, i) => (
+                    <li key={texto} className="flex items-center gap-2.5 text-sm font-semibold text-bosque">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-naranja text-xs font-extrabold">
+                        {i + 1}
+                      </span>
+                      {texto}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <ul className="-my-1 flex flex-col divide-y-[1.5px] divide-borde">
+                  {sectores.map((s, idx) => {
+                    const elegido = indiceSeleccionado === idx;
+                    return (
+                      <li key={s.claveLocal} className={elegido ? "-mx-2 rounded-xl bg-menta px-2 pb-2" : ""}>
+                        <div className="flex items-center justify-between gap-1 py-0.5">
+                          <button
+                            type="button"
+                            aria-expanded={elegido}
+                            onClick={() => setIndiceSeleccionado(elegido ? null : idx)}
+                            className="flex min-h-10 min-w-0 flex-1 items-center justify-between gap-2 text-left"
+                          >
+                            <span className="truncate text-sm font-semibold text-tinta">
+                              {s.tipo === "sector_flores" ? "🌼" : "🌱"} {nombresCalculados[idx]}
+                            </span>
+                            <span className="shrink-0 text-sm text-tinta-suave">
+                              {formatearHectareas(superficiesSectores[idx])}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => borrarSector(idx)}
+                            aria-label={`Quitar ${nombresCalculados[idx]}`}
+                            className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2.5 text-sm font-bold text-error transition hover:bg-error-claro"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+
+                        {elegido ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                aria-pressed={s.tipo === "cultivo"}
+                                onClick={() =>
+                                  actualizarSectorSeleccionado({
+                                    tipo: "cultivo",
+                                    subtipoFlores: null,
+                                    cultivoId: primerCultivo?.id ?? null,
+                                  })
+                                }
+                                className={`min-h-9 rounded-xl border-2 px-2 text-sm font-bold transition ${
+                                  s.tipo === "cultivo"
+                                    ? "border-hoja bg-white text-bosque"
+                                    : "border-borde bg-white/60 text-tinta-suave hover:border-hoja"
+                                }`}
+                              >
+                                🌱 Cultivo
+                              </button>
+                              <button
+                                type="button"
+                                aria-pressed={s.tipo === "sector_flores"}
+                                onClick={() =>
+                                  actualizarSectorSeleccionado({
+                                    tipo: "sector_flores",
+                                    cultivoId: null,
+                                    cultivoOtro: "",
+                                  })
+                                }
+                                className={`min-h-9 rounded-xl border-2 px-2 text-sm font-bold transition ${
+                                  s.tipo === "sector_flores"
+                                    ? "border-purple-700 bg-white text-bosque"
+                                    : "border-borde bg-white/60 text-tinta-suave hover:border-hoja"
+                                }`}
+                              >
+                                🌼 Flores
+                              </button>
+                            </div>
+
+                            {s.tipo === "cultivo" ? (
+                              <div className="flex flex-col gap-1">
+                                <label htmlFor="editar-cultivo-croquis" className="text-sm font-semibold text-tinta">
+                                  ¿Qué cultivo es?
+                                </label>
+                                <select
+                                  id="editar-cultivo-croquis"
+                                  value={s.cultivoId ?? VALOR_OTRO_CULTIVO}
+                                  onChange={(e) =>
+                                    actualizarSectorSeleccionado({
+                                      cultivoId: e.target.value === VALOR_OTRO_CULTIVO ? null : e.target.value,
+                                      cultivoOtro: e.target.value === VALOR_OTRO_CULTIVO ? s.cultivoOtro : "",
+                                    })
+                                  }
+                                  className={CAMPO_CHICO}
+                                >
+                                  {cultivos.map((c) => (
+                                    <option key={c.id} value={c.id} disabled={!c.activo && s.cultivoId !== c.id}>
+                                      {c.nombre}
+                                      {!c.activo ? " (inactivo)" : ""}
+                                    </option>
+                                  ))}
+                                  <option value={VALOR_OTRO_CULTIVO}>Otro cultivo…</option>
+                                </select>
+                                {s.cultivoId === null ? (
+                                  <input
+                                    type="text"
+                                    maxLength={80}
+                                    value={s.cultivoOtro}
+                                    onChange={(e) => actualizarSectorSeleccionado({ cultivoOtro: e.target.value })}
+                                    placeholder="Nombre del cultivo"
+                                    aria-label="Nombre del cultivo"
+                                    className={CAMPO_CHICO}
+                                  />
+                                ) : null}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-1">
+                                <label htmlFor="editar-subtipo-croquis" className="text-sm font-semibold text-tinta">
+                                  ¿Qué tipo de flores o vegetación?
+                                </label>
+                                <select
+                                  id="editar-subtipo-croquis"
+                                  value={s.subtipoFlores ?? ""}
+                                  onChange={(e) =>
+                                    actualizarSectorSeleccionado({
+                                      subtipoFlores: (e.target.value || null) as SubtipoFlores | null,
+                                    })
+                                  }
+                                  className={CAMPO_CHICO}
+                                >
+                                  <option value="">No sé / sin especificar</option>
+                                  {SUBTIPOS_FLORES.map((sub) => (
+                                    <option key={sub} value={sub}>
+                                      {ETIQUETAS_SUBTIPO_FLORES[sub]}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            <div className="flex flex-col gap-1">
+                              <label htmlFor="editar-nombre-croquis" className="text-sm font-semibold text-tinta">
+                                Nombre (opcional)
+                              </label>
+                              <input
+                                id="editar-nombre-croquis"
+                                type="text"
+                                maxLength={60}
+                                value={s.nombrePersonalizado}
+                                onChange={(e) => actualizarSectorSeleccionado({ nombrePersonalizado: e.target.value })}
+                                placeholder={nombresCalculados[idx]}
+                                className={CAMPO_CHICO}
+                              />
+                            </div>
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Tarjeta>
           </div>
 
-          {/* Panel de edición del sector seleccionado (Esp. 02, 5.3) */}
-          {sectorEditado !== null && indiceSeleccionado !== null ? (
-            <div className="max-lg:order-7">
-              <Tarjeta
-                titulo={`Editando: ${nombresCalculados[indiceSeleccionado]}`}
-                extra={
-                  <Boton
-                    variante="peligro"
-                    onClick={() => borrarSector(indiceSeleccionado)}
-                    className="min-h-10 px-4 text-sm"
-                  >
-                    Borrar sector
-                  </Boton>
-                }
-              >
-                <p className="text-tinta-suave">
-                  Mide <strong className="text-tinta">{formatearSuperficieCompleta(superficiesSectores[indiceSeleccionado])}</strong>.
-                </p>
-
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <button
-                    type="button"
-                    aria-pressed={sectorEditado.tipo === "cultivo"}
-                    onClick={() =>
-                      actualizarSectorSeleccionado({
-                        tipo: "cultivo",
-                        subtipoFlores: null,
-                        cultivoId: primerCultivo?.id ?? null,
-                      })
-                    }
-                    className={`min-h-12 rounded-2xl border-2 px-3 text-[0.95rem] font-bold transition ${
-                      sectorEditado.tipo === "cultivo"
-                        ? "border-hoja bg-menta text-bosque"
-                        : "border-borde bg-white text-tinta-suave hover:border-hoja"
-                    }`}
-                  >
-                    🌱 Cultivo
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={sectorEditado.tipo === "sector_flores"}
-                    onClick={() =>
-                      actualizarSectorSeleccionado({
-                        tipo: "sector_flores",
-                        cultivoId: null,
-                        cultivoOtro: "",
-                      })
-                    }
-                    className={`min-h-12 rounded-2xl border-2 px-3 text-[0.95rem] font-bold transition ${
-                      sectorEditado.tipo === "sector_flores"
-                        ? "border-purple-700 bg-purple-50 text-bosque"
-                        : "border-borde bg-white text-tinta-suave hover:border-hoja"
-                    }`}
-                  >
-                    🌼 Flores
-                  </button>
-                </div>
-
-                {sectorEditado.tipo === "cultivo" ? (
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="editar-cultivo-croquis" className="text-[0.95rem] font-semibold text-tinta">
-                      ¿Qué cultivo es?
-                    </label>
-                    <select
-                      id="editar-cultivo-croquis"
-                      value={sectorEditado.cultivoId ?? VALOR_OTRO_CULTIVO}
-                      onChange={(e) =>
-                        actualizarSectorSeleccionado({
-                          cultivoId: e.target.value === VALOR_OTRO_CULTIVO ? null : e.target.value,
-                          cultivoOtro: e.target.value === VALOR_OTRO_CULTIVO ? sectorEditado.cultivoOtro : "",
-                        })
-                      }
-                      className={CAMPO}
-                    >
-                      {cultivos.map((c) => (
-                        <option key={c.id} value={c.id} disabled={!c.activo && sectorEditado.cultivoId !== c.id}>
-                          {c.nombre}
-                          {!c.activo ? " (inactivo)" : ""}
-                        </option>
-                      ))}
-                      <option value={VALOR_OTRO_CULTIVO}>Otro cultivo…</option>
-                    </select>
-                    {sectorEditado.cultivoId === null ? (
-                      <input
-                        type="text"
-                        maxLength={80}
-                        value={sectorEditado.cultivoOtro}
-                        onChange={(e) => actualizarSectorSeleccionado({ cultivoOtro: e.target.value })}
-                        placeholder="Nombre del cultivo"
-                        aria-label="Nombre del cultivo"
-                        className={CAMPO}
-                      />
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="editar-subtipo-croquis" className="text-[0.95rem] font-semibold text-tinta">
-                      ¿Qué tipo de flores o vegetación?
-                    </label>
-                    <select
-                      id="editar-subtipo-croquis"
-                      value={sectorEditado.subtipoFlores ?? ""}
-                      onChange={(e) =>
-                        actualizarSectorSeleccionado({
-                          subtipoFlores: (e.target.value || null) as SubtipoFlores | null,
-                        })
-                      }
-                      className={CAMPO}
-                    >
-                      <option value="">No sé / sin especificar</option>
-                      {SUBTIPOS_FLORES.map((sub) => (
-                        <option key={sub} value={sub}>
-                          {ETIQUETAS_SUBTIPO_FLORES[sub]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="editar-nombre-croquis" className="text-[0.95rem] font-semibold text-tinta">
-                    Nombre del sector (opcional)
-                  </label>
-                  <input
-                    id="editar-nombre-croquis"
-                    type="text"
-                    maxLength={60}
-                    value={sectorEditado.nombrePersonalizado}
-                    onChange={(e) => actualizarSectorSeleccionado({ nombrePersonalizado: e.target.value })}
-                    placeholder={nombresCalculados[indiceSeleccionado]}
-                    className={CAMPO}
-                  />
-                </div>
-              </Tarjeta>
-            </div>
-          ) : null}
-
           {/* En el celular, Guardar va al final */}
-          <div className="flex flex-col gap-1 lg:hidden max-lg:order-9">
+          <div className="flex flex-col gap-1 lg:hidden max-lg:order-11">
             {botonGuardar}
             <BotonEnlace href={`/fincas/${establecimientoId}`} variante="texto">
               Cancelar

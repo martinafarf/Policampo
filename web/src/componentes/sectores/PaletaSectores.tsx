@@ -68,6 +68,8 @@ interface Props {
   cultivos: readonly CultivoCatalogoItem[];
   seleccion: SeleccionPaleta;
   onCambiar: (nueva: SeleccionPaleta) => void;
+  /** Versión para un panel angosto al costado del plano: opciones más chicas y sin el párrafo de arriba (lo explica el ⓘ). */
+  compacta?: boolean;
 }
 
 const CAMPO =
@@ -79,9 +81,11 @@ function Ficha({
   color,
   onClick,
   icono,
+  compacta = false,
   children,
 }: {
   activa: boolean;
+  compacta?: boolean;
   color: { borde: string; relleno: string };
   onClick: () => void;
   icono: string;
@@ -93,7 +97,9 @@ function Ficha({
       onClick={onClick}
       aria-pressed={activa}
       style={activa ? { borderColor: color.borde, backgroundColor: color.relleno } : undefined}
-      className={`inline-flex min-h-12 items-center gap-2 rounded-full border-2 px-4 text-[0.95rem] font-bold transition ${
+      className={`inline-flex items-center rounded-full border-2 font-bold transition ${
+        compacta ? "min-h-9 gap-1.5 px-3 text-sm" : "min-h-12 gap-2 px-4 text-[0.95rem]"
+      } ${
         activa ? "text-tinta" : "border-borde bg-white text-tinta-suave hover:border-hoja hover:text-tinta"
       }`}
     >
@@ -104,7 +110,7 @@ function Ficha({
   );
 }
 
-export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
+export function PaletaSectores({ cultivos, seleccion, onCambiar, compacta = false }: Props) {
   const cultivosActivos = cultivos.filter((c) => c.activo);
   const esOtroCultivo = seleccion.tipo === "cultivo" && seleccion.cultivoId === null;
   const esFlores = seleccion.tipo === "sector_flores";
@@ -118,6 +124,7 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
 
   return (
     <Tarjeta
+      compacta={compacta}
       titulo="¿Qué vas a dibujar?"
       extra={
         <MasInfo sobre="cómo dibujar varios sectores">
@@ -126,11 +133,16 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
         </MasInfo>
       }
     >
-      <p className="text-tinta-suave">
-        Elegí uno y dibujalo en el plano. Después elegí otro: podés dibujar todos los que tengas.
-      </p>
+      {compacta ? null : (
+        <p className="text-tinta-suave">
+          Elegí uno y dibujalo en el plano. Después elegí otro: podés dibujar todos los que tengas.
+        </p>
+      )}
 
-      <p aria-live="polite" className="rounded-2xl bg-menta px-4 py-2.5 text-[0.95rem] font-semibold text-bosque">
+      <p
+        aria-live="polite"
+        className={`rounded-2xl bg-menta font-semibold text-bosque ${compacta ? "px-3 py-2 text-sm" : "px-4 py-2.5 text-[0.95rem]"}`}
+      >
         Estás dibujando:{" "}
         <span className="font-bold">
           <span aria-hidden="true">{iconoActual}</span> {nombreActual}
@@ -145,6 +157,7 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
             return (
               <Ficha
                 key={c.id}
+                compacta={compacta}
                 activa={activo}
                 color={colorDeSector("cultivo", c.clave)}
                 icono={ICONOS_CULTIVO[c.clave] ?? "🌱"}
@@ -163,6 +176,7 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
             );
           })}
           <Ficha
+            compacta={compacta}
             activa={esOtroCultivo}
             color={colorDeSector("cultivo")}
             icono="🌱"
@@ -211,6 +225,7 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
         <h3 className="text-[0.95rem] font-bold text-bosque">Flores y vegetación</h3>
         <div className="flex flex-wrap gap-2">
           <Ficha
+            compacta={compacta}
             activa={esFlores}
             color={colorDeSector("sector_flores")}
             icono="🌼"

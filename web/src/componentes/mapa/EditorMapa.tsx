@@ -22,7 +22,6 @@ import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { Aviso } from "@/componentes/ui/formulario";
 import { MasInfo } from "@/componentes/ui/mas-info";
 import { Tarjeta } from "@/componentes/ui/tarjeta";
-import { DEPARTAMENTOS_JUJUY, NOMBRES_DEPARTAMENTOS_JUJUY } from "@/datos/jujuy";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   LIMITES_ESTABLECIMIENTO,
@@ -190,20 +189,6 @@ export function EditorMapa({
   });
 
   const mapaCultivos = useMemo(() => new Map(cultivos.map((c) => [c.id, c])), [cultivos]);
-
-  const todasLasLocalidades = useMemo(
-    () =>
-      NOMBRES_DEPARTAMENTOS_JUJUY.flatMap((depto) =>
-        DEPARTAMENTOS_JUJUY[depto].localidades.map((loc) => ({
-          clave: `${depto}::${loc.nombre}`,
-          etiqueta: `${loc.nombre} (${depto})`,
-          lat: loc.lat,
-          lng: loc.lng,
-          zoom: loc.zoom,
-        })),
-      ),
-    [],
-  );
 
   const nombresCalculados = generarNombresSectores(
     sectores.map((s) => ({
@@ -467,13 +452,6 @@ export function EditorMapa({
     setIndiceSeleccionado(nuevoIdx);
   }
 
-  function volarALocalidad(clave: string) {
-    const loc = todasLasLocalidades.find((l) => l.clave === clave);
-    if (loc && mapaRef.current) {
-      mapaRef.current.setView([loc.lat, loc.lng], loc.zoom);
-    }
-  }
-
   // "Mi ubicación": pide permiso al navegador, centra el mapa y NO guarda las coordenadas (RS-05).
   function centrarEnMiUbicacion() {
     if (!("geolocation" in navigator)) {
@@ -592,11 +570,16 @@ export function EditorMapa({
     superficieTotalHa !== null && restanteHa !== null && restanteHa <= superficieTotalHa * 0.1;
   const colorBarra = cercaDeCero ? "bg-naranja" : "bg-hoja";
 
-  const marcadas = `${verticesEnCurso.length} ${verticesEnCurso.length === 1 ? "marcada" : "marcadas"}`;
+  // Qué hacer ahora, según cuántas esquinas lleva marcadas
+  const cantidadMarcadas = verticesEnCurso.length;
   const textoPaso =
-    modo === "dibujar_contorno"
-      ? `Paso 1 de 2: tocá cada esquina de tu finca (${marcadas}; mínimo 3).`
-      : `Paso 2 de 2: marcá «${paleta.etiqueta}» dentro del borde (${marcadas}; mínimo 3).`;
+    cantidadMarcadas === 0
+      ? modo === "dibujar_contorno"
+        ? "Paso 1 de 2: tocá el mapa para empezar a marcar el borde de tu finca."
+        : `Paso 2 de 2: tocá el mapa, dentro del borde, para empezar a marcar «${paleta.etiqueta}».`
+      : cantidadMarcadas < 3
+        ? `Seguí tocando las esquinas: llevás ${cantidadMarcadas}, hacen falta al menos 3.`
+        : "Tocá otra esquina, o «Terminar» si ya marcaste todas.";
 
   const botonGuardar = (
     <Boton onClick={manejarGuardado} disabled={guardando || !contorno} anchoCompleto className="min-h-11">
@@ -629,11 +612,11 @@ export function EditorMapa({
           <MasInfo ancho sobre="cómo marcar tu finca en el mapa">
             <span className="block font-bold text-bosque">Cómo marcar tu finca en el mapa</span>
             <span className="mt-1.5 block">
-              <strong>1.</strong> Buscá tu zona: elegí una localidad arriba del mapa o tocá «Mi ubicación».
+              <strong>1.</strong> El mapa abre en tu localidad. Si querés ir más rápido a tu finca, tocá «Mi ubicación» (arriba a la derecha del mapa).
             </span>
             <span className="mt-1 block">
               <strong>2.</strong> Tocá «Borde» y después cada esquina de tu finca en el mapa. Al terminar, tocá
-              «Terminar».
+              «Terminar». Si te equivocás, «Deshacer» saca la última esquina.
             </span>
             <span className="mt-1 block">
               <strong>3.</strong> Elegí a la izquierda qué vas a dibujar, tocá «Sector» y marcá sus esquinas
@@ -708,42 +691,6 @@ export function EditorMapa({
             </div>
           </div>
 
-          {/* Controles para terminar / deshacer / borrar el trazo activo. En el celular van acá (debajo del mapa); en la
-              computadora van en una barra finita debajo del mapa (ver más abajo), así no tapan la vista del mapa
-              y el panel de la izquierda alcanza para la paleta. */}
-          {modo !== "navegar" ? (
-            <div className="flex flex-col gap-1.5 rounded-2xl bg-menta px-3 py-2.5 max-lg:order-7 lg:hidden">
-              <p className="text-sm font-semibold text-bosque">{textoPaso}</p>
-              <Boton
-                variante="contorno"
-                disabled={verticesEnCurso.length < 3}
-                onClick={finalizarTrazoActual}
-                anchoCompleto
-                className="min-h-9 text-sm"
-              >
-                {modo === "dibujar_contorno" ? "Terminar borde" : "Terminar sector"}
-              </Boton>
-              <div className="grid grid-cols-2 gap-1">
-                <Boton
-                  variante="texto"
-                  disabled={verticesEnCurso.length === 0}
-                  onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
-                  className="min-h-9 px-2 text-sm"
-                >
-                  Deshacer
-                </Boton>
-                <Boton
-                  variante="texto"
-                  disabled={verticesEnCurso.length === 0}
-                  onClick={() => setVerticesEnCurso([])}
-                  className="min-h-9 px-2 text-sm"
-                >
-                  Borrar trazo
-                </Boton>
-              </div>
-            </div>
-          ) : null}
-
           {contorno ? (
             <div className="max-lg:order-3">
               <PaletaSectores compacta cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
@@ -753,34 +700,6 @@ export function EditorMapa({
 
         {/* Medio: el mapa, lo más grande que entre en la pantalla */}
         <div className="flex flex-col gap-2 max-lg:order-6 lg:min-h-0">
-          {/* Buscador por localidad y "Mi ubicación" */}
-          <div className="flex gap-2">
-            <label htmlFor="buscar-localidad-mapa" className="sr-only">
-              Ir a una localidad de Jujuy
-            </label>
-            <select
-              id="buscar-localidad-mapa"
-              defaultValue=""
-              onChange={(e) => volarALocalidad(e.target.value)}
-              className={`${CAMPO_CHICO} flex-1`}
-            >
-              <option value="">Ir a una localidad de Jujuy…</option>
-              {todasLasLocalidades.map((loc) => (
-                <option key={loc.clave} value={loc.clave}>
-                  {loc.etiqueta}
-                </option>
-              ))}
-            </select>
-            <Boton
-              variante="contorno"
-              onClick={centrarEnMiUbicacion}
-              disabled={buscandoUbicacion}
-              className="min-h-10 shrink-0 px-4 text-sm"
-            >
-              {buscandoUbicacion ? "Ubicando…" : "📍 Mi ubicación"}
-            </Boton>
-          </div>
-
           {/* Mapa (RD-03, CA-02-22). En la computadora ocupa todo el alto que queda. "isolate" encierra los z-index altos de
               Leaflet (400 a 1000) para que no tapen burbujas ni menús de la página, como el ⓘ del título. */}
           <div className="relative isolate h-[52vh] min-h-[320px] overflow-hidden rounded-3xl border-2 border-borde bg-papel lg:h-auto lg:min-h-0 lg:flex-1">
@@ -789,6 +708,15 @@ export function EditorMapa({
               className="absolute inset-0"
               aria-label="Mapa satelital interactivo del establecimiento"
             />
+
+            <button
+              type="button"
+              onClick={centrarEnMiUbicacion}
+              disabled={buscandoUbicacion}
+              className="absolute top-3 right-3 z-[1100] inline-flex min-h-10 items-center gap-1.5 rounded-full border-2 border-hoja bg-white px-4 text-sm font-bold text-hoja shadow-chica transition hover:bg-menta disabled:opacity-60"
+            >
+              {buscandoUbicacion ? "Ubicando…" : "📍 Mi ubicación"}
+            </button>
 
             {!mapaListo ? (
               <div className="absolute inset-0 z-[1100] grid place-items-center bg-papel/90">
@@ -824,33 +752,35 @@ export function EditorMapa({
             ) : null}
           </div>
 
+          {/* Qué hacer ahora y las herramientas del trazo, centradas debajo del mapa (no tapan la vista) */}
           {modo !== "navegar" ? (
-            <div className="hidden items-center gap-2 rounded-2xl bg-menta px-3 py-2 lg:flex">
-              <p className="min-w-0 flex-1 text-sm font-semibold text-bosque">{textoPaso}</p>
-              <Boton
-                variante="contorno"
-                disabled={verticesEnCurso.length < 3}
-                onClick={finalizarTrazoActual}
-                className="min-h-9 shrink-0 px-4 text-sm"
-              >
-                Terminar
-              </Boton>
-              <Boton
-                variante="texto"
-                disabled={verticesEnCurso.length === 0}
-                onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
-                className="min-h-9 shrink-0 px-2 text-sm"
-              >
-                Deshacer
-              </Boton>
-              <Boton
-                variante="texto"
-                disabled={verticesEnCurso.length === 0}
-                onClick={() => setVerticesEnCurso([])}
-                className="min-h-9 shrink-0 px-2 text-sm"
-              >
-                Borrar trazo
-              </Boton>
+            <div className="flex flex-col items-center gap-2 rounded-2xl bg-menta px-4 py-3 text-center">
+              <p className="text-[0.95rem] font-semibold text-bosque">{textoPaso}</p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Boton
+                  variante="contorno"
+                  disabled={verticesEnCurso.length === 0}
+                  onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
+                  className="min-h-11 bg-white px-5"
+                >
+                  ↶ Deshacer
+                </Boton>
+                <Boton
+                  disabled={verticesEnCurso.length < 3}
+                  onClick={finalizarTrazoActual}
+                  className="min-h-11 px-6"
+                >
+                  ✓ Terminar
+                </Boton>
+                <Boton
+                  variante="contorno"
+                  disabled={verticesEnCurso.length === 0}
+                  onClick={() => setVerticesEnCurso([])}
+                  className="min-h-11 bg-white px-5"
+                >
+                  🗑 Borrar trazo
+                </Boton>
+              </div>
             </div>
           ) : null}
 

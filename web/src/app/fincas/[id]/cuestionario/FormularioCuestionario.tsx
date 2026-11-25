@@ -10,8 +10,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { BannerBorrador } from "@/componentes/borrador/BannerBorrador";
 import { useBorradorFinca } from "@/componentes/borrador/useBorradorFinca";
-import { DibujoSectores } from "@/componentes/sectores/DibujoSectores";
-import type { SectorParaDibujar } from "@/componentes/sectores/disposicion";
 import { IconoAlerta, IconoChevron, IconoMas } from "@/componentes/marca/Iconos";
 import { Boton, clasesBoton } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
@@ -263,19 +261,6 @@ export function FormularioCuestionario({
   const porcentajeUsado =
     superficieTotalHa > 0 ? Math.min(100, (superficieDistribuida / superficieTotalHa) * 100) : 0;
   const colorBarra = excedida ? "bg-error" : cercaDeCero ? "bg-naranja" : "bg-hoja";
-
-  // Lo que se va cargando, para el dibujo aproximado que aparece debajo de "Tu superficie".
-  const sectoresParaDibujar: SectorParaDibujar[] = filas.map((f, indice) => ({
-    id: f.claveLocal,
-    nombre: f.nombrePersonalizado.trim() || nombresSugeridos[indice],
-    tipo: f.tipo,
-    claveCultivo:
-      f.tipo === "cultivo" && f.cultivoSeleccion && f.cultivoSeleccion !== VALOR_OTRO_CULTIVO
-        ? mapaCultivos.get(f.cultivoSeleccion)?.clave
-        : undefined,
-    superficieHa: parsearNumeroDecimal(f.superficieTexto) ?? 0,
-    ubicacion: f.ubicacionRelativa,
-  }));
 
   const botonGuardar = (
     <button type="submit" disabled={guardando || excedida} className={clasesBoton("principal", true)}>
@@ -633,10 +618,9 @@ export function FormularioCuestionario({
         </div>
 
         {/* Lado derecho (arriba en el celular): cuánta superficie llevás cargada. Se queda a la vista al bajar. */}
-        <div className="flex flex-col gap-4 max-lg:order-1 lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
         <aside
           aria-live="polite"
-          className="flex flex-col gap-4 rounded-[28px] border-2 border-menta-fuerte bg-menta p-5"
+          className="flex flex-col gap-4 rounded-[28px] border-2 border-menta-fuerte bg-menta p-5 max-lg:order-1 lg:sticky lg:top-28"
         >
           <h2 className="text-xl font-bold text-bosque">Tu superficie</h2>
           <p className="flex flex-wrap items-baseline gap-x-2">
@@ -660,9 +644,6 @@ export function FormularioCuestionario({
           )}
           <div className="max-lg:hidden">{botonGuardar}</div>
         </aside>
-
-        <DibujoSectores superficieTotalHa={superficieTotalHa} sectores={sectoresParaDibujar} />
-        </div>
       </form>
     </div>
   );

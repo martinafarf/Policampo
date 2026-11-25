@@ -566,6 +566,12 @@ export function EditorMapa({
     superficieTotalHa !== null && restanteHa !== null && restanteHa <= superficieTotalHa * 0.1;
   const colorBarra = cercaDeCero ? "bg-naranja" : "bg-hoja";
 
+  const marcadas = `${verticesEnCurso.length} ${verticesEnCurso.length === 1 ? "marcada" : "marcadas"}`;
+  const textoPaso =
+    modo === "dibujar_contorno"
+      ? `Paso 1 de 2: tocá cada esquina de tu finca (${marcadas}; mínimo 3).`
+      : `Paso 2 de 2: marcá «${paleta.etiqueta}» dentro del borde (${marcadas}; mínimo 3).`;
+
   const botonGuardar = (
     <Boton onClick={manejarGuardado} disabled={guardando || !contorno} anchoCompleto className="min-h-11">
       {guardando ? "Guardando…" : "Guardar mi terreno"}
@@ -676,15 +682,12 @@ export function EditorMapa({
             </div>
           </div>
 
-          {/* Controles para terminar / deshacer / borrar el trazo activo. En el celular van debajo del mapa; en la
-              computadora flotan arriba del mapa (ver más abajo), así el panel de la izquierda alcanza para la paleta. */}
+          {/* Controles para terminar / deshacer / borrar el trazo activo. En el celular van acá (debajo del mapa); en la
+              computadora van en una barra finita debajo del mapa (ver más abajo), así no tapan la vista del mapa
+              y el panel de la izquierda alcanza para la paleta. */}
           {modo !== "navegar" ? (
             <div className="flex flex-col gap-1.5 rounded-2xl bg-menta px-3 py-2.5 max-lg:order-7 lg:hidden">
-              <p className="text-sm font-semibold text-bosque">
-                {modo === "dibujar_contorno"
-                  ? `Paso 1 de 2: tocá el mapa en cada esquina de tu finca (${verticesEnCurso.length} marcadas; mínimo 3).`
-                  : `Paso 2 de 2: tocá dentro del borde para marcar «${paleta.etiqueta}» (${verticesEnCurso.length} marcadas; mínimo 3).`}
-              </p>
+              <p className="text-sm font-semibold text-bosque">{textoPaso}</p>
               <Boton
                 variante="contorno"
                 disabled={verticesEnCurso.length < 3}
@@ -760,40 +763,6 @@ export function EditorMapa({
               aria-label="Mapa satelital interactivo del establecimiento"
             />
 
-            {modo !== "navegar" ? (
-              <div className="absolute top-3 right-3 left-14 z-[1100] hidden flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border-[1.5px] border-menta-fuerte bg-white/95 px-3 py-2 shadow-suave lg:flex">
-                <p className="basis-full text-sm font-semibold text-bosque">
-                  {modo === "dibujar_contorno"
-                    ? `Paso 1 de 2: tocá el mapa en cada esquina de tu finca (${verticesEnCurso.length} marcadas; mínimo 3).`
-                    : `Paso 2 de 2: tocá dentro del borde para marcar «${paleta.etiqueta}» (${verticesEnCurso.length} marcadas; mínimo 3).`}
-                </p>
-                <Boton
-                  variante="contorno"
-                  disabled={verticesEnCurso.length < 3}
-                  onClick={finalizarTrazoActual}
-                  className="min-h-9 shrink-0 px-4 text-sm"
-                >
-                  {modo === "dibujar_contorno" ? "Terminar borde" : "Terminar sector"}
-                </Boton>
-                <Boton
-                  variante="texto"
-                  disabled={verticesEnCurso.length === 0}
-                  onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
-                  className="min-h-9 shrink-0 px-2 text-sm"
-                >
-                  Deshacer
-                </Boton>
-                <Boton
-                  variante="texto"
-                  disabled={verticesEnCurso.length === 0}
-                  onClick={() => setVerticesEnCurso([])}
-                  className="min-h-9 shrink-0 px-2 text-sm"
-                >
-                  Borrar trazo
-                </Boton>
-              </div>
-            ) : null}
-
             {/* Avisos que flotan abajo del mapa: no corren nada al aparecer y no tapan los toques */}
             {avisoMapa || imagenesFallaron ? (
               <div className="pointer-events-none absolute inset-x-3 bottom-8 z-[1100] flex flex-col gap-2">
@@ -819,6 +788,36 @@ export function EditorMapa({
               </div>
             ) : null}
           </div>
+
+          {modo !== "navegar" ? (
+            <div className="hidden items-center gap-2 rounded-2xl bg-menta px-3 py-2 lg:flex">
+              <p className="min-w-0 flex-1 text-sm font-semibold text-bosque">{textoPaso}</p>
+              <Boton
+                variante="contorno"
+                disabled={verticesEnCurso.length < 3}
+                onClick={finalizarTrazoActual}
+                className="min-h-9 shrink-0 px-4 text-sm"
+              >
+                Terminar
+              </Boton>
+              <Boton
+                variante="texto"
+                disabled={verticesEnCurso.length === 0}
+                onClick={() => setVerticesEnCurso((prev) => prev.slice(0, -1))}
+                className="min-h-9 shrink-0 px-2 text-sm"
+              >
+                Deshacer
+              </Boton>
+              <Boton
+                variante="texto"
+                disabled={verticesEnCurso.length === 0}
+                onClick={() => setVerticesEnCurso([])}
+                className="min-h-9 shrink-0 px-2 text-sm"
+              >
+                Borrar trazo
+              </Boton>
+            </div>
+          ) : null}
 
           <div className="empty:hidden">
             <BannerBorrador

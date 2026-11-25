@@ -18,7 +18,9 @@ import { useEffect, useRef, type ReactNode } from "react";
 const RUTAS_CUENTAS = ["/ingresar", "/registro", "/recuperar", "/verificar-email"];
 
 function tipoDePagina(ruta: string): "landing" | "cuentas" | "app" {
-  if (ruta === "/") return "landing";
+  // En Vercel, al armar en el servidor la parte dinámica de la landing (lo que depende de la sesión),
+  // la ruta puede llegar como "/index" en vez de "/". Las dos son la landing.
+  if (ruta === "/" || ruta === "/index") return "landing";
   if (RUTAS_CUENTAS.some((r) => ruta === r || ruta.startsWith(`${r}/`))) return "cuentas";
   return "app";
 }
@@ -31,6 +33,11 @@ export function EncabezadoSitio({ children }: { children: ReactNode }) {
   useEffect(() => {
     const encabezado = ref.current;
     if (!encabezado) return;
+    // El navegador vuelve a poner el tipo de página según la ruta real de la barra de direcciones.
+    // Hace falta porque, si el HTML del servidor llegó con otro valor, React no corrige los atributos
+    // al tomar el control de la página (solo avisa en desarrollo), y la barra quedaba con el estilo
+    // equivocado: sin las secciones y sin el color de la landing.
+    encabezado.dataset.pagina = tipo;
     const actualizar = () => {
       // En la app no hay foto de portada debajo: la barra va siempre verde.
       encabezado.toggleAttribute("data-desplazado", tipo === "app" || window.scrollY > 24);

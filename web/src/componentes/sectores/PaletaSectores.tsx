@@ -1,7 +1,14 @@
 "use client";
 
 // Paleta de sectores compartida por los métodos croquis (T4) y mapa (T5) (Esp. 02, 5.3 y 11).
-// Ofrece una ficha por cada cultivo activo, "Otro cultivo" y "🌼 Sector de flores".
+// Es como una caja de lápices de colores: se elige con qué dibujar y se puede cambiar cuantas veces haga falta.
+//
+// Para que no parezca que hay que elegir UNA sola cosa (cultivo o flores), las opciones van en dos grupos
+// con título ("Tus cultivos" y "Flores y vegetación"), una frase dice que se puede dibujar de todo, y arriba
+// siempre se lee con qué se está dibujando ahora ("Estás dibujando: 🫐 Arándano"). Cada opción lleva el mismo
+// color que después tiene el sector en el plano.
+import { IconoOk } from "@/componentes/marca/Iconos";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   SUBTIPOS_FLORES,
@@ -62,92 +69,113 @@ interface Props {
   onCambiar: (nueva: SeleccionPaleta) => void;
 }
 
+const CAMPO =
+  "min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45";
+
+/** Una opción de la paleta: con el color del sector, y una tilde cuando es la elegida (no depende solo del color). */
+function Ficha({
+  activa,
+  color,
+  onClick,
+  icono,
+  children,
+}: {
+  activa: boolean;
+  color: { borde: string; relleno: string };
+  onClick: () => void;
+  icono: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={activa}
+      style={activa ? { borderColor: color.borde, backgroundColor: color.relleno } : undefined}
+      className={`inline-flex min-h-12 items-center gap-2 rounded-full border-2 px-4 text-[0.95rem] font-bold transition ${
+        activa ? "text-tinta" : "border-borde bg-white text-tinta-suave hover:border-hoja hover:text-tinta"
+      }`}
+    >
+      <span aria-hidden="true">{icono}</span>
+      {children}
+      {activa && <IconoOk className="h-5 w-5 shrink-0" />}
+    </button>
+  );
+}
+
 export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
   const cultivosActivos = cultivos.filter((c) => c.activo);
   const esOtroCultivo = seleccion.tipo === "cultivo" && seleccion.cultivoId === null;
+  const esFlores = seleccion.tipo === "sector_flores";
+
+  // Con qué se está dibujando ahora (para el cartel de arriba).
+  const cultivoElegido = cultivosActivos.find((c) => c.id === seleccion.cultivoId);
+  const iconoActual = esFlores ? "🌼" : cultivoElegido ? (ICONOS_CULTIVO[cultivoElegido.clave] ?? "🌱") : "🌱";
+  const nombreActual = esFlores
+    ? "Sector de flores"
+    : (cultivoElegido?.nombre ?? (seleccion.cultivoOtro.trim() || "Otro cultivo"));
 
   return (
-    <section
-      aria-label="Paleta de sectores"
-      className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-3.5 shadow-xs"
-    >
-      <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-        Elegí qué vas a dibujar
+    <Tarjeta titulo="¿Qué vas a dibujar?">
+      <p className="text-tinta-suave">
+        Elegí uno y dibujalo en el plano. Después elegí otro: podés dibujar todos los que tengas.
       </p>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() =>
-            onCambiar({
-              tipo: "sector_flores",
-              cultivoId: null,
-              cultivoOtro: "",
-              subtipoFlores: seleccion.subtipoFlores,
-              etiqueta: "Sector de flores",
-            })
-          }
-          className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold ${
-            seleccion.tipo === "sector_flores"
-              ? "border-purple-700 bg-purple-100 text-purple-950"
-              : "border-stone-300 bg-white text-stone-700 hover:bg-stone-50"
-          }`}
-        >
-          🌼 Sector de flores
-        </button>
+      <p aria-live="polite" className="rounded-2xl bg-menta px-4 py-2.5 text-[0.95rem] font-semibold text-bosque">
+        Estás dibujando:{" "}
+        <span className="font-bold">
+          <span aria-hidden="true">{iconoActual}</span> {nombreActual}
+        </span>
+      </p>
 
-        {cultivosActivos.map((c) => {
-          const activo = seleccion.tipo === "cultivo" && seleccion.cultivoId === c.id;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() =>
-                onCambiar({
-                  tipo: "cultivo",
-                  cultivoId: c.id,
-                  cultivoOtro: "",
-                  subtipoFlores: null,
-                  etiqueta: c.nombre,
-                })
-              }
-              className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
-                activo
-                  ? "border-emerald-700 bg-emerald-100 font-semibold text-emerald-950"
-                  : "border-stone-300 bg-white text-stone-700 hover:bg-stone-50"
-              }`}
-            >
-              <span aria-hidden="true">{ICONOS_CULTIVO[c.clave] ?? "🌱"}</span>
-              {c.nombre}
-            </button>
-          );
-        })}
-
-        <button
-          type="button"
-          onClick={() =>
-            onCambiar({
-              tipo: "cultivo",
-              cultivoId: null,
-              cultivoOtro: seleccion.cultivoOtro || "",
-              subtipoFlores: null,
-              etiqueta: seleccion.cultivoOtro || "Otro cultivo",
-            })
-          }
-          className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
-            esOtroCultivo
-              ? "border-emerald-700 bg-emerald-100 font-semibold text-emerald-950"
-              : "border-stone-300 bg-white text-stone-700 hover:bg-stone-50"
-          }`}
-        >
-          🌱 Otro cultivo
-        </button>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-[0.95rem] font-bold text-bosque">Tus cultivos</h3>
+        <div className="flex flex-wrap gap-2">
+          {cultivosActivos.map((c) => {
+            const activo = seleccion.tipo === "cultivo" && seleccion.cultivoId === c.id;
+            return (
+              <Ficha
+                key={c.id}
+                activa={activo}
+                color={colorDeSector("cultivo", c.clave)}
+                icono={ICONOS_CULTIVO[c.clave] ?? "🌱"}
+                onClick={() =>
+                  onCambiar({
+                    tipo: "cultivo",
+                    cultivoId: c.id,
+                    cultivoOtro: "",
+                    subtipoFlores: null,
+                    etiqueta: c.nombre,
+                  })
+                }
+              >
+                {c.nombre}
+              </Ficha>
+            );
+          })}
+          <Ficha
+            activa={esOtroCultivo}
+            color={colorDeSector("cultivo")}
+            icono="🌱"
+            onClick={() =>
+              onCambiar({
+                tipo: "cultivo",
+                cultivoId: null,
+                cultivoOtro: seleccion.cultivoOtro || "",
+                subtipoFlores: null,
+                etiqueta: seleccion.cultivoOtro || "Otro cultivo",
+              })
+            }
+          >
+            Otro cultivo
+          </Ficha>
+        </div>
       </div>
 
       {esOtroCultivo ? (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="paleta-cultivo-otro" className="text-xs font-semibold text-stone-700">
-            Nombre del cultivo («Otro»)
+          <label htmlFor="paleta-cultivo-otro" className="text-[0.95rem] font-semibold text-tinta">
+            ¿Qué cultivo es?
           </label>
           <input
             id="paleta-cultivo-otro"
@@ -162,19 +190,40 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
               })
             }
             placeholder="Ej.: Quinua, papa andina…"
-            className="min-h-10 w-full rounded-lg border border-stone-300 px-3 py-1.5 text-sm text-stone-900"
+            className={CAMPO}
           />
-          <p className="text-xs text-amber-800">
-            Se guarda el sector, pero no se podrán recomendar plantas de servicio para un cultivo
-            fuera del catálogo.
+          <p className="text-sm text-tinta-suave">
+            Se guarda igual, pero para un cultivo que no está en la lista no podemos recomendar plantas.
           </p>
         </div>
       ) : null}
 
-      {seleccion.tipo === "sector_flores" ? (
+      <div className="flex flex-col gap-2">
+        <h3 className="text-[0.95rem] font-bold text-bosque">Flores y vegetación</h3>
+        <div className="flex flex-wrap gap-2">
+          <Ficha
+            activa={esFlores}
+            color={colorDeSector("sector_flores")}
+            icono="🌼"
+            onClick={() =>
+              onCambiar({
+                tipo: "sector_flores",
+                cultivoId: null,
+                cultivoOtro: "",
+                subtipoFlores: seleccion.subtipoFlores,
+                etiqueta: "Sector de flores",
+              })
+            }
+          >
+            Sector de flores
+          </Ficha>
+        </div>
+      </div>
+
+      {esFlores ? (
         <div className="flex flex-col gap-1.5 sm:max-w-sm">
-          <label htmlFor="paleta-subtipo-flores" className="text-xs font-semibold text-stone-700">
-            Subtipo de vegetación (opcional)
+          <label htmlFor="paleta-subtipo-flores" className="text-[0.95rem] font-semibold text-tinta">
+            ¿Qué tipo de flores o vegetación?
           </label>
           <select
             id="paleta-subtipo-flores"
@@ -185,9 +234,9 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
                 subtipoFlores: (e.target.value || null) as SubtipoFlores | null,
               })
             }
-            className="min-h-10 w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900"
+            className={CAMPO}
           >
-            <option value="">Sin especificar</option>
+            <option value="">No sé / sin especificar</option>
             {SUBTIPOS_FLORES.map((subtipo) => (
               <option key={subtipo} value={subtipo}>
                 {ETIQUETAS_SUBTIPO_FLORES[subtipo]}
@@ -196,6 +245,6 @@ export function PaletaSectores({ cultivos, seleccion, onCambiar }: Props) {
           </select>
         </div>
       ) : null}
-    </section>
+    </Tarjeta>
   );
 }

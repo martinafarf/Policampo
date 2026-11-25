@@ -97,7 +97,7 @@ export default function PaginaPerfil({ searchParams }: PageProps<"/perfil">) {
           className="inline-flex items-center gap-1.5 self-start text-sm font-semibold text-hoja hover:text-hoja-oscura hover:underline"
         >
           <IconoVolver />
-          Volver a Inicio
+          Volver a Herramientas
         </Link>
         <h1 className="titulo-onda mt-1 text-3xl font-bold text-bosque sm:text-4xl">Mi perfil</h1>
       </div>

@@ -1,5 +1,7 @@
-// Menú del encabezado: con sesión muestra Inicio, Mi perfil, Usuarios (solo administradores) y Cerrar
-// sesión; sin sesión, Ingresar y Registrarse.
+// Menú del encabezado: con sesión muestra "Inicio" (la landing), "Herramientas" (el panel con fincas, guía,
+// diagnóstico, etc.) y un círculo de perfil (MenuPerfil) que abre una
+// tarjeta con el nombre, Mi perfil, Usuarios (solo administradores) y Cerrar sesión; sin sesión,
+// Ingresar y Registrarse.
 //
 // Dos variantes:
 // - "pildora" (por defecto): en la barra de arriba, sin fondo; sobre la foto de la landing los enlaces
@@ -8,6 +10,8 @@
 import Link from "next/link";
 import { obtenerUsuario } from "@/lib/sesion";
 import { BotonCerrarSesion } from "./boton-cerrar-sesion";
+import { EnlacesPrincipales } from "./enlaces-principales";
+import { MenuPerfil } from "./menu-perfil";
 
 const PILDORA = "flex flex-wrap items-center justify-end gap-1 text-[0.95rem] sm:gap-2";
 const LINK =
@@ -36,8 +40,11 @@ export async function MenuUsuario({ variante = "pildora" }: { variante?: "pildor
     }
     return (
       <nav className={LISTA} aria-label="Cuenta">
-        <Link href="/inicio" className={LINK_LISTA}>
+        <Link href="/" className={LINK_LISTA}>
           Inicio
+        </Link>
+        <Link href="/inicio" className={LINK_LISTA}>
+          Herramientas
         </Link>
         <Link href="/perfil" className={LINK_LISTA}>
           Mi perfil
@@ -71,18 +78,12 @@ export async function MenuUsuario({ variante = "pildora" }: { variante?: "pildor
   }
   return (
     <nav className={PILDORA} aria-label="Principal">
-      <Link href="/inicio" className={LINK}>
-        Inicio
-      </Link>
-      <Link href="/perfil" className={LINK}>
-        Mi perfil
-      </Link>
-      {usuario.rol === "administrador" && (
-        <Link href="/admin/usuarios" className={LINK}>
-          Usuarios
-        </Link>
-      )}
-      <BotonCerrarSesion enEncabezado />
+      <EnlacesPrincipales />
+      <MenuPerfil
+        nombre={usuario.nombreParaMostrar}
+        usuario={usuario.usuario}
+        esAdministrador={usuario.rol === "administrador"}
+      />
     </nav>
   );
 }

@@ -63,7 +63,7 @@ const BOTON_PRINCIPAL = `${BOTON_BASE} border-transparent bg-hoja text-white hov
 const BOTON_CONTORNO = `${BOTON_BASE} border-hoja text-hoja hover:bg-white`;
 
 /**
- * Con sesión: "Ir a Inicio". Sin sesión: Crear cuenta e Iniciar sesión (especificación 01, 5.1).
+ * Con sesión: "Ir a Herramientas". Sin sesión: Crear cuenta e Iniciar sesión (especificación 01, 5.1).
  * `sobreFoto`: en la portada los botones van sobre la foto; en el cierre, sobre fondo claro.
  */
 async function BotonesDeAcceso({ sobreFoto }: { sobreFoto: boolean }) {
@@ -72,7 +72,7 @@ async function BotonesDeAcceso({ sobreFoto }: { sobreFoto: boolean }) {
   if (usuario) {
     return (
       <Link href="/inicio" className={principal}>
-        Ir a Inicio <IconoFlecha />
+        Ir a Herramientas <IconoFlecha />
       </Link>
     );
   }

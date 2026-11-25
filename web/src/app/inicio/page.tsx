@@ -1,4 +1,4 @@
-// Inicio del usuario (especificación 01, 5.1): saludo, próximas tareas y accesos a los módulos.
+// Herramientas del usuario, en la ruta /inicio («Inicio» en pantalla es la landing) (especificación 01, 5.1): saludo, próximas tareas y accesos a los módulos.
 // Reutiliza el fondo con cielo menta y PaisajeIlustrado de la portada + AbejaCursor siempre visible.
 import Link from "next/link";
 import { Suspense, type ComponentType } from "react";
@@ -20,7 +20,7 @@ import { formatearFechaCortaEsAr } from "@/dominio/calendario";
 import { obtenerResumenTareasParaInicio } from "@/dominio/calendario/servicio";
 import { requerirUsuario } from "@/lib/sesion";
 
-export const metadata = { title: "Inicio · PoliCampo" };
+export const metadata = { title: "Herramientas · PoliCampo" };
 
 const MODULOS: readonly {
   titulo: string;

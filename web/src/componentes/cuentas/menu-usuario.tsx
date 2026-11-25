@@ -1,5 +1,5 @@
 // Menú del encabezado: con sesión muestra "Inicio" (la landing), "Herramientas" (el panel con fincas, guía,
-// diagnóstico, etc.) y un círculo de perfil (MenuPerfil) que abre una
+// diagnóstico, etc.), "Tareas" (con un número si hay atrasadas o en curso) y un círculo de perfil (MenuPerfil) que abre una
 // tarjeta con el nombre, Mi perfil, Usuarios (solo administradores) y Cerrar sesión; sin sesión,
 // Ingresar y Registrarse.
 //
@@ -8,9 +8,10 @@
 //   pasan a blanco (clases texto-encabezado y hover-encabezado, reglas en globals.css).
 // - "lista": botones a lo ancho, para el menú desplegable de la landing en el celular.
 import Link from "next/link";
+import { contarTareasParaHacerAhora } from "@/dominio/calendario/servicio";
 import { obtenerUsuario } from "@/lib/sesion";
 import { BotonCerrarSesion } from "./boton-cerrar-sesion";
-import { EnlacesPrincipales } from "./enlaces-principales";
+import { ContadorTareas, EnlacesPrincipales } from "./enlaces-principales";
 import { MenuPerfil } from "./menu-perfil";
 
 const PILDORA = "flex flex-wrap items-center justify-end gap-1 text-[0.95rem] sm:gap-2";
@@ -24,6 +25,8 @@ const BOTON_LISTA =
 
 export async function MenuUsuario({ variante = "pildora" }: { variante?: "pildora" | "lista" }) {
   const usuario = await obtenerUsuario();
+  // Tareas atrasadas o en curso: se marcan con un número junto a "Tareas".
+  const tareasAhora = usuario ? await contarTareasParaHacerAhora(usuario.id) : 0;
 
   if (variante === "lista") {
     if (!usuario) {
@@ -45,6 +48,10 @@ export async function MenuUsuario({ variante = "pildora" }: { variante?: "pildor
         </Link>
         <Link href="/inicio" className={LINK_LISTA}>
           Herramientas
+        </Link>
+        <Link href="/tareas" className={`${LINK_LISTA} justify-between`}>
+          Tareas
+          <ContadorTareas cantidad={tareasAhora} />
         </Link>
         <Link href="/perfil" className={LINK_LISTA}>
           Mi perfil
@@ -78,7 +85,7 @@ export async function MenuUsuario({ variante = "pildora" }: { variante?: "pildor
   }
   return (
     <nav className={PILDORA} aria-label="Principal">
-      <EnlacesPrincipales />
+      <EnlacesPrincipales tareasAhora={tareasAhora} />
       <MenuPerfil
         nombre={usuario.nombreParaMostrar}
         usuario={usuario.usuario}

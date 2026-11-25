@@ -1,8 +1,10 @@
 "use client";
-// "Inicio" y "Herramientas" del encabezado, con un subrayado que se desliza hasta el que corresponde a la
+// "Inicio", "Herramientas" y "Tareas" del encabezado, con un subrayado que se desliza hasta el que corresponde a la
 // página donde está la persona:
 // - Inicio: la landing ("/").
-// - Herramientas: el panel y todas sus pantallas (fincas, guía de especies, tareas, informes...).
+// - Herramientas: el panel y todas sus pantallas (fincas, guía de especies, informes...).
+// - Tareas: la lista de tareas (/tareas). Lleva un número naranja si hay tareas atrasadas o en curso,
+//   para que se note sin tener que entrar.
 // - Ninguno en "Mi perfil", que se abre desde el círculo de perfil.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,13 +13,25 @@ import { useLayoutEffect, useRef } from "react";
 const LINK =
   "texto-encabezado hover-encabezado inline-flex min-h-10 items-center rounded-full px-2.5 font-semibold whitespace-nowrap text-bosque hover:bg-menta sm:px-3";
 
-function seccionActual(ruta: string): "inicio" | "herramientas" | null {
+function seccionActual(ruta: string): "inicio" | "herramientas" | "tareas" | null {
   if (ruta === "/") return "inicio";
+  if (ruta === "/tareas" || ruta.startsWith("/tareas/")) return "tareas";
   if (ruta === "/perfil" || ruta.startsWith("/perfil/")) return null;
   return "herramientas";
 }
 
-export function EnlacesPrincipales() {
+/** Circulito naranja con la cantidad de tareas para hacer ya. No se muestra si no hay ninguna. */
+export function ContadorTareas({ cantidad }: { cantidad: number }) {
+  if (cantidad <= 0) return null;
+  return (
+    <span className="ml-1.5 grid h-6 min-w-6 place-items-center rounded-full bg-naranja px-1.5 text-xs font-bold text-bosque">
+      {cantidad > 99 ? "99+" : cantidad}
+      <span className="sr-only">{cantidad === 1 ? " tarea para hacer ahora" : " tareas para hacer ahora"}</span>
+    </span>
+  );
+}
+
+export function EnlacesPrincipales({ tareasAhora = 0 }: { tareasAhora?: number }) {
   const ruta = usePathname();
   const actual = seccionActual(ruta);
   const contenedor = useRef<HTMLDivElement>(null);
@@ -33,10 +47,11 @@ export function EnlacesPrincipales() {
         el.style.opacity = "0";
         return;
       }
-      // La raya mide lo mismo que el texto (sin el relleno de la píldora del enlace).
-      const relleno = parseFloat(getComputedStyle(enlace).paddingLeft) || 0;
-      el.style.width = `${enlace.offsetWidth - relleno * 2}px`;
-      el.style.transform = `translateX(${enlace.offsetLeft + relleno}px)`;
+      // La raya mide lo mismo que la palabra (sin el relleno de la píldora ni el número de Tareas).
+      // Los enlaces no tienen position, así que offsetLeft de la palabra se mide desde este contenedor.
+      const palabra = enlace.querySelector<HTMLElement>("[data-palabra]") ?? enlace;
+      el.style.width = `${palabra.offsetWidth}px`;
+      el.style.transform = `translateX(${palabra.offsetLeft}px)`;
       el.style.opacity = "1";
     };
     colocar();
@@ -49,7 +64,7 @@ export function EnlacesPrincipales() {
   return (
     <div ref={contenedor} className="relative flex items-center gap-1 sm:gap-2">
       <Link href="/" data-principal="inicio" aria-current={actual === "inicio" ? "page" : undefined} className={LINK}>
-        Inicio
+        <span data-palabra>Inicio</span>
       </Link>
       <Link
         href="/inicio"
@@ -57,7 +72,16 @@ export function EnlacesPrincipales() {
         aria-current={actual === "herramientas" ? "page" : undefined}
         className={LINK}
       >
-        Herramientas
+        <span data-palabra>Herramientas</span>
+      </Link>
+      <Link
+        href="/tareas"
+        data-principal="tareas"
+        aria-current={actual === "tareas" ? "page" : undefined}
+        className={LINK}
+      >
+        <span data-palabra>Tareas</span>
+        <ContadorTareas cantidad={tareasAhora} />
       </Link>
       <span
         ref={raya}

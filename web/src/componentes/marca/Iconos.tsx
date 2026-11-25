@@ -196,3 +196,22 @@ export function IconoMapa({ className = "h-6 w-6" }: Props) {
     </svg>
   );
 }
+
+/** Papelera: borrar. */
+export function IconoPapelera({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5" />
+    </svg>
+  );
+}
+
+/** Mira: llevar el mapa hasta algo (un sector). */
+export function IconoUbicar({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+    </svg>
+  );
+}

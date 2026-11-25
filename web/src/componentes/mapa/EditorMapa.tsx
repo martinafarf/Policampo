@@ -252,6 +252,10 @@ export function EditorMapa({
         {
           attribution: "Imágenes &copy; Esri — World Imagery",
           maxZoom: 19,
+          // Esri no tiene fotos con más detalle que el nivel 17 en muchas zonas rurales de Jujuy: ahí mostraba
+          // cuadros grises ("Map data not yet available"). Con esto, más allá del 17 se agrandan las del 17 (más
+          // borrosas, pero se ve algo) en vez de quedar vacío.
+          maxNativeZoom: 17,
         },
       );
       capaEsri.on("tileerror", () => {
@@ -270,7 +274,7 @@ export function EditorMapa({
       if (contornoInicial) {
         const bounds = L.polygon(geoJsonALatLngs(contornoInicial)).getBounds();
         if (bounds.isValid()) {
-          mapa.fitBounds(bounds, { padding: [24, 24] });
+          mapa.fitBounds(bounds, { padding: [24, 24], maxZoom: 18 });
         }
       }
 
@@ -548,14 +552,36 @@ export function EditorMapa({
     });
   }
 
-  // Si cambia el tamaño de la caja del mapa (se agranda la ventana, aparece un aviso), Leaflet tiene que volver a medirla.
+  // Si cambia el tamaño de la caja del mapa (se agranda la ventana, aparece un aviso, se terminan de acomodar los
+  // paneles), Leaflet tiene que volver a medirla. Y si ya había un terreno guardado y la persona todavía no tocó el
+  // mapa, se vuelve a encuadrar sobre ese terreno con el tamaño real: antes quedaba encuadrado con el tamaño que la
+  // caja tenía al cargar y el terreno podía verse cortado o fuera de la vista.
+  const huboInteraccionRef = useRef(false);
   useEffect(() => {
     const caja = contenedorMapaRef.current;
     if (!mapaListo || !caja) return;
-    const observador = new ResizeObserver(() => mapaRef.current?.invalidateSize());
+    const marcarInteraccion = () => {
+      huboInteraccionRef.current = true;
+    };
+    caja.addEventListener("pointerdown", marcarInteraccion);
+    caja.addEventListener("wheel", marcarInteraccion, { passive: true });
+    const observador = new ResizeObserver(() => {
+      const mapa = mapaRef.current;
+      if (!mapa) return;
+      mapa.invalidateSize();
+      const L = leafletRef.current;
+      if (!huboInteraccionRef.current && contornoInicial && L) {
+        const limites = L.polygon(geoJsonALatLngs(contornoInicial)).getBounds();
+        if (limites.isValid()) mapa.fitBounds(limites, { padding: [24, 24], maxZoom: 18, animate: false });
+      }
+    });
     observador.observe(caja);
-    return () => observador.disconnect();
-  }, [mapaListo]);
+    return () => {
+      observador.disconnect();
+      caja.removeEventListener("pointerdown", marcarInteraccion);
+      caja.removeEventListener("wheel", marcarInteraccion);
+    };
+  }, [mapaListo, contornoInicial]);
 
 
   const porcentajeUsado =
@@ -763,6 +789,14 @@ export function EditorMapa({
               className="absolute inset-0"
               aria-label="Mapa satelital interactivo del establecimiento"
             />
+
+            {!mapaListo ? (
+              <div className="absolute inset-0 z-[1100] grid place-items-center bg-papel/90">
+                <p className="rounded-2xl bg-white px-4 py-2 text-[0.95rem] font-semibold text-tinta-suave shadow-suave">
+                  Cargando el mapa de tu finca…
+                </p>
+              </div>
+            ) : null}
 
             {/* Avisos que flotan abajo del mapa: no corren nada al aparecer y no tapan los toques */}
             {avisoMapa || imagenesFallaron ? (

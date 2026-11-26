@@ -6,6 +6,7 @@ import {
   ETIQUETAS_RIESGO_MALEZA,
   describirRangosEnMeses,
 } from "@/dominio/catalogo";
+import { IconoChevron } from "@/componentes/marca/Iconos";
 import { formatearNumeroEsAr } from "@/dominio/diagnostico";
 import type { EspecieEnMezcla } from "@/dominio/propuesta";
 
@@ -53,11 +54,20 @@ export function TarjetaEspecieMezcla({ especie }: Props) {
         ) : null}
       </div>
 
-      {/* Por qué entra: compatibilidades por cultivo */}
+      {/* Por qué entra: compatibilidades por cultivo. Cerrado: a la vista solo para qué cultivos sirve; el texto
+          largo se abre si la persona quiere leerlo (para no asustar con tanto texto). */}
       {especie.compatibilidades.length > 0 ? (
-        <div className="rounded-2xl bg-papel p-2.5 text-sm">
-          <p className="font-semibold text-tinta">Por qué se recomienda:</p>
-          <ul className="mt-1 space-y-1 text-tinta">
+        <details className="group rounded-2xl bg-papel text-sm">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-2xl px-3 py-2 hover:bg-menta [&::-webkit-details-marker]:hidden">
+            <span className="flex-1">
+              <span className="font-semibold text-hoja">¿Por qué se recomienda?</span>{" "}
+              <span className="text-tinta-suave">
+                Sirve para {especie.compatibilidades.map((c) => c.cultivoNombre).join(", ")}
+              </span>
+            </span>
+            <IconoChevron className="h-5 w-5 shrink-0 text-hoja transition-transform group-open:rotate-90" />
+          </summary>
+          <ul className="space-y-1 px-3 pb-3 text-tinta">
             {especie.compatibilidades.map((c) => (
               <li key={c.cultivoId}>
                 <strong>
@@ -67,7 +77,7 @@ export function TarjetaEspecieMezcla({ especie }: Props) {
               </li>
             ))}
           </ul>
-        </div>
+        </details>
       ) : null}
 
       {/* Períodos en la ecorregión */}

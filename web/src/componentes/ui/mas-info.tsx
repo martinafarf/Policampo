@@ -13,7 +13,7 @@
 // fijo hasta tocar de nuevo, tocar afuera o apretar Escape). En el celular solo se abre al tocar.
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { IconoChevron, IconoInfo } from "@/componentes/marca/Iconos";
 
 export function Desplegable({
@@ -52,21 +52,36 @@ export function MasInfo({
   const [fijado, setFijado] = useState(false); // abierto con un toque o con el teclado
   const [alPasar, setAlPasar] = useState(false); // abierto solo porque el mouse está encima
   const abierto = fijado || alPasar;
-  const [corrimiento, setCorrimiento] = useState(0);
+  // Dónde se dibuja la burbuja, en coordenadas de la pantalla (ver el efecto de abajo).
+  const [posicion, setPosicion] = useState<{ top: number; left: number } | null>(null);
   const raiz = useRef<HTMLSpanElement>(null);
   const burbuja = useRef<HTMLSpanElement>(null);
   const id = useId();
 
-  // La burbuja se centra debajo del ⓘ; si el ⓘ está cerca de un borde de la pantalla (pasa en el
-  // celular), se corre lo justo para no quedar cortada (16 px de margen).
-  useEffect(() => {
-    if (!abierto || !burbuja.current) return;
-    const { left, right } = burbuja.current.getBoundingClientRect();
-    const margen = 16;
-    // clientWidth y no window.innerWidth: en el celular innerWidth crece si algo se sale de la pantalla.
-    const anchoVisible = document.documentElement.clientWidth;
-    if (left < margen) setCorrimiento((c) => c + (margen - left));
-    else if (right > anchoVisible - margen) setCorrimiento((c) => c - (right - (anchoVisible - margen)));
+  // La burbuja usa position: fixed (se ubica respecto de la pantalla, no del panel donde está el ⓘ).
+  // Así no la corta un panel con scroll (overflow), como el de la paleta del mapa: lo que se sale de una
+  // caja con scroll queda tapado, pero lo "fixed" no. Se centra debajo del ⓘ y, si no entra, se corre lo
+  // justo para quedar a 16 px del borde de la pantalla. Se recalcula si la página o un panel se scrollea.
+  useLayoutEffect(() => {
+    if (!abierto) return;
+    const ubicar = () => {
+      if (!raiz.current || !burbuja.current) return;
+      const boton = raiz.current.getBoundingClientRect();
+      const anchoBurbuja = burbuja.current.offsetWidth;
+      const margen = 16;
+      // clientWidth y no window.innerWidth: en el celular innerWidth crece si algo se sale de la pantalla.
+      const anchoVisible = document.documentElement.clientWidth;
+      const centrada = boton.left + boton.width / 2 - anchoBurbuja / 2;
+      const left = Math.max(margen, Math.min(centrada, anchoVisible - margen - anchoBurbuja));
+      setPosicion({ top: boton.bottom + 4, left });
+    };
+    ubicar();
+    window.addEventListener("resize", ubicar);
+    window.addEventListener("scroll", ubicar, true); // true: también cuando se scrollea un panel
+    return () => {
+      window.removeEventListener("resize", ubicar);
+      window.removeEventListener("scroll", ubicar, true);
+    };
   }, [abierto]);
 
   // Se cierra con Escape o tocando en cualquier otro lugar de la página.
@@ -106,7 +121,6 @@ export function MasInfo({
       <button
         type="button"
         onClick={() => {
-          setCorrimiento(0);
           if (fijado) {
             // Segundo toque: se cierra del todo (aunque el mouse siga encima).
             setFijado(false);
@@ -127,8 +141,9 @@ export function MasInfo({
         id={id}
         role="note"
         hidden={!abierto}
-        style={{ transform: `translateX(calc(-50% + ${corrimiento}px))` }}
-        className={`absolute top-9 left-1/2 z-30 block ${ancho ? "w-80" : "w-64"} before:absolute before:-top-2 before:left-0 before:h-2 before:w-full before:content-[''] max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-borde bg-white p-3 text-left text-sm font-normal text-tinta shadow-suave`}
+        // Hasta medir dónde va, se dibuja invisible (para poder medir su ancho sin que se vea saltar)
+        style={posicion ? { top: posicion.top, left: posicion.left } : { top: 0, left: 0, visibility: "hidden" }}
+        className={`fixed z-50 block ${ancho ? "w-80" : "w-64"} before:absolute before:-top-2 before:left-0 before:h-2 before:w-full before:content-[''] max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-borde bg-white p-3 text-left text-sm font-normal text-tinta shadow-suave`}
       >
         {children}
       </span>

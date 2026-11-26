@@ -82,7 +82,7 @@ async function ContenidoNuevaPropuesta({ params, searchParams }: Props) {
     { texto: prep.establecimiento.nombre, href: `/fincas/${prep.establecimiento.id}` },
     { texto: "Propuestas", href: `/fincas/${prep.establecimiento.id}/propuestas` },
   ]}
-        bajada="En 3 pasos: cuántas flores sumar, dónde ponerlas y qué plantas sembrar."
+        bajada="Elegí dónde van las flores y qué plantas sembrar."
       />
 
       <ConstructorPropuesta

@@ -4,9 +4,9 @@
 // Incluye ajuste de objetivo (10–40 %), comparador de alternativas, parámetros de disposición,
 // ajuste de reparto (cuestionario), cambio de especies candidatas y borrador local (RS-08).
 //
-// Se arma en 3 pasos (Meta de flores → Dónde van → Plantas), uno por vez, con flechas naranjas arriba como en el
-// mapa. Al costado queda siempre un resumen («Tu propuesta») con el dibujo chico, los números y «Guardar».
-import { useMemo, useState, useTransition } from "react";
+// Se arma en 2 pasos (Dónde van las flores, con la meta arriba → Plantas) y Guardar, con flechas naranjas arriba
+// como en el mapa. Al costado queda siempre un resumen («Tu propuesta») con el dibujo chico, los números y «Guardar».
+import { useMemo, useRef, useState, useTransition } from "react";
 import type { SectorDibujable } from "@/app/fincas/[id]/VistaPreviaDibujo";
 import { IconoAlerta, IconoFlecha, IconoMas, IconoOk } from "@/componentes/marca/Iconos";
 import { EsquemaCuestionario3x3 } from "@/componentes/propuesta/EsquemaCuestionario3x3";
@@ -318,11 +318,12 @@ export function ConstructorPropuesta({
   );
 
   // ── Pasos (como en el mapa): se ve un paso por vez para no abrumar; el resumen con «Guardar» queda siempre al
-  //    costado. Todos los pasos traen valores recomendados, así que se puede guardar en cualquier momento.
-  const [paso, setPaso] = useState<1 | 2 | 3>(1);
+  //    costado. Son pocos a propósito (la meta y el lugar van juntos) para que no sea engorroso. Todos traen valores
+  //    recomendados, así que se puede guardar en cualquier momento.
+  const [paso, setPaso] = useState<1 | 2>(1);
 
-  function irAPaso(nuevo: 1 | 2 | 3 | 4) {
-    if (nuevo === 4) {
+  function irAPaso(nuevo: 1 | 2 | 3) {
+    if (nuevo === 3) {
       // «Guardar»: se lleva la vista al botón de guardar del resumen
       const boton = document.querySelector<HTMLElement>("[data-guardar-propuesta]");
       boton?.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -333,12 +334,30 @@ export function ConstructorPropuesta({
     document.getElementById("pasos-propuesta")?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
+  // Carrusel de alternativas: ‹ › mueven una tarjeta por vez y se apagan en los extremos.
+  const carruselRef = useRef<HTMLDivElement | null>(null);
+  const [puedeIzquierda, setPuedeIzquierda] = useState(false);
+  const [puedeDerecha, setPuedeDerecha] = useState(true);
+
+  function actualizarFlechas() {
+    const c = carruselRef.current;
+    if (!c) return;
+    setPuedeIzquierda(c.scrollLeft > 4);
+    setPuedeDerecha(c.scrollLeft + c.clientWidth < c.scrollWidth - 4);
+  }
+
+  function moverCarrusel(direccion: 1 | -1) {
+    const c = carruselRef.current;
+    const tarjeta = c?.firstElementChild as HTMLElement | null;
+    if (!c || !tarjeta) return;
+    c.scrollBy({ left: direccion * (tarjeta.offsetWidth + 12), behavior: "smooth" });
+  }
+
   const estadoDe = (n: number): EstadoPaso => (n === paso ? "actual" : n < paso ? "hecho" : "pendiente");
   const pasos: PasoDeProceso[] = [
-    { titulo: "Meta de flores", estado: estadoDe(1), onClick: () => irAPaso(1) },
-    { titulo: "Dónde van", estado: estadoDe(2), onClick: () => irAPaso(2) },
-    { titulo: "Plantas", estado: estadoDe(3), onClick: () => irAPaso(3) },
-    { titulo: "Guardar", estado: "pendiente", onClick: () => irAPaso(4) },
+    { titulo: "Dónde van las flores", estado: estadoDe(1), onClick: () => irAPaso(1) },
+    { titulo: "Plantas", estado: estadoDe(2), onClick: () => irAPaso(2) },
+    { titulo: "Guardar", estado: "pendiente", onClick: () => irAPaso(3) },
   ];
 
   // Números del resumen: los de la alternativa elegida (o del reparto, en el cuestionario)
@@ -353,7 +372,7 @@ export function ConstructorPropuesta({
   const ha = (valor: number) => `${formatearNumeroEsAr(valor, 2, 0)} ha`;
 
   /** Botón para pasar al paso que sigue, al final de cada paso. */
-  function botonSiguiente(a: 2 | 3 | 4, texto: string) {
+  function botonSiguiente(a: 2 | 3, texto: string) {
     return (
       <div className="flex justify-end border-t-[1.5px] border-borde pt-4">
         <button type="button" onClick={() => irAPaso(a)} className={clasesBoton("principal")}>
@@ -363,6 +382,47 @@ export function ConstructorPropuesta({
       </div>
     );
   }
+
+  // Meta de flores (10 % a 40 %, CA-05-06): compacta, arriba del lugar donde van. Se recalcula al soltar el control.
+  const bloqueMeta = (
+    <div className="flex flex-col gap-2.5 rounded-2xl bg-papel p-4">
+      <p className="flex flex-wrap items-baseline gap-x-2">
+        <span className="font-semibold text-tinta">Meta:</span>
+        <strong className="font-titulos text-3xl font-extrabold text-bosque">
+          {formatearNumeroEsAr(objetivoPct, 0, 0)} %
+        </strong>
+        <span className="text-tinta-suave">de tu finca con flores</span>
+        <span className="ml-auto text-sm text-tinta-suave">
+          {pendienteCalc
+            ? "Calculando…"
+            : `Ya tenés ${ha(superficieFloresActualHa)} · hay que sumar ${ha(superficieAAgregarHa)}`}
+        </span>
+      </p>
+      <input
+        type="range"
+        aria-label="Porcentaje de la finca con flores"
+        min={LIMITES_PROPUESTA.objetivoMinPct}
+        max={LIMITES_PROPUESTA.objetivoMaxPct}
+        step={1}
+        value={objetivoPct}
+        onChange={(e) => setObjetivoPct(Number(e.target.value))}
+        onPointerUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
+        onKeyUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
+        className="h-3 w-full cursor-pointer accent-naranja"
+      />
+      <div className="flex justify-between text-sm font-semibold text-tinta-suave">
+        <span>{LIMITES_PROPUESTA.objetivoMinPct} %</span>
+        <span>Recomendado: {LIMITES_PROPUESTA.objetivoRecomendadoPct} %</span>
+        <span>{LIMITES_PROPUESTA.objetivoMaxPct} %</span>
+      </div>
+      {objetivoPct < LIMITES_PROPUESTA.objetivoRecomendadoPct ? (
+        <p role="status" className="flex items-start gap-2 text-[#7a4100]">
+          <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+          Con menos del {LIMITES_PROPUESTA.objetivoRecomendadoPct} % los beneficios para tus cultivos son menores.
+        </p>
+      ) : null}
+    </div>
+  );
 
   const cajaErrores =
     errores.length > 0 ? (
@@ -386,69 +446,11 @@ export function ConstructorPropuesta({
         <div className="flex min-w-0 flex-col gap-5">
           {cajaErrores}
 
-          {/* Paso 1. Meta de flores (10 % a 40 %, CA-05-06) */}
-          {paso === 1 ? (
-            <Tarjeta titulo="¿Cuántas flores querés tener?">
-              <p className="-mt-2 text-tinta-suave">
-                Lo recomendado es que el {LIMITES_PROPUESTA.objetivoRecomendadoPct} % de tu finca tenga flores. Podés
-                elegir entre {LIMITES_PROPUESTA.objetivoMinPct} % y {LIMITES_PROPUESTA.objetivoMaxPct} %.
-              </p>
-
-              <div className="flex flex-col gap-3 rounded-2xl bg-papel p-4">
-                <p className="flex items-baseline gap-2">
-                  <strong className="font-titulos text-4xl font-extrabold text-bosque">
-                    {formatearNumeroEsAr(objetivoPct, 0, 0)} %
-                  </strong>
-                  <span className="text-tinta-suave">de tu finca con flores</span>
-                  {pendienteCalc ? <span className="ml-auto text-sm text-tinta-suave">Calculando…</span> : null}
-                </p>
-                {/* Se recalcula al soltar el control (con el mouse, el dedo o las flechas del teclado) */}
-                <input
-                  type="range"
-                  aria-label="Porcentaje de la finca con flores"
-                  min={LIMITES_PROPUESTA.objetivoMinPct}
-                  max={LIMITES_PROPUESTA.objetivoMaxPct}
-                  step={1}
-                  value={objetivoPct}
-                  onChange={(e) => setObjetivoPct(Number(e.target.value))}
-                  onPointerUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
-                  onKeyUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
-                  className="h-3 w-full cursor-pointer accent-naranja"
-                />
-                <div className="flex justify-between text-sm font-semibold text-tinta-suave">
-                  <span>{LIMITES_PROPUESTA.objetivoMinPct} %</span>
-                  <span>Recomendado: {LIMITES_PROPUESTA.objetivoRecomendadoPct} %</span>
-                  <span>{LIMITES_PROPUESTA.objetivoMaxPct} %</span>
-                </div>
-              </div>
-
-              <dl className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-0.5 rounded-2xl border-[1.5px] border-borde px-3 py-3">
-                  <dt className="text-sm font-semibold text-tinta-suave">Flores que ya tenés</dt>
-                  <dd className="font-titulos text-xl font-bold text-bosque">{ha(superficieFloresActualHa)}</dd>
-                </div>
-                <div className="flex flex-col gap-0.5 rounded-2xl border-[1.5px] border-borde px-3 py-3">
-                  <dt className="text-sm font-semibold text-tinta-suave">Hay que sumar</dt>
-                  <dd className="font-titulos text-xl font-bold text-bosque">{ha(superficieAAgregarHa)}</dd>
-                </div>
-              </dl>
-
-              {objetivoPct < LIMITES_PROPUESTA.objetivoRecomendadoPct ? (
-                <p role="status" className="flex items-start gap-2 rounded-2xl bg-[#fff3df] p-3 text-[#7a4100]">
-                  <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
-                  Con menos del {LIMITES_PROPUESTA.objetivoRecomendadoPct} % los beneficios para tus cultivos son
-                  menores.
-                </p>
-              ) : null}
-
-              {botonSiguiente(2, "Siguiente: dónde van")}
-            </Tarjeta>
-          ) : null}
-
-          {/* Paso 2. Dónde van las flores: alternativas (croquis / mapa) o reparto (cuestionario) */}
-          {paso === 2 && metodo === "cuestionario" && propCuestionario ? (
+          {/* Paso 1. Cuántas flores y dónde van: alternativas (croquis / mapa) o reparto (cuestionario) */}
+          {paso === 1 && metodo === "cuestionario" && propCuestionario ? (
             <Tarjeta titulo="¿Dónde van las flores?">
-              <p className="-mt-2 text-tinta-suave">
+              {bloqueMeta}
+              <p className="text-tinta-suave">
                 Te sugerimos: <strong className="text-tinta">{propCuestionario.tituloDisposicion}</strong>. Podés
                 cambiar cuántas hectáreas van en cada lugar.
               </p>
@@ -489,15 +491,13 @@ export function ConstructorPropuesta({
                 </div>
               ) : null}
 
-              {botonSiguiente(3, "Siguiente: plantas")}
+              {botonSiguiente(2, "Siguiente: plantas")}
             </Tarjeta>
           ) : null}
 
-          {paso === 2 && !(metodo === "cuestionario" && propCuestionario) ? (
+          {paso === 1 && !(metodo === "cuestionario" && propCuestionario) ? (
             <Tarjeta titulo="¿Dónde van las flores?">
-              <p className="-mt-2 text-tinta-suave">
-                Elegí una forma. Primero están las que menos lugar le quitan a tus cultivos.
-              </p>
+              {bloqueMeta}
 
               {/* Respetar cultivos: una opción grande y clara, en vez de una casilla chica */}
               <label
@@ -520,8 +520,41 @@ export function ConstructorPropuesta({
                 </span>
               </label>
 
-              {/* Alternativas: carrusel en el celular, grilla en la computadora */}
-              <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-3">
+              {/* Alternativas: carrusel de una fila. Se ven 1 (celular), 2 o 3 (computadora); con › se ven más formas.
+                  También se puede deslizar con el dedo. Primero están las que menos lugar le quitan a los cultivos. */}
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-semibold text-tinta">
+                  Elegí una forma{" "}
+                  <span className="font-normal text-tinta-suave">
+                    ({alternativas.length} {alternativas.length === 1 ? "opción" : "opciones"})
+                  </span>
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => moverCarrusel(-1)}
+                    disabled={!puedeIzquierda}
+                    aria-label="Ver las formas anteriores"
+                    className="grid h-11 w-11 place-items-center rounded-full border-2 border-hoja bg-white text-hoja transition hover:bg-menta disabled:cursor-not-allowed disabled:border-borde disabled:text-tinta-suave/50 disabled:hover:bg-white"
+                  >
+                    <IconoFlecha className="h-5 w-5 rotate-180" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moverCarrusel(1)}
+                    disabled={!puedeDerecha}
+                    aria-label="Ver más formas"
+                    className="grid h-11 w-11 place-items-center rounded-full border-2 border-hoja bg-hoja text-white transition hover:bg-hoja-oscura disabled:cursor-not-allowed disabled:border-borde disabled:bg-white disabled:text-tinta-suave/50"
+                  >
+                    <IconoFlecha className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+              <div
+                ref={carruselRef}
+                onScroll={actualizarFlechas}
+                className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
                 {alternativas.map((alt, i) => {
                   const seleccionada = alt.disposicion === alternativaActual?.disposicion;
                   return (
@@ -530,7 +563,7 @@ export function ConstructorPropuesta({
                       type="button"
                       aria-pressed={seleccionada}
                       onClick={() => setDisposicionElegida(alt.disposicion)}
-                      className={`flex w-60 shrink-0 flex-col gap-2 rounded-2xl border-2 p-3 text-left transition sm:w-auto ${
+                      className={`flex w-[85%] shrink-0 snap-start flex-col gap-2 rounded-2xl border-2 p-3 text-left transition sm:w-[calc((100%-0.75rem)/2)] xl:w-[calc((100%-1.5rem)/3)] ${
                         seleccionada ? "border-naranja bg-[#fff8ec]" : "border-borde bg-white hover:border-hoja"
                       }`}
                     >
@@ -685,12 +718,12 @@ export function ConstructorPropuesta({
                 </div>
               ) : null}
 
-              {botonSiguiente(3, "Siguiente: plantas")}
+              {botonSiguiente(2, "Siguiente: plantas")}
             </Tarjeta>
           ) : null}
 
-          {/* Paso 3. Plantas para sembrar (RN-08, RN-09, RN-10, CA-05-14, CA-05-15) */}
-          {paso === 3 ? (
+          {/* Paso 2. Plantas para sembrar (RN-08, RN-09, RN-10, CA-05-14, CA-05-15) */}
+          {paso === 2 ? (
             <Tarjeta titulo="¿Qué plantas sembrar?">
               <p className={`-mt-2 text-tinta-suave ${mezclaInicial.candidatasDisponibles.length === 0 ? "hidden" : ""}`}>
                 Las elegimos para tus cultivos: sirven sobre todo para{" "}
@@ -763,7 +796,7 @@ export function ConstructorPropuesta({
                 <GraficoFloracionSemanas floracion={floracionActiva} />
               </Desplegable>
 
-              {botonSiguiente(4, "Siguiente: guardar")}
+              {botonSiguiente(3, "Siguiente: guardar")}
             </Tarjeta>
           ) : null}
         </div>

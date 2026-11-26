@@ -390,7 +390,7 @@ export function ConstructorPropuesta({
   const ha = (valor: number) => `${formatearNumeroEsAr(valor, 2, 0)} ha`;
 
   /** Botón para pasar al paso que sigue, al final de cada paso. */
-  function botonSiguiente(a: 2 | 3, texto: string) {
+  function botonSiguiente(a: 2, texto: string) {
     return (
       <div className="flex justify-end border-t-[1.5px] border-borde pt-4">
         <button type="button" onClick={() => irAPaso(a)} className={clasesBoton("principal")}>
@@ -729,7 +729,6 @@ export function ConstructorPropuesta({
                 <GraficoFloracionSemanas floracion={floracionActiva} />
               </Desplegable>
 
-              {botonSiguiente(3, "Siguiente: guardar")}
             </Tarjeta>
           ) : null}
         </div>

@@ -62,7 +62,11 @@
   }
 
   body {
-    background: var(--color-fondo);
+    /* El mismo cielo menta de Herramientas en todas las páginas: arriba más verde y se aclara hacia abajo.
+       En píxeles (no en %) para que se vea igual en páginas cortas y largas; después sigue el color liso. */
+    background-color: #eff9f5;
+    background-image: linear-gradient(#d6f1e7, #eff9f5 700px);
+    background-repeat: no-repeat;
     color: var(--color-tinta);
     font-size: 1.0625rem; /* 17 px: se lee bien en el celular al aire libre */
     line-height: 1.6;

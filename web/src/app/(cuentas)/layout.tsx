@@ -11,7 +11,9 @@ import huerta from "../../../public/img/huerta.jpg";
 
 export default function LayoutCuentas({ children }: LayoutProps<"/">) {
   return (
-    <main className="grid min-h-svh flex-1 md:grid-cols-2">
+    // bg-fondo: estas pantallas (ingresar, registro, recuperar) mantienen el fondo liso, sin el degradé menta del
+    // resto, para que las ondas del costado de la foto empalmen con el panel del formulario.
+    <main className="grid min-h-svh flex-1 bg-fondo md:grid-cols-2">
       <aside className="relative isolate flex min-h-56 flex-col justify-between overflow-hidden px-5 pt-4 pb-12 md:sticky md:top-0 md:h-svh md:min-h-0 md:px-10 md:py-8">
         <Image src={huerta} alt="" fill placeholder="blur" sizes="(min-width: 768px) 50vw, 100vw" className="-z-20 object-cover" />
         {/* Velo: oscuro arriba (para el logo) y abajo (para la frase), más claro en el medio */}

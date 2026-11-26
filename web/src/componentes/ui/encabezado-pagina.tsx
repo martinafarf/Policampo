@@ -18,13 +18,20 @@ type Props = {
   datos?: readonly string[];
   /** Botones (BotonEnlace / Boton). Como máximo uno con variante "principal". */
   acciones?: ReactNode;
+  /**
+   * Para editores a pantalla completa: título más chico, sin la ondita, y en la computadora el título y las migas
+   * van en el mismo renglón (el título a la izquierda y el camino a la derecha). Ocupa unos 40 px en vez de 130.
+   */
+  compacto?: boolean;
+  /** Un símbolo ⓘ (MasInfo) que va al lado del título, para explicar cómo se usa la pantalla a quien no lo entienda. */
+  ayuda?: ReactNode;
 };
 
-export function EncabezadoPagina({ titulo, migas, bajada, datos, acciones }: Props) {
+export function EncabezadoPagina({ titulo, migas, bajada, datos, acciones, compacto = false, ayuda }: Props) {
   return (
-    <header className="flex flex-col gap-4">
+    <header className={compacto ? "flex flex-col gap-1 lg:flex-row lg:items-end lg:justify-between lg:gap-6" : "flex flex-col gap-4"}>
       {migas && migas.length > 0 && (
-        <nav aria-label="Estás en">
+        <nav aria-label="Estás en" className={compacto ? "lg:order-2" : undefined}>
           <ol className="flex flex-wrap items-center gap-1.5 text-[0.95rem] font-semibold text-tinta-suave">
             {migas.map((miga, i) => (
               <Fragment key={`${miga.texto}-${i}`}>
@@ -49,9 +56,20 @@ export function EncabezadoPagina({ titulo, migas, bajada, datos, acciones }: Pro
         </nav>
       )}
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4 lg:order-1">
         <div className="flex min-w-0 flex-col gap-3">
-          <h1 className="titulo-onda text-3xl font-bold break-words text-bosque sm:text-4xl">{titulo}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1
+              className={
+                compacto
+                  ? "text-2xl font-bold break-words text-bosque sm:text-3xl"
+                  : "titulo-onda text-3xl font-bold break-words text-bosque sm:text-4xl"
+              }
+            >
+              {titulo}
+            </h1>
+            {ayuda}
+          </div>
           {bajada && <p className="max-w-[46ch] text-tinta-suave">{bajada}</p>}
           {datos && datos.length > 0 && (
             <ul className="flex flex-wrap gap-2" aria-label="Datos">

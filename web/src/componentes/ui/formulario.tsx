@@ -3,7 +3,7 @@
 // Pensadas para el celular: una columna, campos y botones de 44 px de alto o más (RD-03).
 import { useState, type InputHTMLAttributes } from "react";
 import { useFormStatus } from "react-dom";
-import { IconoAlerta, IconoInfo, IconoOk } from "@/componentes/marca/Iconos";
+import { IconoAlerta, IconoCerrar, IconoInfo, IconoOk } from "@/componentes/marca/Iconos";
 
 type PropsCampo = InputHTMLAttributes<HTMLInputElement> & {
   etiqueta: string;
@@ -65,7 +65,34 @@ export function Campo({ etiqueta, nombre, id = nombre, error, ayuda, type = "tex
   );
 }
 
-export function Aviso({ tipo = "info", children }: { tipo?: "info" | "error" | "exito"; children: React.ReactNode }) {
+/**
+ * Cartel de aviso. Los de éxito («Se guardó tu terreno») llevan una ✕ para cerrarlos: ya cumplieron su función
+ * y no tienen que quedar ocupando lugar. Los de error no se cierran (hay que leerlos y corregir).
+ */
+export function Aviso({
+  tipo = "info",
+  cerrable = tipo === "exito",
+  children,
+}: {
+  tipo?: "info" | "error" | "exito";
+  /** Muestra la ✕ para cerrar el aviso (por defecto, solo en los de éxito). */
+  cerrable?: boolean;
+  children: React.ReactNode;
+}) {
+  const [cerrado, setCerrado] = useState(false);
+  if (cerrado) return null;
+
+  function cerrar() {
+    setCerrado(true);
+    // Si el aviso vino en la dirección (…?aviso=sectores-guardados), se saca de ahí para que no vuelva a
+    // aparecer si se recarga la página.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("aviso")) {
+      url.searchParams.delete("aviso");
+      window.history.replaceState(window.history.state, "", url);
+    }
+  }
+
   const estilos = {
     info: "border-borde bg-white text-tinta",
     error: "border-[#f5c2bd] bg-error-claro text-error",
@@ -78,7 +105,18 @@ export function Aviso({ tipo = "info", children }: { tipo?: "info" | "error" | "
       className={`flex items-start gap-3 rounded-2xl border-[1.5px] px-4 py-3 text-[0.95rem] ${estilos}`}
     >
       <Icono className="mt-0.5 h-5 w-5 shrink-0" />
-      <div>{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
+      {cerrable ? (
+        // -my-1.5 -mr-2: el botón es grande para el dedo (36 px) pero no agranda el cartel
+        <button
+          type="button"
+          onClick={cerrar}
+          aria-label="Cerrar aviso"
+          className="-my-1.5 -mr-2 grid h-9 w-9 shrink-0 place-items-center rounded-full transition hover:bg-black/5"
+        >
+          <IconoCerrar className="h-5 w-5" />
+        </button>
+      ) : null}
     </div>
   );
 }

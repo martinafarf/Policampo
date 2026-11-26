@@ -1,5 +1,6 @@
 // Dibujo de solo lectura en SVG para la ficha y el diagnóstico de fincas en croquis o mapa.
 // No descarga imágenes satelitales para ahorrar datos móviles en el campo (Esp. 02 §12, Esp. 04 §6).
+import { colorDeSector, tieneColorPropio } from "@/componentes/sectores/colores";
 import type { GeometriaLibreGeoJson } from "@/dominio/diagnostico/tipos";
 import {
   crearContornoCroquis,
@@ -13,7 +14,40 @@ export interface SectorDibujable {
   id?: string;
   nombre?: string;
   tipo: TipoSector;
+  /** Clave del cultivo del catálogo: el sector se pinta del mismo color que tuvo al dibujarlo. */
+  cultivoClave?: string | null;
+  /** Nombre del cultivo, para la leyenda ("Arándano"). */
+  cultivoNombre?: string | null;
   geometria?: PoligonoGeoJson | null;
+}
+
+interface EntradaLeyenda {
+  clave: string;
+  etiqueta: string;
+  borde: string;
+  relleno: string;
+}
+
+/** Una entrada de leyenda por cada color que aparece en el dibujo (los cultivos primero, las flores al final). */
+function armarLeyenda(sectores: readonly SectorDibujable[]): EntradaLeyenda[] {
+  const entradas = new Map<string, EntradaLeyenda>();
+  for (const s of sectores) {
+    const color = colorDeSector(s.tipo, s.cultivoClave);
+    if (s.tipo === "sector_flores") {
+      entradas.set("flores", { clave: "flores", etiqueta: "Flores", ...color });
+    } else if (s.cultivoClave && tieneColorPropio(s.cultivoClave)) {
+      if (!entradas.has(s.cultivoClave)) {
+        entradas.set(s.cultivoClave, {
+          clave: s.cultivoClave,
+          etiqueta: s.cultivoNombre ?? s.nombre ?? "Cultivo",
+          ...color,
+        });
+      }
+    } else {
+      entradas.set("otro", { clave: "otro", etiqueta: "Otros cultivos", ...color });
+    }
+  }
+  return [...entradas.values()].sort((a, b) => Number(a.clave === "flores") - Number(b.clave === "flores"));
 }
 
 interface Props {
@@ -152,13 +186,13 @@ export function VistaPreviaDibujo({
           />
         ) : null}
         {sectoresConGeometria.map((s, idx) => {
-          const esFlores = s.tipo === "sector_flores";
+          const color = colorDeSector(s.tipo, s.cultivoClave);
           return (
             <polygon
               key={s.id ?? `${s.tipo}-${idx}`}
               points={proyectar(s.geometria)}
-              fill={esFlores ? "rgba(147, 51, 234, 0.45)" : "rgba(22, 163, 74, 0.35)"}
-              stroke={esFlores ? "#7e22ce" : "#15803d"}
+              fill={color.relleno}
+              stroke={color.borde}
               strokeWidth={2.5}
             />
           );
@@ -218,12 +252,13 @@ export function VistaPreviaDibujo({
 
         {sectoresConGeometria.map((s, idx) => {
           const esFlores = s.tipo === "sector_flores";
+          const color = colorDeSector(s.tipo, s.cultivoClave);
           return (
             <polygon
               key={s.id ?? `${s.tipo}-${idx}`}
               points={proyectar(s.geometria)}
-              fill={esFlores ? "rgba(147, 51, 234, 0.35)" : "rgba(22, 163, 74, 0.35)"}
-              stroke={esFlores ? "#7e22ce" : "#15803d"}
+              fill={color.relleno}
+              stroke={color.borde}
               strokeWidth={1.8}
             >
               <title>{s.nombre ?? (esFlores ? "Sector de flores" : "Cultivo")}</title>
@@ -234,14 +269,15 @@ export function VistaPreviaDibujo({
 
       {/* Leyenda: cada muestra con el mismo color que en el dibujo. */}
       <figcaption className="flex flex-wrap items-center gap-2 text-sm font-semibold text-tinta-suave">
-        <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
-          <span className="h-3 w-3 rounded-full border border-green-700 bg-green-600/35" />
-          Cultivos
-        </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
-          <span className="h-3 w-3 rounded-full border border-purple-700 bg-purple-600/35" />
-          Flores
-        </span>
+        {armarLeyenda(sectoresConGeometria).map((e) => (
+          <span
+            key={e.clave}
+            className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1"
+          >
+            <span className="h-3 w-3 rounded-full border" style={{ borderColor: e.borde, backgroundColor: e.relleno }} />
+            {e.etiqueta}
+          </span>
+        ))}
         {superficieLibre ? (
           <span className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1">
             <span className="h-3 w-3 rounded-full border border-amber-700 bg-amber-200/70" />

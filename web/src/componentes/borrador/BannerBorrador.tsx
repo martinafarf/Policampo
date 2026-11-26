@@ -1,8 +1,17 @@
 "use client";
 
 // Aviso para recuperar o descartar cambios locales sin guardar (Esp. 02, 5.6, CA-02-17).
+// Solo aparece al VOLVER a la pantalla después de haberla dejado sin guardar (no mientras se está cargando).
+// El tono es amable (verde suave, sin ícono de alerta): no es un error, la persona no hizo nada mal.
+import { IconoInfo } from "@/componentes/marca/Iconos";
+import { Boton } from "@/componentes/ui/boton";
 
 interface Props {
+  /**
+   * "aviso": solo el aviso de borrador encontrado (va arriba). "nota": solo el texto chico de "Borrador guardado
+   * a las…" (va abajo, para que al aparecer no corra lo que se está dibujando). Sin valor: las dos cosas.
+   */
+  variante?: "aviso" | "nota";
   fechaBorradorIso: string | null;
   ultimoAutoguardadoIso: string | null;
   onRecuperar: () => void;
@@ -17,6 +26,7 @@ function formatearFechaHora(iso: string): string {
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 }
 
@@ -26,48 +36,44 @@ function formatearHora(iso: string): string {
   return fecha.toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 }
 
 export function BannerBorrador({
+  variante,
   fechaBorradorIso,
   ultimoAutoguardadoIso,
   onRecuperar,
   onDescartar,
 }: Props) {
-  if (fechaBorradorIso) {
+  if (fechaBorradorIso && variante !== "nota") {
     return (
       <div
         role="status"
-        className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 rounded-2xl border-[1.5px] border-menta-fuerte bg-menta px-4 py-3 text-[0.95rem] text-bosque sm:flex-row sm:items-center sm:justify-between"
       >
-        <p className="font-medium">
-          Tenés cambios sin guardar del{" "}
-          <strong>{formatearFechaHora(fechaBorradorIso)}</strong>. ¿Recuperarlos?
+        <p className="flex items-start gap-3 font-semibold">
+          <IconoInfo className="mt-0.5 h-5 w-5 shrink-0" />
+          <span>
+            Encontramos lo que estabas cargando ({formatearFechaHora(fechaBorradorIso)}). ¿Querés seguir desde ahí?
+          </span>
         </p>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onRecuperar}
-            className="min-h-10 rounded-lg bg-amber-700 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-amber-800"
-          >
-            Recuperar
-          </button>
-          <button
-            type="button"
-            onClick={onDescartar}
-            className="min-h-10 rounded-lg border border-amber-400 bg-white px-3.5 py-1.5 text-sm font-semibold text-amber-950 hover:bg-amber-100"
-          >
+          <Boton onClick={onRecuperar} className="min-h-11 px-5">
+            Seguir desde ahí
+          </Boton>
+          <Boton variante="contorno" onClick={onDescartar} className="min-h-11 px-5">
             Descartar
-          </button>
+          </Boton>
         </div>
       </div>
     );
   }
 
-  if (ultimoAutoguardadoIso) {
+  if (ultimoAutoguardadoIso && !fechaBorradorIso && variante !== "aviso") {
     return (
-      <p className="text-right text-xs text-stone-500">
+      <p className="text-right text-sm text-tinta-suave">
         Borrador guardado en este dispositivo a las {formatearHora(ultimoAutoguardadoIso)}.
       </p>
     );

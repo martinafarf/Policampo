@@ -7,6 +7,8 @@ import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
 
+export const metadata = { title: "Dibujá tu finca · PoliCampo" };
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -57,8 +59,8 @@ async function ContenidoCroquis({ params }: Props) {
 
 export default function PaginaCroquis(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando croquis…</p>}>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-3 sm:px-6 sm:py-4">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando tu plano…</p>}>
         <ContenidoCroquis params={props.params} />
       </Suspense>
     </main>

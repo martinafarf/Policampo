@@ -169,6 +169,15 @@ export function IconoMas({ className = "h-5 w-5" }: Props) {
   );
 }
 
+/** Cruz: cerrar un aviso. */
+export function IconoCerrar({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
 /** Lista con tildes: cargar la finca respondiendo preguntas (cuestionario). */
 export function IconoLista({ className = "h-6 w-6" }: Props) {
   return (
@@ -193,6 +202,25 @@ export function IconoMapa({ className = "h-6 w-6" }: Props) {
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
       <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
       <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  );
+}
+
+/** Papelera: borrar. */
+export function IconoPapelera({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5" />
+    </svg>
+  );
+}
+
+/** Mira: llevar el mapa hasta algo (un sector). */
+export function IconoUbicar({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
     </svg>
   );
 }

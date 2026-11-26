@@ -8,6 +8,8 @@ import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
 
+export const metadata = { title: "Marcá tu finca en el mapa · PoliCampo" };
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -68,8 +70,8 @@ async function ContenidoMapa({ params }: Props) {
 
 export default function PaginaMapa(props: Props) {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-0 py-4 sm:px-4 sm:py-6">
-      <Suspense fallback={<p className="px-4 text-sm text-stone-600">Cargando mapa…</p>}>
+    <main className="mx-auto w-full max-w-[92rem] flex-1 px-4 py-3 sm:px-6 sm:py-4 lg:px-10 lg:py-5">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando tu mapa…</p>}>
         <ContenidoMapa params={props.params} />
       </Suspense>
     </main>

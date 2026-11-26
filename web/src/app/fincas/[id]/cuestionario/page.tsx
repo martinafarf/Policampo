@@ -6,6 +6,8 @@ import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { listarCultivosParaFinca } from "../../_lib/cultivos";
 import { FormularioCuestionario } from "./FormularioCuestionario";
 
+export const metadata = { title: "Cargá tu terreno · PoliCampo" };
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -53,8 +55,8 @@ async function ContenidoCuestionario({ params }: Props) {
 
 export default function PaginaCuestionario(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando cuestionario…</p>}>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando tu terreno…</p>}>
         <ContenidoCuestionario params={props.params} />
       </Suspense>
     </main>

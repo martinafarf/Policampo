@@ -170,7 +170,7 @@ export function VistaDiagnostico({
             {!esHistorico ? (
               <div className="flex flex-wrap items-center gap-2">
                 <BotonEnlace href={`${rutaFinca}/propuestas/nueva`} className="min-h-11 px-5">
-                  {llegaALaMeta ? "Ver ideas para sumar más flores" : "Ver cómo sumar flores"}
+                  Generar propuesta de rediseño
                 </BotonEnlace>
                 <BotonEnlace href={`${rutaFinca}/propuestas`} variante="texto" className="min-h-11">
                   Propuestas guardadas

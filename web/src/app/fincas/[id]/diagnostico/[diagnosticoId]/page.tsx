@@ -32,8 +32,8 @@ async function ContenidoDiagnosticoHistorico({ params }: Props) {
 
 export default function PaginaDiagnosticoHistorico(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando diagnóstico guardado…</p>}>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando diagnóstico guardado…</p>}>
         <ContenidoDiagnosticoHistorico params={props.params} />
       </Suspense>
     </main>

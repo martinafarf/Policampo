@@ -1,19 +1,27 @@
 // Pantalla compartida para ver el último diagnóstico o uno del historial (Esp. 04, §5.2, §5.3, §6).
 // Cumple CA-04-12 ("Cómo se calculó") y CA-04-17 (accesible sin depender solo del color + 360 px).
-import Link from "next/link";
-import { VistaPreviaDibujo } from "@/app/fincas/[id]/VistaPreviaDibujo";
+//
+// Pensada para que se entienda de un vistazo (DESIGN.md, el dato primero):
+// 1. Arriba a la izquierda, el resultado grande ("6,4 % con flores"), el nivel con palabras y qué falta, con UNA
+//    acción principal: ver cómo sumar flores (la propuesta de rediseño).
+// 2. Al lado, el dibujo con el lugar libre donde se pueden poner flores.
+// 3. Debajo, solo 3 números a la vista; los demás, escondidos en «Ver más números».
+// 4. Lo que conviene revisar (alertas), los beneficios y «¿Cómo se calculó?» al final, para quien quiera leer más.
 import {
   BENEFICIOS_DIAGNOSTICO,
-  ETIQUETAS_NIVEL_RIESGO,
-  ICONOS_NIVEL_RIESGO,
   construirExplicacionCalculo,
   construirTextoAlerta,
   formatearNumeroEsAr,
-  obtenerMensajeNivelRiesgo,
-  type NivelRiesgo,
 } from "@/dominio/diagnostico";
 import type { DiagnosticoNormalizado } from "@/dominio/diagnostico/entrada";
 import { hectareasAMetrosCuadrados } from "@/dominio/establecimientos";
+import { VistaPreviaDibujo } from "@/app/fincas/[id]/VistaPreviaDibujo";
+import { IconoAlerta, IconoFlor, IconoLupa, IconoOk } from "@/componentes/marca/Iconos";
+import { BotonEnlace } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { Desplegable, MasInfo } from "@/componentes/ui/mas-info";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
+import { BadgeNivelDiagnostico } from "./BadgeNivelDiagnostico";
 import { BotonSolicitarDiagnostico } from "./BotonSolicitarDiagnostico";
 
 interface Props {
@@ -24,25 +32,11 @@ interface Props {
   esHistorico?: boolean;
 }
 
-const ESTILOS_SEMAFORO: Readonly<
-  Record<NivelRiesgo, { contenedor: string; insignia: string; barra: string }>
-> = {
-  adecuado: {
-    contenedor: "border-emerald-300 bg-emerald-50 text-emerald-950",
-    insignia: "bg-emerald-700 text-white",
-    barra: "bg-emerald-600",
-  },
-  moderado: {
-    contenedor: "border-amber-300 bg-amber-50 text-amber-950",
-    insignia: "bg-amber-600 text-white",
-    barra: "bg-amber-500",
-  },
-  critico: {
-    contenedor: "border-red-300 bg-red-50 text-red-950",
-    insignia: "bg-red-700 text-white",
-    barra: "bg-red-600",
-  },
-};
+/** La meta de flores que usa el diagnóstico (Garibaldi y otros). */
+const META_FLORES = 20;
+
+// Un ícono para cada beneficio, en el mismo orden que BENEFICIOS_DIAGNOSTICO (polinizadores, control, suelo).
+const ICONOS_BENEFICIOS = [IconoFlor, IconoLupa, IconoOk];
 
 export function formatearFechaDiagnostico(fecha: Date): string {
   return new Intl.DateTimeFormat("es-AR", {
@@ -51,7 +45,13 @@ export function formatearFechaDiagnostico(fecha: Date): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   }).format(fecha);
+}
+
+/** Hectáreas con hasta 2 decimales ("0,61 ha"): en pantalla no hace falta más precisión. */
+function ha(valor: number): string {
+  return `${formatearNumeroEsAr(valor, 2, 0)} ha`;
 }
 
 export function VistaDiagnostico({
@@ -61,290 +61,243 @@ export function VistaDiagnostico({
   desactualizado,
   esHistorico = false,
 }: Props) {
-  const estilos = ESTILOS_SEMAFORO[diagnostico.nivelRiesgo];
-  const etiquetaNivel = ETIQUETAS_NIVEL_RIESGO[diagnostico.nivelRiesgo];
-  const iconoNivel = ICONOS_NIVEL_RIESGO[diagnostico.nivelRiesgo];
-  const mensajeBase = obtenerMensajeNivelRiesgo(
-    diagnostico.nivelRiesgo,
-    diagnostico.hectareasACompensar,
-  );
   const fechaTexto = formatearFechaDiagnostico(diagnostico.creadoEn);
+  const llegaALaMeta = diagnostico.hectareasACompensar <= 0;
 
-  // Escala del medidor: siempre muestra claramente las marcas del 10 % y 20 % (máximo mínimo 30 %).
-  const topeMedidor = Math.max(30, Math.ceil(diagnostico.porcentajeFlores / 10) * 10);
-  const anchoBarraPct = Math.min(100, (diagnostico.porcentajeFlores / topeMedidor) * 100);
-  const pos10Pct = (10 / topeMedidor) * 100;
-  const pos20Pct = (20 / topeMedidor) * 100;
+  // La barra llega hasta un poco más que la meta, así la marca del 20 % se ve siempre (y si pasa, se nota).
+  const topeBarra = Math.max(30, Math.ceil(diagnostico.porcentajeFlores / 10) * 10);
+  const posMeta = (META_FLORES / topeBarra) * 100;
+  const anchoBarra = Math.min(100, (diagnostico.porcentajeFlores / topeBarra) * 100);
 
   const compensarM2 = Math.round(hectareasAMetrosCuadrados(diagnostico.hectareasACompensar));
   const pasosCalculo = construirExplicacionCalculo(diagnostico);
+  const rutaFinca = `/fincas/${establecimientoId}`;
 
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Ruta de navegación" className="flex flex-wrap items-center gap-3 text-sm">
-        <Link
-          href={`/fincas/${establecimientoId}`}
-          className="font-semibold text-emerald-800 hover:underline"
-        >
-          ← Volver a {nombreEstablecimiento}
-        </Link>
-        {esHistorico ? (
-          <Link
-            href={`/fincas/${establecimientoId}/diagnostico/historial`}
-            className="font-medium text-stone-600 hover:underline"
-          >
-            · Historial
-          </Link>
-        ) : null}
-      </nav>
-
-      {/* Encabezado y etiqueta histórica */}
-      <header className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold text-stone-900">Diagnóstico agroecológico</h1>
-          {esHistorico ? (
-            <span className="rounded-full bg-stone-200 px-2.5 py-0.5 text-xs font-semibold text-stone-800">
-              Diagnóstico del {fechaTexto}
-            </span>
-          ) : null}
-        </div>
-        <p className="text-sm text-stone-600">
-          {nombreEstablecimiento} · Calculado el {fechaTexto}
-        </p>
-      </header>
+      <EncabezadoPagina
+        titulo={esHistorico ? "Diagnóstico guardado" : "Diagnóstico"}
+        migas={[
+          { texto: "Mis fincas", href: "/fincas" },
+          { texto: nombreEstablecimiento, href: rutaFinca },
+          ...(esHistorico ? [{ texto: "Historial", href: `${rutaFinca}/diagnostico/historial` }] : []),
+        ]}
+        datos={[`Calculado el ${fechaTexto}`]}
+        acciones={
+          esHistorico ? undefined : (
+            <BotonEnlace href={`${rutaFinca}/diagnostico/historial`} variante="contorno">
+              Ver diagnósticos anteriores
+            </BotonEnlace>
+          )
+        }
+      />
 
       {/* Aviso de desactualizado (Esp. 04, §5.3, CA-04-10) */}
       {!esHistorico && desactualizado ? (
         <section
           role="status"
-          className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-[28px] border-2 border-[#f3d3a3] bg-[#fff3df] p-5 sm:flex-row sm:items-center sm:justify-between"
         >
-          <p className="text-sm font-medium text-amber-950">
-            ⚠️ Este diagnóstico es del <strong>{fechaTexto}</strong>. La finca cambió después:
-            actualizalo para ver el estado actual.
+          <p className="flex items-start gap-2.5 text-[#7a4100]">
+            <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>
+              Cambiaste tu finca después de este diagnóstico. <strong>Actualizalo</strong> para ver cómo está ahora.
+            </span>
           </p>
           <div className="shrink-0">
-            <BotonSolicitarDiagnostico
-              establecimientoId={establecimientoId}
-              texto="Actualizar diagnóstico"
-              variante="alerta"
-            />
+            <BotonSolicitarDiagnostico establecimientoId={establecimientoId} texto="Actualizar diagnóstico" />
           </div>
         </section>
       ) : null}
 
-      {/* 1. Semáforo accesible (color + texto + ícono, CA-04-17) */}
-      <section className={`rounded-xl border p-4 sm:p-5 ${estilos.contenedor}`}>
-        <div className="flex flex-wrap items-center gap-3">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${estilos.insignia}`}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        {/* Columna izquierda: el resultado y los números */}
+        <div className="flex flex-col gap-5">
+          {/* 1. El resultado (color + palabras + ícono, CA-04-17) */}
+          <Tarjeta
+            titulo="Flores en tu finca"
+            extra={
+              <span className="flex items-center gap-1.5">
+                <BadgeNivelDiagnostico nivel={diagnostico.nivelRiesgo} />
+                <MasInfo sobre={`por qué el ${META_FLORES} %`}>
+                  Con al menos un {META_FLORES} % de la finca con flores y vegetación natural llegan más abejas y
+                  bichos que se comen las plagas, y mejoran las cosechas (Garibaldi y otros).
+                </MasInfo>
+              </span>
+            }
           >
-            <span aria-hidden>{iconoNivel}</span>
-            <span>Nivel {etiquetaNivel}</span>
-          </span>
-          <span className="text-lg font-bold">
-            {formatearNumeroEsAr(diagnostico.porcentajeFlores, 1, 1)} % con flores
-          </span>
-        </div>
-        <p className="mt-2.5 text-sm font-medium">{mensajeBase}</p>
-
-        {/* 2. Medidor del % con flores con marcas del 10 % y 20 % */}
-        <div className="mt-4">
-          <div
-            role="progressbar"
-            aria-valuenow={diagnostico.porcentajeFlores}
-            aria-valuemin={0}
-            aria-valuemax={20}
-            aria-label={`${formatearNumeroEsAr(diagnostico.porcentajeFlores, 1, 1)} % de 20 % recomendado`}
-            className="relative h-4 w-full overflow-hidden rounded-full bg-white/80 ring-1 ring-stone-300"
-          >
-            <div
-              className={`h-full rounded-full transition-all ${estilos.barra}`}
-              style={{ width: `${anchoBarraPct}%` }}
-            />
-            <span
-              aria-hidden
-              title="10 % (umbral moderado)"
-              className="absolute inset-y-0 w-0.5 bg-stone-700/70"
-              style={{ left: `${pos10Pct}%` }}
-            />
-            <span
-              aria-hidden
-              title="20 % recomendado"
-              className="absolute inset-y-0 w-0.5 bg-emerald-900"
-              style={{ left: `${pos20Pct}%` }}
-            />
-          </div>
-          <div className="relative mt-1.5 h-4 text-[11px] font-semibold text-stone-700">
-            <span className="absolute left-0">0 %</span>
-            <span
-              className="absolute -translate-x-1/2"
-              style={{ left: `${pos10Pct}%` }}
-            >
-              10 %
-            </span>
-            <span
-              className="absolute -translate-x-1/2 text-emerald-900"
-              style={{ left: `${pos20Pct}%` }}
-            >
-              20 % rec.
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Números (tarjetas de 2 por fila desde 360 px, Esp. 04 §6) */}
-      <section aria-labelledby="titulo-numeros-diag">
-        <h2 id="titulo-numeros-diag" className="mb-3 text-lg font-bold text-stone-900">
-          Resumen de superficies
-        </h2>
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-stone-200 bg-white p-3.5">
-            <dt className="text-xs font-medium text-stone-500">Superficie total</dt>
-            <dd className="mt-1 text-base font-bold text-stone-900">
-              {formatearNumeroEsAr(diagnostico.superficieTotalHa, 4, 1)} ha
-            </dd>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-3.5">
-            <dt className="text-xs font-medium text-stone-500">Cultivos</dt>
-            <dd className="mt-1 text-base font-bold text-stone-900">
-              {formatearNumeroEsAr(diagnostico.superficieCultivosHa, 4, 1)} ha
-            </dd>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-3.5">
-            <dt className="text-xs font-medium text-stone-500">Flores y vegetación</dt>
-            <dd className="mt-1 text-base font-bold text-purple-900">
-              {formatearNumeroEsAr(diagnostico.superficieFloresHa, 4, 1)} ha
-            </dd>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-3.5">
-            <dt className="text-xs font-medium text-stone-500">Sin asignar</dt>
-            <dd className="mt-1 text-base font-bold text-stone-800">
-              {formatearNumeroEsAr(diagnostico.superficieSinAsignarHa, 4, 1)} ha
-            </dd>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-3.5">
-            <dt className="text-xs font-medium text-stone-500">Déficit</dt>
-            <dd className="mt-1 text-base font-bold text-stone-900">
-              {formatearNumeroEsAr(diagnostico.deficitPp, 1, 1)} pp
-            </dd>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-3.5">
-            <dt className="text-xs font-medium text-stone-500">A compensar</dt>
-            <dd className="mt-1 text-base font-bold text-emerald-900">
-              {formatearNumeroEsAr(diagnostico.hectareasACompensar, 4, 1)} ha
-            </dd>
-            <p className="text-xs text-stone-500">
-              ({formatearNumeroEsAr(compensarM2, 0, 0)} m²)
+            <p className="flex items-baseline gap-2">
+              <strong className="font-titulos text-5xl font-extrabold text-bosque">
+                {formatearNumeroEsAr(diagnostico.porcentajeFlores, 1, 1)} %
+              </strong>
+              <span className="text-lg text-tinta-suave">con flores</span>
             </p>
-          </div>
-        </dl>
-      </section>
 
-      {/* 4. Áreas aptas y dibujo con superficie libre rayada (Esp. 04 §4.4 y §6) */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">
-          {diagnostico.areasAptas.esOpcional
-            ? "Si querés sumar más biodiversidad…"
-            : "Áreas aptas para intervenir"}
-        </h2>
+            {/* Barra: cuánto hay (naranja) y dónde está la meta del 20 % (marca bosque) */}
+            <div className="relative pt-6">
+              <span
+                aria-hidden="true"
+                className="absolute top-0 -translate-x-1/2 text-xs font-bold whitespace-nowrap text-bosque"
+                style={{ left: `${posMeta}%` }}
+              >
+                Meta {META_FLORES} %
+              </span>
+              <div
+                role="progressbar"
+                aria-valuenow={diagnostico.porcentajeFlores}
+                aria-valuemin={0}
+                aria-valuemax={META_FLORES}
+                aria-label={`${formatearNumeroEsAr(diagnostico.porcentajeFlores, 1, 1)} % con flores, de ${META_FLORES} % recomendado`}
+                className="h-4 overflow-hidden rounded-full bg-menta"
+              >
+                <div className="h-full rounded-full bg-naranja" style={{ width: `${anchoBarra}%` }} />
+              </div>
+              <span
+                aria-hidden="true"
+                className="absolute top-5 bottom-[-4px] w-[3px] -translate-x-1/2 rounded-full bg-bosque"
+                style={{ left: `${posMeta}%` }}
+              />
+            </div>
 
-        <ul className="list-disc space-y-1.5 pl-5 text-sm text-stone-700">
-          {diagnostico.areasAptas.textos.map((texto) => (
-            <li key={texto}>{texto}</li>
-          ))}
-        </ul>
+            <p className="font-titulos text-xl font-bold text-bosque">
+              {llegaALaMeta
+                ? "Tu finca ya tiene las flores recomendadas."
+                : `Te faltan ${ha(diagnostico.hectareasACompensar)} de flores para llegar a la meta.`}
+            </p>
 
-        {diagnostico.perimetroM !== null ? (
-          <p className="text-xs text-stone-500">
-            Perímetro estimado del contorno: {formatearNumeroEsAr(diagnostico.perimetroM, 1, 1)} m.
-          </p>
-        ) : null}
+            {!esHistorico ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <BotonEnlace href={`${rutaFinca}/propuestas/nueva`}>
+                  {llegaALaMeta ? "Ver ideas para sumar más flores" : "Ver cómo sumar flores"}
+                </BotonEnlace>
+                <BotonEnlace href={`${rutaFinca}/propuestas`} variante="texto">
+                  Propuestas guardadas
+                </BotonEnlace>
+              </div>
+            ) : null}
+          </Tarjeta>
 
-        {diagnostico.entrada.metodo !== "cuestionario" ? (
-          <VistaPreviaDibujo
-            metodo={diagnostico.entrada.metodo}
-            superficieTotalHa={diagnostico.superficieTotalHa}
-            contorno={diagnostico.entrada.contorno ?? null}
-            sectores={diagnostico.entrada.sectores}
-            superficieLibre={diagnostico.superficieLibre}
-          />
-        ) : null}
-      </section>
+          {/* 2. Solo 3 números a la vista (Esp. 04 §6); el resto, en «Ver más números» */}
+          <Tarjeta titulo="Tu superficie">
+            <dl className="grid grid-cols-3 gap-3">
+              {[
+                { titulo: "Total", valor: ha(diagnostico.superficieTotalHa) },
+                { titulo: "Cultivos", valor: ha(diagnostico.superficieCultivosHa) },
+                { titulo: "Flores", valor: ha(diagnostico.superficieFloresHa) },
+              ].map((dato) => (
+                <div key={dato.titulo} className="flex flex-col gap-0.5 rounded-2xl bg-papel px-3 py-3">
+                  <dt className="text-sm font-semibold text-tinta-suave">{dato.titulo}</dt>
+                  <dd className="font-titulos text-xl font-bold text-bosque">{dato.valor}</dd>
+                </div>
+              ))}
+            </dl>
+            <Desplegable pregunta="Ver más números">
+              <dl className="flex flex-col divide-y-[1.5px] divide-borde">
+                <div className="flex items-baseline justify-between gap-3 py-2">
+                  <dt>Sin cargar (ni cultivo ni flores)</dt>
+                  <dd className="font-semibold text-tinta">{ha(diagnostico.superficieSinAsignarHa)}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3 py-2">
+                  <dt>Flores que faltan para el {META_FLORES} %</dt>
+                  <dd className="text-right font-semibold text-tinta">
+                    {ha(diagnostico.hectareasACompensar)}
+                    <span className="block text-sm font-normal text-tinta-suave">
+                      {formatearNumeroEsAr(compensarM2, 0, 0)} m²
+                    </span>
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3 py-2">
+                  <dt>Diferencia con la meta</dt>
+                  <dd className="font-semibold text-tinta">
+                    {formatearNumeroEsAr(diagnostico.deficitPp, 1, 1)} puntos
+                  </dd>
+                </div>
+                {diagnostico.perimetroM !== null ? (
+                  <div className="flex items-baseline justify-between gap-3 py-2">
+                    <dt>Borde de la finca (aproximado)</dt>
+                    <dd className="font-semibold text-tinta">
+                      {formatearNumeroEsAr(diagnostico.perimetroM, 0, 0)} m
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            </Desplegable>
+          </Tarjeta>
+        </div>
 
-      {/* 5. Alertas (si hay, Esp. 04 §4.5) */}
+        {/* Columna derecha: dónde poner las flores (Esp. 04 §4.4 y §6) */}
+        <Tarjeta
+          titulo={diagnostico.areasAptas.esOpcional ? "Si querés sumar más flores" : "Dónde podés sumar flores"}
+        >
+          <ul className="flex flex-col gap-2.5 text-tinta">
+            {diagnostico.areasAptas.textos.map((texto) => (
+              <li key={texto} className="flex items-start gap-2.5">
+                <IconoFlor className="mt-0.5 h-5 w-5 shrink-0 text-hoja" />
+                {texto}
+              </li>
+            ))}
+          </ul>
+          {diagnostico.entrada.metodo !== "cuestionario" ? (
+            <VistaPreviaDibujo
+              metodo={diagnostico.entrada.metodo}
+              superficieTotalHa={diagnostico.superficieTotalHa}
+              contorno={diagnostico.entrada.contorno ?? null}
+              sectores={diagnostico.entrada.sectores}
+              superficieLibre={diagnostico.superficieLibre}
+              claseAlto="h-64 sm:h-80"
+              cuadrada
+            />
+          ) : null}
+        </Tarjeta>
+      </div>
+
+      {/* 3. Lo que conviene revisar (Esp. 04 §4.5) */}
       {diagnostico.alertas.length > 0 ? (
-        <section aria-labelledby="titulo-alertas" className="flex flex-col gap-3">
-          <h2 id="titulo-alertas" className="text-lg font-bold text-stone-900">
-            Alertas ({diagnostico.alertas.length})
-          </h2>
-          <ul className="flex flex-col gap-2.5">
+        <Tarjeta titulo="Para revisar">
+          <ul className="grid gap-3 md:grid-cols-2">
             {diagnostico.alertas.map((alerta, i) => {
               const { titulo, descripcion } = construirTextoAlerta(alerta);
               return (
-                <li
-                  key={`${alerta.tipo}-${i}`}
-                  className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5"
-                >
-                  <p className="text-sm font-bold text-amber-950">⚠️ {titulo}</p>
-                  <p className="mt-1 text-xs text-stone-700">{descripcion}</p>
+                <li key={`${alerta.tipo}-${i}`} className="flex items-start gap-3 rounded-2xl bg-[#fff3df] p-4">
+                  <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0 text-[#7a4100]" />
+                  <div className="flex flex-col gap-1">
+                    <p className="font-bold text-[#7a4100]">{titulo}</p>
+                    <p className="text-[0.95rem] text-tinta">{descripcion}</p>
+                  </div>
                 </li>
               );
             })}
           </ul>
-        </section>
+        </Tarjeta>
       ) : null}
 
-      {/* 6. Beneficios en palabras (Esp. 04 §4.6, RN-07) */}
-      <section className="rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">Beneficios de sumar flores y bordes</h2>
-        <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {BENEFICIOS_DIAGNOSTICO.items.map((item) => (
-            <li key={item.titulo} className="rounded-lg border border-stone-100 bg-stone-50 p-3">
-              <p className="text-sm font-bold text-emerald-900">{item.titulo}</p>
-              <p className="mt-1 text-xs text-stone-700">{item.texto}</p>
-            </li>
-          ))}
+      {/* 4. Beneficios en palabras (Esp. 04 §4.6, RN-07) */}
+      <Tarjeta titulo="Qué ganás sumando flores" tono="menta">
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {BENEFICIOS_DIAGNOSTICO.items.map((item, i) => {
+            const Icono = ICONOS_BENEFICIOS[i] ?? IconoFlor;
+            return (
+              <li key={item.titulo} className="flex flex-col gap-2 rounded-2xl bg-white p-4">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-menta text-hoja">
+                  <Icono className="h-5 w-5" />
+                </span>
+                <p className="font-bold text-bosque">{item.titulo}</p>
+                <p className="text-[0.95rem] text-tinta-suave">{item.texto}</p>
+              </li>
+            );
+          })}
         </ul>
-        <p className="mt-3 text-xs text-stone-500">{BENEFICIOS_DIAGNOSTICO.fuente}</p>
-      </section>
+        <p className="text-sm text-tinta-suave">{BENEFICIOS_DIAGNOSTICO.fuente}</p>
+      </Tarjeta>
 
-      {/* 7. Cómo se calculó (plegable, CA-04-12, RN-07) */}
-      <details className="rounded-xl border border-stone-200 bg-white p-4">
-        <summary className="cursor-pointer text-sm font-bold text-stone-900">
-          Cómo se calculó este diagnóstico
-        </summary>
-        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-xs text-stone-700">
+      {/* 5. Cómo se calculó (plegable, CA-04-12, RN-07) */}
+      <Desplegable pregunta="¿Cómo se calculó este diagnóstico?">
+        <ol className="flex list-decimal flex-col gap-1.5 pl-5">
           {pasosCalculo.map((paso) => (
             <li key={paso}>{paso}</li>
           ))}
         </ol>
-      </details>
-
-      {/* 8. Acciones finales (Esp. 04 §5.2, activado en Esp. 05 §6.1) */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-stone-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/fincas/${establecimientoId}/propuestas/nueva`}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            🌼 Ver propuesta de rediseño
-          </Link>
-          <Link
-            href={`/fincas/${establecimientoId}/propuestas`}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100"
-          >
-            Guardadas
-          </Link>
-        </div>
-
-        <Link
-          href={`/fincas/${establecimientoId}/diagnostico/historial`}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-700 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-        >
-          Historial de diagnósticos →
-        </Link>
-      </section>
+      </Desplegable>
     </div>
   );
 }

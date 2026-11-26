@@ -1,87 +1,156 @@
 "use client";
 
-// Botones cliente para marcar como Elegida o Borrar una propuesta con confirmación (Esp. 05 §6.2).
+// Acciones de una propuesta guardada (Esp. 05 §6.2), con el mismo estilo que la ficha de la finca:
+// - <BotonElegirPropuesta>: «Usar esta propuesta» (la marca como Elegida). Es la acción principal cuando la
+//   propuesta todavía no está elegida.
+// - <MenuMasPropuesta>: botón «Más» con lo que se usa poco: elegirla, duplicarla y borrarla. Borrar va
+//   escondido acá (y pide confirmación) para que no se toque sin querer.
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
   borrarPropuestaAccion,
   marcarPropuestaElegidaAccion,
 } from "@/app/fincas/[id]/propuestas/acciones";
+import { clasesBoton, type VarianteBoton } from "@/componentes/ui/boton";
 
 interface Props {
   establecimientoId: string;
   propuestaId: string;
   elegida: boolean;
-  compacto?: boolean;
 }
 
-export function AccionesPropuesta({
+export function BotonElegirPropuesta({
+  establecimientoId,
+  propuestaId,
+  variante = "principal",
+}: Omit<Props, "elegida"> & { variante?: VarianteBoton }) {
+  const [pendiente, iniciarTransicion] = useTransition();
+  return (
+    <button
+      type="button"
+      disabled={pendiente}
+      onClick={() =>
+        iniciarTransicion(async () => {
+          await marcarPropuestaElegidaAccion(establecimientoId, propuestaId);
+        })
+      }
+      className={clasesBoton(variante)}
+    >
+      {pendiente ? "Guardando…" : "Usar esta propuesta"}
+    </button>
+  );
+}
+
+export function MenuMasPropuesta({
   establecimientoId,
   propuestaId,
   elegida,
-  compacto = false,
-}: Props) {
+  /** En la lista el botón es más chico, para que la tarjeta no quede alta. */
+  chico = false,
+}: Props & { chico?: boolean }) {
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
   const [pendiente, iniciarTransicion] = useTransition();
 
-  function marcarElegida() {
-    iniciarTransicion(async () => {
-      await marcarPropuestaElegidaAccion(establecimientoId, propuestaId);
-    });
-  }
-
-  function confirmarBorrado() {
-    iniciarTransicion(async () => {
-      await borrarPropuestaAccion(establecimientoId, propuestaId);
-    });
-  }
+  const opcion =
+    "flex min-h-12 w-full items-center rounded-2xl px-4 text-left font-semibold";
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {!elegida ? (
-        <button
-          type="button"
-          disabled={pendiente}
-          onClick={marcarElegida}
-          className={`inline-flex items-center justify-center rounded-lg border border-emerald-700 bg-white font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50 ${
-            compacto ? "min-h-10 px-3 py-1.5 text-xs" : "min-h-11 px-4 py-2 text-sm"
-          }`}
-        >
-          {pendiente ? "Guardando…" : "Marcar como elegida"}
-        </button>
-      ) : null}
+    <div className="relative">
+      <button
+        type="button"
+        aria-expanded={menuAbierto}
+        onClick={() => setMenuAbierto((abierto) => !abierto)}
+        className={`${clasesBoton("contorno")} ${chico ? "min-h-10 px-4" : ""}`}
+      >
+        Más
+      </button>
 
-      {!confirmandoBorrado ? (
-        <button
-          type="button"
-          disabled={pendiente}
-          onClick={() => setConfirmandoBorrado(true)}
-          className={`inline-flex items-center justify-center rounded-lg border border-red-200 bg-white font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 ${
-            compacto ? "min-h-10 px-3 py-1.5 text-xs" : "min-h-11 px-4 py-2 text-sm"
-          }`}
-        >
-          Borrar
-        </button>
-      ) : (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs">
-          <span className="font-semibold text-red-900">¿Seguro?</span>
+      {menuAbierto ? (
+        <div className="absolute right-0 z-20 mt-2 w-60 rounded-3xl border-[1.5px] border-borde bg-white p-2 shadow-suave">
+          {!elegida ? (
+            <button
+              type="button"
+              disabled={pendiente}
+              onClick={() => {
+                setMenuAbierto(false);
+                iniciarTransicion(async () => {
+                  await marcarPropuestaElegidaAccion(
+                    establecimientoId,
+                    propuestaId,
+                  );
+                });
+              }}
+              className={`${opcion} text-tinta hover:bg-menta`}
+            >
+              Usar esta propuesta
+            </button>
+          ) : null}
+          <Link
+            href={`/fincas/${establecimientoId}/propuestas/nueva?desde=${propuestaId}`}
+            className={`${opcion} text-tinta hover:bg-menta`}
+          >
+            Duplicar y editar
+          </Link>
+          <hr className="my-1 border-borde" />
           <button
             type="button"
-            disabled={pendiente}
-            onClick={confirmarBorrado}
-            className="rounded-md bg-red-700 px-2.5 py-1 font-semibold text-white hover:bg-red-800 disabled:opacity-50"
+            onClick={() => {
+              setMenuAbierto(false);
+              setConfirmandoBorrado(true);
+            }}
+            className={`${opcion} text-error hover:bg-error-claro`}
           >
-            Sí, borrar
-          </button>
-          <button
-            type="button"
-            disabled={pendiente}
-            onClick={() => setConfirmandoBorrado(false)}
-            className="rounded-md border border-stone-300 bg-white px-2.5 py-1 font-semibold text-stone-700 hover:bg-stone-50"
-          >
-            Cancelar
+            Borrar propuesta
           </button>
         </div>
-      )}
+      ) : null}
+
+      {/* Confirmación de borrado (mismo cartel que en la ficha) */}
+      {confirmandoBorrado ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`titulo-borrar-${propuestaId}`}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bosque/60 p-4"
+        >
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-white p-6 shadow-suave">
+            <h2
+              id={`titulo-borrar-${propuestaId}`}
+              className="text-xl font-bold text-bosque"
+            >
+              ¿Borrar esta propuesta?
+            </h2>
+            <p className="text-tinta-suave">
+              {elegida
+                ? "Es la propuesta elegida: el calendario y los informes van a quedar sin propuesta hasta que elijas otra."
+                : "No se puede deshacer."}
+            </p>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={pendiente}
+                onClick={() => setConfirmandoBorrado(false)}
+                className={clasesBoton("texto")}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={pendiente}
+                onClick={() =>
+                  iniciarTransicion(async () => {
+                    await borrarPropuestaAccion(establecimientoId, propuestaId);
+                  })
+                }
+                className={clasesBoton("peligro")}
+              >
+                {pendiente ? "Borrando…" : "Sí, borrar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

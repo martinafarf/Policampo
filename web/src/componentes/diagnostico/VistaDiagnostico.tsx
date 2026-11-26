@@ -17,10 +17,10 @@ import {
 import type { DiagnosticoNormalizado } from "@/dominio/diagnostico/entrada";
 import { hectareasAMetrosCuadrados } from "@/dominio/establecimientos";
 import { VistaPreviaDibujo } from "@/app/fincas/[id]/VistaPreviaDibujo";
-import { IconoAlerta, IconoChevron, IconoFlor, IconoLupa, IconoOk } from "@/componentes/marca/Iconos";
+import { IconoAlerta, IconoFlor, IconoLupa, IconoOk } from "@/componentes/marca/Iconos";
 import { BotonEnlace } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
-import { Desplegable, MasInfo } from "@/componentes/ui/mas-info";
+import { Desplegable, DesplegableAtencion, MasInfo } from "@/componentes/ui/mas-info";
 import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { BadgeNivelDiagnostico } from "./BadgeNivelDiagnostico";
 import { BotonSolicitarDiagnostico } from "./BotonSolicitarDiagnostico";
@@ -226,16 +226,10 @@ export function VistaDiagnostico({
             </Desplegable>
           </Tarjeta>
 
-          {/* 3. Lo que conviene revisar (Esp. 04 §4.5): cerrado, con la cantidad a la vista. Mismo formato que
-              un Desplegable, pero en el tono de "atención" (naranja suave) para que se note que hay algo para ver. */}
+          {/* 3. Lo que conviene revisar (Esp. 04 §4.5): cerrado, con la cantidad a la vista */}
           {diagnostico.alertas.length > 0 ? (
-            <details className="group rounded-2xl border-[1.5px] border-[#f3d3a3] bg-[#fff3df]">
-              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-2xl px-4 font-semibold text-[#7a4100] hover:bg-[#ffe9c7] [&::-webkit-details-marker]:hidden">
-                <IconoAlerta className="h-5 w-5 shrink-0" />
-                <span className="flex-1">Para revisar ({diagnostico.alertas.length})</span>
-                <IconoChevron className="h-5 w-5 shrink-0 transition-transform group-open:rotate-90" />
-              </summary>
-              <ul className="flex flex-col gap-3 px-4 pt-1 pb-4">
+            <DesplegableAtencion titulo={`Para revisar (${diagnostico.alertas.length})`}>
+              <ul className="flex flex-col gap-3">
                 {diagnostico.alertas.map((alerta, i) => {
                   const { titulo, descripcion } = construirTextoAlerta(alerta);
                   return (
@@ -246,7 +240,7 @@ export function VistaDiagnostico({
                   );
                 })}
               </ul>
-            </details>
+            </DesplegableAtencion>
           ) : null}
         </div>
 

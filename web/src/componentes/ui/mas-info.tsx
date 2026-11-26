@@ -14,7 +14,7 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { IconoChevron, IconoInfo } from "@/componentes/marca/Iconos";
+import { IconoAlerta, IconoChevron, IconoInfo } from "@/componentes/marca/Iconos";
 
 export function Desplegable({
   pregunta,
@@ -34,6 +34,23 @@ export function Desplegable({
         <IconoChevron className="h-5 w-5 shrink-0 transition-transform group-open:rotate-90" />
       </summary>
       <div className="px-4 pt-1 pb-4 text-[0.95rem] text-tinta-suave">{children}</div>
+    </details>
+  );
+}
+
+/**
+ * Como <Desplegable>, pero en el tono de "atención" (naranja suave) y con la cantidad a la vista:
+ * «Para revisar (3)». Para avisos que conviene leer pero que no tienen que ocupar la pantalla.
+ */
+export function DesplegableAtencion({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <details className="group rounded-2xl border-[1.5px] border-[#f3d3a3] bg-[#fff3df]">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-2xl px-4 font-semibold text-[#7a4100] hover:bg-[#ffe9c7] [&::-webkit-details-marker]:hidden">
+        <IconoAlerta className="h-5 w-5 shrink-0" />
+        <span className="flex-1">{titulo}</span>
+        <IconoChevron className="h-5 w-5 shrink-0 transition-transform group-open:rotate-90" />
+      </summary>
+      <div className="px-4 pt-1 pb-4">{children}</div>
     </details>
   );
 }

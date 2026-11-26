@@ -106,6 +106,11 @@ export function useBorradorFinca<T>({
       if (guardado) {
         ultimoSerializadoGuardadoRef.current = serializadoActualRef.current;
         setUltimoAutoguardado(guardado.guardadoEn);
+        // El borrador que acabamos de escribir es de ESTA sesión, no uno que quedó de antes. Sin esto, la
+        // lectura de localStorage lo veía como "borrador pendiente" y el aviso "tenés cambios sin guardar"
+        // aparecía a los 5 segundos de tocar cualquier cosa. El aviso es solo para cuando se vuelve a la
+        // pantalla después de haberla dejado sin guardar.
+        setDecisionTomada(true);
       }
     }, INTERVALO_AUTOGUARDADO_MS);
 

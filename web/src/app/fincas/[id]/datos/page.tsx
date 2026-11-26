@@ -1,10 +1,12 @@
 // Ruta /fincas/[id]/datos: editar los datos generales del establecimiento (Esp. 02, 6.1).
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { requerirUsuario } from "@/lib/sesion";
 import { obtenerEstablecimientoDelUsuario } from "../../_lib/consultas";
 import { FormularioDatosGenerales } from "./FormularioDatosGenerales";
+
+export const metadata = { title: "Editar los datos de tu finca · PoliCampo" };
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -21,16 +23,13 @@ async function ContenidoEditarDatos({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav aria-label="Ruta de navegación" className="text-sm">
-        <Link href={`/fincas/${finca.id}`} className="font-semibold text-emerald-800 hover:underline">
-          ← Volver a la ficha
-        </Link>
-      </nav>
-
-      <div>
-        <h1 className="text-2xl font-bold text-stone-900">Editar datos generales</h1>
-        <p className="mt-1 text-sm text-stone-600">{finca.nombre}</p>
-      </div>
+      <EncabezadoPagina
+        migas={[
+          { texto: "Mis fincas", href: "/fincas" },
+          { texto: finca.nombre, href: `/fincas/${finca.id}` },
+        ]}
+        titulo="Editar los datos de tu finca"
+      />
 
       <FormularioDatosGenerales
         establecimientoId={finca.id}
@@ -52,8 +51,8 @@ async function ContenidoEditarDatos({ params }: Props) {
 
 export default function PaginaEditarDatos(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando datos de la finca…</p>}>
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando los datos de tu finca…</p>}>
         <ContenidoEditarDatos params={props.params} />
       </Suspense>
     </main>

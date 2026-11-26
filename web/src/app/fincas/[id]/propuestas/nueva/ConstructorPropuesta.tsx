@@ -3,12 +3,22 @@
 // Constructor interactivo de propuestas de rediseño (Esp. 05 §6.1, §7, CA-05-06, 07, 14, 15, 21).
 // Incluye ajuste de objetivo (10–40 %), comparador de alternativas, parámetros de disposición,
 // ajuste de reparto (cuestionario), cambio de especies candidatas y borrador local (RS-08).
-import { useMemo, useState, useTransition } from "react";
+//
+// Se arma en 2 pasos (Dónde van las flores, con la meta arriba → Plantas) y Guardar, con flechas naranjas arriba
+// como en el mapa. Al costado queda siempre un resumen («Tu propuesta») con el dibujo chico, los números y «Guardar».
+import { useMemo, useRef, useState, useTransition } from "react";
 import type { SectorDibujable } from "@/app/fincas/[id]/VistaPreviaDibujo";
+import { IconoAlerta, IconoFlecha, IconoMas, IconoOk } from "@/componentes/marca/Iconos";
 import { EsquemaCuestionario3x3 } from "@/componentes/propuesta/EsquemaCuestionario3x3";
 import { GraficoFloracionSemanas } from "@/componentes/propuesta/GraficoFloracionSemanas";
 import { TarjetaEspecieMezcla } from "@/componentes/propuesta/TarjetaEspecieMezcla";
 import { VistaDibujoPropuesta } from "@/componentes/propuesta/VistaDibujoPropuesta";
+import { clasesBoton } from "@/componentes/ui/boton";
+import { Etiqueta } from "@/componentes/ui/etiqueta";
+import { Aviso } from "@/componentes/ui/formulario";
+import { Desplegable, DesplegableAtencion } from "@/componentes/ui/mas-info";
+import { Pasos, type EstadoPaso, type PasoDeProceso } from "@/componentes/ui/pasos";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { formatearNumeroEsAr } from "@/dominio/diagnostico";
 import type {
   MetodoCaracterizacion,
@@ -52,6 +62,8 @@ interface Props {
   disposicionInicial?: DisposicionPropuesta;
   respetarCultivosInicial?: boolean;
   especiesInicialesIds?: readonly string[];
+  /** En qué paso se abre (2 = Plantas, cuando se viene a completar las plantas de una propuesta). */
+  pasoInicial?: 1 | 2;
 }
 
 function claveBorrador(establecimientoId: string) {
@@ -75,6 +87,7 @@ export function ConstructorPropuesta({
   disposicionInicial,
   respetarCultivosInicial = false,
   especiesInicialesIds,
+  pasoInicial = 1,
 }: Props) {
   const [objetivoPct, setObjetivoPct] = useState<number>(objetivoInicialPct);
   const [respetarCultivos, setRespetarCultivos] = useState<boolean>(respetarCultivosInicial);
@@ -273,6 +286,10 @@ export function ConstructorPropuesta({
 
   function alGuardar(e: React.FormEvent) {
     e.preventDefault();
+    if (paso !== 2) {
+      irAPaso(2);
+      return;
+    }
     setErrores([]);
 
     if (metodo === "cuestionario" && !validacionReparto.valido) {
@@ -307,436 +324,614 @@ export function ConstructorPropuesta({
     (c) => !plantaIdsSeleccionadas.includes(c.plantaId),
   );
 
-  return (
-    <form onSubmit={alGuardar} className="flex flex-col gap-6">
-      {/* 1. Objetivo ajustable (10 % a 40 %, CA-05-06) */}
-      <section className="rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-bold text-stone-900">1. Objetivo de superficie con flores</h2>
-            <p className="text-xs text-stone-600">
-              Por defecto 20 % recomendado (RN-01). Podés ajustarlo entre 10 % y 40 %.
-            </p>
-          </div>
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-900">
-            Objetivo: {formatearNumeroEsAr(objetivoPct, 1, 0)} %
-          </span>
-        </div>
+  // ── Pasos (como en el mapa): se ve un paso por vez para no abrumar; el resumen con «Guardar» queda siempre al
+  //    costado. Son pocos a propósito (la meta y el lugar van juntos) para que no sea engorroso. Todos traen valores
+  //    recomendados, así que se puede guardar en cualquier momento.
+  const [paso, setPaso] = useState<1 | 2>(pasoInicial);
 
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <input
-            type="range"
-            aria-label="Porcentaje objetivo de flores"
-            min={LIMITES_PROPUESTA.objetivoMinPct}
-            max={LIMITES_PROPUESTA.objetivoMaxPct}
-            step={1}
-            value={objetivoPct}
-            onChange={(e) => setObjetivoPct(Number(e.target.value))}
-            className="h-2 min-w-44 flex-1 accent-emerald-700"
-          />
-          <button
-            type="button"
-            disabled={pendienteCalc}
-            onClick={() => aplicarObjetivo(objetivoPct)}
-            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-emerald-700 px-3.5 py-1.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
-          >
-            {pendienteCalc ? "Recalculando…" : "Aplicar objetivo"}
-          </button>
-        </div>
+  function irAPaso(nuevo: 1 | 2 | 3) {
+    if (nuevo === 3) {
+      // «Guardar»: el botón está en el paso «Plantas»; se pasa ahí (si hace falta) y se lleva la vista al botón
+      setPaso(2);
+      window.setTimeout(() => {
+        const boton = document.querySelector<HTMLElement>("[data-guardar-propuesta]");
+        boton?.scrollIntoView({ block: "center", behavior: "smooth" });
+        boton?.focus();
+      }, 50);
+      return;
+    }
+    setPaso(nuevo);
+    document.getElementById("pasos-propuesta")?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
 
-        <p className="mt-2 text-xs text-stone-600">
-          Flores actuales: <strong>{formatearNumeroEsAr(superficieFloresActualHa, 4, 1)} ha</strong>{" "}
-          · Superficie nueva a agregar:{" "}
-          <strong>{formatearNumeroEsAr(superficieAAgregarHa, 4, 1)} ha</strong>
+  // Orden fijo del carrusel (el mismo siempre, para que la persona se ubique). La «Recomendada» sigue siendo la
+  // que menos le quita a los cultivos: la primera que devuelve el cálculo.
+  const ORDEN_CARRUSEL: readonly DisposicionPropuesta[] = ["perimetral", "superficie_libre", "matriz", "islas", "transversal"];
+  const alternativasEnOrden = [...alternativas].sort(
+    (a, b) => ORDEN_CARRUSEL.indexOf(a.disposicion) - ORDEN_CARRUSEL.indexOf(b.disposicion),
+  );
+  const disposicionRecomendada = alternativas[0]?.disposicion;
+
+  // Carrusel de alternativas: ‹ › mueven una tarjeta por vez y se apagan en los extremos.
+  const carruselRef = useRef<HTMLDivElement | null>(null);
+  const [puedeIzquierda, setPuedeIzquierda] = useState(false);
+  const [puedeDerecha, setPuedeDerecha] = useState(true);
+
+  function actualizarFlechas() {
+    const c = carruselRef.current;
+    if (!c) return;
+    setPuedeIzquierda(c.scrollLeft > 4);
+    setPuedeDerecha(c.scrollLeft + c.clientWidth < c.scrollWidth - 4);
+  }
+
+  function moverCarrusel(direccion: 1 | -1) {
+    const c = carruselRef.current;
+    const tarjeta = c?.firstElementChild as HTMLElement | null;
+    if (!c || !tarjeta) return;
+    c.scrollBy({ left: direccion * (tarjeta.offsetWidth + 12), behavior: "smooth" });
+  }
+
+  const estadoDe = (n: number): EstadoPaso => (n === paso ? "actual" : n < paso ? "hecho" : "pendiente");
+  const pasos: PasoDeProceso[] = [
+    { titulo: "Dónde van las flores", estado: estadoDe(1), onClick: () => irAPaso(1) },
+    { titulo: "Plantas", estado: estadoDe(2), onClick: () => irAPaso(2) },
+    { titulo: "Guardar", estado: "pendiente", onClick: () => irAPaso(3) },
+  ];
+
+  // Números del resumen: los de la alternativa elegida (o del reparto, en el cuestionario)
+  const porcentajeResumen =
+    metodo === "cuestionario"
+      ? (propCuestionario?.porcentajeLogrado ?? objetivoPct)
+      : (alternativaActual?.porcentajeLogrado ?? objetivoPct);
+  const floresNuevasResumen =
+    metodo === "cuestionario" ? superficieAAgregarHa : (alternativaActual?.superficieFranjasHa ?? 0);
+  const leQuitaResumen = metodo === "cuestionario" ? 0 : (alternativaActual?.perdidaTotalCultivoHa ?? 0);
+
+  const ha = (valor: number) => `${formatearNumeroEsAr(valor, 2, 0)} ha`;
+
+  /** Botón para pasar al paso que sigue, al final de cada paso. */
+  function botonSiguiente(a: 2, texto: string) {
+    return (
+      <div className="flex justify-end border-t-[1.5px] border-borde pt-4">
+        <button type="button" onClick={() => irAPaso(a)} className={clasesBoton("principal")}>
+          {texto}
+          <IconoFlecha className="h-5 w-5" />
+        </button>
+      </div>
+    );
+  }
+
+  // Meta de flores (10 % a 40 %, CA-05-06): compacta, arriba del lugar donde van. Se recalcula al soltar el control.
+  // El control tiene una escala de colores para que se entienda sin leer: rojo = poco, naranja = casi,
+  // verde = lo recomendado o más. El número y la etiqueta toman el color de donde está parado.
+  const { objetivoMinPct: minMeta, objetivoMaxPct: maxMeta, objetivoRecomendadoPct: recomendada } = LIMITES_PROPUESTA;
+  const umbralCasi = recomendada - 5; // desde acá ya no es "poco"
+  const posicion = (pct: number) => ((pct - minMeta) / (maxMeta - minMeta)) * 100; // % del ancho del control
+  const nivelMeta =
+    objetivoPct < umbralCasi
+      ? { tono: "error" as const, texto: "Poco", color: "text-error" }
+      : objetivoPct < recomendada
+        ? { tono: "atencion" as const, texto: "Casi", color: "text-naranja-oscuro" }
+        : { tono: "listo" as const, texto: objetivoPct === recomendada ? "Recomendado" : "Muy bien", color: "text-hoja" };
+  // Rojo → naranja → verde: el naranja justo en el "casi" y el verde desde lo recomendado
+  const escalaColores = `linear-gradient(to right, #d92d20 0%, #ff9900 ${posicion(umbralCasi)}%, #ff9900 ${posicion(recomendada - 1)}%, #597931 ${posicion(recomendada)}%, #597931 100%)`;
+
+  const bloqueMeta = (
+    <div className="flex flex-col gap-2.5 rounded-2xl bg-papel p-4">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="font-semibold text-tinta">Meta:</span>
+        <strong className={`font-titulos text-3xl font-extrabold ${nivelMeta.color}`}>
+          {formatearNumeroEsAr(objetivoPct, 0, 0)} %
+        </strong>
+        <span className="text-tinta-suave">de tu finca con flores</span>
+        <Etiqueta tono={nivelMeta.tono}>{nivelMeta.texto}</Etiqueta>
+        <span className="ml-auto text-sm text-tinta-suave">
+          {pendienteCalc
+            ? "Calculando…"
+            : `Ya tenés ${ha(superficieFloresActualHa)} · hay que sumar ${ha(superficieAAgregarHa)}`}
+        </span>
+      </p>
+      {/* Control con la escala pintada en la barra y una bolita blanca para arrastrar (grande para el dedo) */}
+      <input
+        type="range"
+        aria-label="Porcentaje de la finca con flores"
+        aria-valuetext={`${objetivoPct} %, ${nivelMeta.texto}`}
+        min={minMeta}
+        max={maxMeta}
+        step={1}
+        value={objetivoPct}
+        onChange={(e) => setObjetivoPct(Number(e.target.value))}
+        onPointerUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
+        onKeyUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
+        style={{ background: escalaColores }}
+        className="my-1.5 h-3 w-full cursor-pointer appearance-none rounded-full [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-4 [&::-moz-range-thumb]:border-bosque [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-bosque [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-chica"
+      />
+      {/* Referencias debajo de la barra, cada una en su lugar (la del recomendado, justo debajo del 20 %) */}
+      <div aria-hidden="true" className="relative h-5 text-sm font-semibold text-tinta-suave">
+        <span className="absolute left-0">{minMeta} %</span>
+        <span
+          className="absolute -translate-x-1/2 whitespace-nowrap text-hoja"
+          style={{ left: `${posicion(recomendada)}%` }}
+        >
+          ▲ <span className="max-sm:hidden">Recomendado </span>
+          {recomendada} %
+        </span>
+        <span className="absolute right-0">{maxMeta} %</span>
+      </div>
+      {objetivoPct < recomendada ? (
+        <p role="status" className="flex items-start gap-2 text-[#7a4100]">
+          <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+          Con menos del {recomendada} % los beneficios para tus cultivos son menores.
         </p>
+      ) : null}
+    </div>
+  );
 
-        {objetivoPct < LIMITES_PROPUESTA.objetivoRecomendadoPct ? (
-          <p
-            role="status"
-            className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950"
-          >
-            ⚠️ Este objetivo está por debajo del 20 % recomendado por la bibliografía (RN-01).
-          </p>
-        ) : null}
-      </section>
+  const cajaErrores =
+    errores.length > 0 ? (
+      <Aviso tipo="error">
+        <ul className="flex flex-col gap-1">
+          {errores.map((err, i) => (
+            <li key={i}>{err}</li>
+          ))}
+        </ul>
+      </Aviso>
+    ) : null;
 
-      {/* 2. Disposición espacial (Croquis / Mapa) o Reparto (Cuestionario) */}
-      {metodo === "cuestionario" && propCuestionario ? (
-        <section className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
-          <div>
-            <h2 className="text-base font-bold text-stone-900">
-              2. Disposición sugerida: {propCuestionario.tituloDisposicion}
-            </h2>
-            <p className="mt-1 text-xs text-stone-600">
-              Porcentaje logrado: <strong>{formatearNumeroEsAr(propCuestionario.porcentajeLogrado, 1, 1)} %</strong>
-            </p>
-          </div>
+  return (
+    <form onSubmit={alGuardar} className="flex flex-col gap-5">
+      <div id="pasos-propuesta" className="scroll-mt-24">
+        <Pasos pasos={pasos} etiqueta="Pasos para armar tu propuesta" />
+      </div>
 
-          <EsquemaCuestionario3x3
-            reparto={repartoEditado}
-            ocupadasPorSectores={sectores}
-          />
+      <div
+        className={`grid items-start gap-5 ${
+          paso === 1 ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)_22rem]"
+        }`}
+      >
+        {/* ── Columna principal: el paso actual ── */}
+        <div className="flex min-w-0 flex-col gap-5">
+          {cajaErrores}
 
-          {repartoEditado.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold text-stone-700">
-                Reparto editable por ubicación (debe sumar{" "}
-                {formatearNumeroEsAr(superficieAAgregarHa, 4, 2)} ha):
+          {/* Paso 1. Cuántas flores y dónde van: alternativas (croquis / mapa) o reparto (cuestionario) */}
+          {paso === 1 && metodo === "cuestionario" && propCuestionario ? (
+            <Tarjeta titulo="¿Dónde van las flores?">
+              {bloqueMeta}
+              <p className="text-tinta-suave">
+                Te sugerimos: <strong className="text-tinta">{propCuestionario.tituloDisposicion}</strong>. Podés
+                cambiar cuántas hectáreas van en cada lugar.
               </p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {repartoEditado.map((item, idx) => (
-                  <label
-                    key={`${item.ubicacion}-${idx}`}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs"
-                  >
-                    <span className="font-medium text-stone-800">{item.etiqueta}</span>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={item.ha}
-                        onChange={(e) => actualizarHaReparto(idx, e.target.value)}
-                        className="w-20 rounded-md border border-stone-300 bg-white px-2 py-1 text-right text-sm font-semibold text-stone-900"
-                      />
-                      <span className="text-stone-500">ha</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-              {!validacionReparto.valido ? (
-                <p role="alert" className="text-xs font-medium text-red-700">
-                  {validacionReparto.error}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-        </section>
-      ) : (
-        <section className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-base font-bold text-stone-900">
-                2. Elegí una alternativa de disposición
-              </h2>
-              <p className="text-xs text-stone-600">
-                Ordenadas por menor pérdida de superficie cultivada (primero la superficie libre).
-              </p>
-            </div>
-            <label className="inline-flex cursor-pointer items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-950">
-              <input
-                type="checkbox"
-                checked={respetarCultivos}
-                disabled={pendienteCalc}
-                onChange={(e) => aplicarObjetivo(objetivoPct, e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-emerald-700"
-              />
-              <span>
-                <strong className="block">Respetar cultivos (sin superponer)</strong>
-                <span className="text-[11px] text-emerald-900/80">
-                  Las flores acompañan solo en bordes y espacios libres (0 ha cedidas).
-                </span>
-              </span>
-            </label>
-          </div>
 
-          {/* Carrusel horizontal en celular / grilla en desktop */}
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
-            {alternativas.map((alt) => {
-              const seleccionada = alt.disposicion === alternativaActual?.disposicion;
-              return (
-                <button
-                  key={alt.disposicion}
-                  type="button"
-                  onClick={() => setDisposicionElegida(alt.disposicion)}
-                  className={`flex w-64 shrink-0 flex-col gap-2 rounded-xl border p-3 text-left transition sm:w-auto ${
-                    seleccionada
-                      ? "border-emerald-700 bg-emerald-50/50 ring-2 ring-emerald-700/20"
-                      : "border-stone-200 bg-white hover:border-stone-300"
-                  }`}
-                >
-                  <VistaDibujoPropuesta
-                    metodo={metodo}
-                    superficieTotalHa={superficieTotalHa}
-                    contorno={contorno}
-                    sectores={sectores}
-                    franjas={alt.franjas}
-                    compacta
-                  />
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-sm font-bold text-stone-900">{alt.titulo}</span>
-                    {seleccionada ? (
-                      <span className="rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-bold text-white">
-                        Elegida
-                      </span>
-                    ) : null}
-                  </div>
-                  <dl className="grid grid-cols-2 gap-1 text-[11px] text-stone-600">
-                    <div>
-                      <dt>Logrado</dt>
-                      <dd className="font-bold text-stone-900">
-                        {formatearNumeroEsAr(alt.porcentajeLogrado, 1, 1)} %
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Pérdida cultivo</dt>
-                      <dd className="font-bold text-stone-900">
-                        {formatearNumeroEsAr(alt.perdidaTotalCultivoHa, 4, 2)} ha
-                      </dd>
-                    </div>
-                    {alt.anchoResultanteM !== null ? (
-                      <div className="col-span-2">
-                        <dt>Ancho estimado</dt>
-                        <dd className="font-bold text-stone-900">
-                          {formatearNumeroEsAr(alt.anchoResultanteM, 1, 1)} m
-                        </dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                </button>
-              );
-            })}
-          </div>
+              <EsquemaCuestionario3x3 reparto={repartoEditado} ocupadasPorSectores={sectores} />
 
-          {/* Detalle y ajuste de parámetros de la alternativa seleccionada */}
-          {alternativaActual ? (
-            <div className="flex flex-col gap-4 border-t border-stone-100 pt-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-base font-bold text-stone-900">
-                  Detalle: {ETIQUETAS_DISPOSICION[alternativaActual.disposicion]}
-                </h3>
-                <span className="text-xs font-semibold text-stone-600">
-                  Franjas nuevas: {formatearNumeroEsAr(alternativaActual.superficieFranjasHa, 4, 2)} ha ·
-                  Logrado: {formatearNumeroEsAr(alternativaActual.porcentajeLogrado, 1, 1)} %
-                </span>
-              </div>
-
-              {/* Parámetros ajustables según disposición */}
-              {(alternativaActual.disposicion === "transversal" ||
-                alternativaActual.disposicion === "matriz") && (
-                <div className="grid grid-cols-1 gap-3 rounded-lg border border-stone-200 bg-stone-50 p-3 sm:grid-cols-2">
-                  <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-                    Cantidad de corredores ({alternativaActual.parametros.cantidadCorredores ?? 2})
-                    <input
-                      type="range"
-                      min={LIMITES_PROPUESTA.minCorredores}
-                      max={LIMITES_PROPUESTA.maxCorredores}
-                      value={alternativaActual.parametros.cantidadCorredores ?? 2}
-                      disabled={pendienteCalc}
-                      onChange={(e) =>
-                        ajustarParametros({
-                          ...alternativaActual.parametros,
-                          cantidadCorredores: Number(e.target.value),
-                        })
-                      }
-                      className="accent-emerald-700"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-                    Ángulo ({alternativaActual.parametros.anguloGrados ?? 0}°)
-                    <input
-                      type="range"
-                      min={0}
-                      max={180}
-                      step={15}
-                      value={alternativaActual.parametros.anguloGrados ?? 0}
-                      disabled={pendienteCalc}
-                      onChange={(e) =>
-                        ajustarParametros({
-                          ...alternativaActual.parametros,
-                          anguloGrados: Number(e.target.value),
-                        })
-                      }
-                      className="accent-emerald-700"
-                    />
-                  </label>
-                </div>
-              )}
-
-              {alternativaActual.disposicion === "islas" && (
-                <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                  <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-                    Cantidad de islas ({alternativaActual.parametros.cantidadIslas ?? 4})
-                    <input
-                      type="range"
-                      min={LIMITES_PROPUESTA.minIslas}
-                      max={LIMITES_PROPUESTA.maxIslas}
-                      value={alternativaActual.parametros.cantidadIslas ?? 4}
-                      disabled={pendienteCalc}
-                      onChange={(e) =>
-                        ajustarParametros({
-                          cantidadIslas: Number(e.target.value),
-                        })
-                      }
-                      className="accent-emerald-700"
-                    />
-                  </label>
-                </div>
-              )}
-
-              <VistaDibujoPropuesta
-                metodo={metodo}
-                superficieTotalHa={superficieTotalHa}
-                contorno={contorno}
-                sectores={sectores}
-                franjas={alternativaActual.franjas}
-              />
-
-              {/* Avisos de la alternativa */}
-              {alternativaActual.avisos.length > 0 ? (
-                <ul className="space-y-1.5">
-                  {alternativaActual.avisos.map((av, i) => (
-                    <li
-                      key={`${av.codigo}-${i}`}
-                      className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950"
-                    >
-                      ⚠️ {av.mensaje}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-
-              {/* Pérdida por cultivo */}
-              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-xs">
-                <p className="font-semibold text-stone-800">Impacto sobre sectores de cultivo:</p>
-                {alternativaActual.perdidaPorCultivo.length === 0 ? (
-                  <p className="mt-1 text-emerald-800">
-                    ✓ Sin pérdida de superficie cultivada (se aprovecha superficie libre).
+              {repartoEditado.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-tinta">
+                    Hectáreas en cada lugar (tienen que sumar {ha(superficieAAgregarHa)}):
                   </p>
-                ) : (
-                  <ul className="mt-1.5 space-y-1 text-stone-700">
-                    {alternativaActual.perdidaPorCultivo.map((p, i) => (
-                      <li key={`${p.sector}-${i}`}>
-                        <strong>{p.sector}</strong> ({p.cultivo}):{" "}
-                        {formatearNumeroEsAr(p.ha, 4, 2)} ha ({formatearNumeroEsAr(p.pct, 1, 1)} %
-                        del sector)
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {repartoEditado.map((item, idx) => (
+                      <label
+                        key={`${item.ubicacion}-${idx}`}
+                        className="flex items-center justify-between gap-2 rounded-2xl border-[1.5px] border-borde bg-papel px-3 py-2"
+                      >
+                        <span className="font-semibold text-tinta">{item.etiqueta}</span>
+                        <span className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={item.ha}
+                            onChange={(e) => actualizarHaReparto(idx, e.target.value)}
+                            className="min-h-10 w-24 rounded-xl border-[1.5px] border-borde bg-white px-2 text-right font-semibold text-tinta outline-none focus:border-hoja focus:ring-4 focus:ring-naranja/45"
+                          />
+                          <span className="text-tinta-suave">ha</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {!validacionReparto.valido ? (
+                    <p role="alert" className="font-semibold text-error">
+                      {validacionReparto.error}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {botonSiguiente(2, "Siguiente: plantas")}
+            </Tarjeta>
+          ) : null}
+
+          {paso === 1 && !(metodo === "cuestionario" && propCuestionario) ? (
+            <Tarjeta titulo="¿Dónde van las flores?">
+              {bloqueMeta}
+
+              {/* Respetar cultivos: una opción grande y clara, en vez de una casilla chica */}
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border-[1.5px] p-3.5 transition ${
+                  respetarCultivos ? "border-hoja bg-menta" : "border-borde bg-white hover:bg-papel"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={respetarCultivos}
+                  disabled={pendienteCalc}
+                  onChange={(e) => aplicarObjetivo(objetivoPct, e.target.checked)}
+                  className="mt-1 h-5 w-5 shrink-0"
+                />
+                <span>
+                  <strong className="block text-bosque">No tocar mis cultivos</strong>
+                  <span className="text-[0.95rem] text-tinta-suave">
+                    Las flores van solo en los bordes y en los lugares libres.
+                  </span>
+                </span>
+              </label>
+
+              {/* Alternativas: carrusel de una fila. Se ven 1 (celular) o 2; con › se ven más formas.
+                  También se puede deslizar con el dedo. La «Recomendada» es la que menos lugar le quita a los cultivos. */}
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-semibold text-tinta">
+                  Elegí una forma{" "}
+                  <span className="font-normal text-tinta-suave">
+                    ({alternativas.length} {alternativas.length === 1 ? "opción" : "opciones"})
+                  </span>
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => moverCarrusel(-1)}
+                    disabled={!puedeIzquierda}
+                    aria-label="Ver las formas anteriores"
+                    className="grid h-11 w-11 place-items-center rounded-full border-2 border-hoja bg-white text-hoja transition hover:bg-menta disabled:cursor-not-allowed disabled:border-borde disabled:text-tinta-suave/50 disabled:hover:bg-white"
+                  >
+                    <IconoFlecha className="h-5 w-5 rotate-180" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moverCarrusel(1)}
+                    disabled={!puedeDerecha}
+                    aria-label="Ver más formas"
+                    className="grid h-11 w-11 place-items-center rounded-full border-2 border-hoja bg-hoja text-white transition hover:bg-hoja-oscura disabled:cursor-not-allowed disabled:border-borde disabled:bg-white disabled:text-tinta-suave/50"
+                  >
+                    <IconoFlecha className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+              <div
+                ref={carruselRef}
+                onScroll={actualizarFlechas}
+                className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {alternativasEnOrden.map((alt) => {
+                  const seleccionada = alt.disposicion === alternativaActual?.disposicion;
+                  return (
+                    <button
+                      key={alt.disposicion}
+                      type="button"
+                      aria-pressed={seleccionada}
+                      onClick={() => setDisposicionElegida(alt.disposicion)}
+                      className={`flex w-[85%] shrink-0 snap-start flex-col gap-2 rounded-2xl border-2 p-3 text-left transition sm:w-[calc((100%-0.75rem)/2)] ${
+                        seleccionada ? "border-naranja bg-[#fff8ec]" : "border-borde bg-white hover:border-hoja"
+                      }`}
+                    >
+                      <VistaDibujoPropuesta
+                        metodo={metodo}
+                        superficieTotalHa={superficieTotalHa}
+                        contorno={contorno}
+                        sectores={sectores}
+                        franjas={alt.franjas}
+                        compacta
+                      />
+                      <span className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-bold text-bosque">{alt.titulo}</span>
+                        {alt.disposicion === disposicionRecomendada ? (
+                          <Etiqueta tono="listo" conIcono={false}>
+                            Recomendada
+                          </Etiqueta>
+                        ) : null}
+                      </span>
+                      <span className="text-sm text-tinta-suave">
+                        Llega a <strong className="text-tinta">{formatearNumeroEsAr(alt.porcentajeLogrado, 1, 1)} %</strong>
+                        {" · "}
+                        {alt.perdidaTotalCultivoHa > 0 ? (
+                          <>
+                            le quita <strong className="text-tinta">{ha(alt.perdidaTotalCultivoHa)}</strong> a cultivos
+                          </>
+                        ) : (
+                          "no le quita a tus cultivos"
+                        )}
+                      </span>
+                      {seleccionada ? (
+                        <span className="flex items-center gap-1 text-sm font-bold text-[#7a4100]">
+                          <IconoOk className="h-4 w-4" />
+                          Elegida
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </Tarjeta>
+          ) : null}
+
+          {/* Paso 2. Plantas para sembrar (RN-08, RN-09, RN-10, CA-05-14, CA-05-15) */}
+          {paso === 2 ? (
+            <Tarjeta titulo="¿Qué plantas sembrar?">
+              <p className={`-mt-2 text-tinta-suave ${mezclaInicial.candidatasDisponibles.length === 0 ? "hidden" : ""}`}>
+                Las elegimos para tus cultivos: sirven sobre todo para{" "}
+                <strong className="text-tinta">
+                  {mezclaInicial.prioridad === "polinizadores"
+                    ? "atraer abejas y otros polinizadores"
+                    : "controlar plagas y cubrir el suelo"}
+                </strong>
+                . Podés sacar o sumar hasta {LIMITES_PROPUESTA.maxEspeciesMezcla}.
+              </p>
+
+              {mezclaInicial.avisos.length > 0 ? (
+                <DesplegableAtencion titulo={`Para revisar (${mezclaInicial.avisos.length})`}>
+                  <ul className="flex flex-col gap-3">
+                    {mezclaInicial.avisos.map((av, i) => (
+                      <li key={`${av.codigo}-${i}`} className="rounded-2xl bg-white p-3.5 text-[0.95rem] text-tinta">
+                        {av.mensaje}
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
-            </div>
-          ) : null}
-        </section>
-      )}
+                </DesplegableAtencion>
+              ) : null}
 
-      {/* 3. Mezcla de plantas de servicio (RN-08, RN-09, RN-10, CA-05-14, CA-05-15) */}
-      <section className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-bold text-stone-900">
-              3. Mezcla de plantas de servicio recomendada
-            </h2>
-            <p className="text-xs text-stone-600">
-              Prioridad:{" "}
-              <strong>
-                {mezclaInicial.prioridad === "polinizadores"
-                  ? "Atraer polinizadores (floración obligatoria)"
-                  : "Control biológico y cobertura de suelo"}
-              </strong>
-            </p>
-          </div>
-          <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
-            {especiesActivas.length}{" "}
-            {especiesActivas.length === 1 ? "especie" : "especies"}
-          </span>
+              {especiesActivas.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                  {especiesActivas.map((esp) => (
+                    <div key={esp.plantaId} className="flex flex-col gap-1.5">
+                      <TarjetaEspecieMezcla especie={esp} />
+                      {especiesActivas.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => alternarEspecie(esp.plantaId)}
+                          className={`${clasesBoton("texto")} min-h-10 self-end text-error hover:bg-error-claro hover:text-error`}
+                        >
+                          Sacar esta planta
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-2xl bg-papel p-4 text-tinta-suave">
+                  Todavía no hay plantas cargadas en el catálogo para tus cultivos en tu zona (lo ves en «Para revisar»).
+                  Cuando estén cargadas, vas a poder elegirlas acá. Igual podés guardar la propuesta con las franjas de
+                  flores.
+                </p>
+              )}
+
+              {/* Sumar otra: solo de las candidatas publicadas (§5.6, CA-05-14) */}
+              {candidatasNoElegidas.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-tinta">Otras plantas que también sirven:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {candidatasNoElegidas.map((cand) => (
+                      <button
+                        key={cand.plantaId}
+                        type="button"
+                        onClick={() => alternarEspecie(cand.plantaId)}
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full border-[1.5px] border-hoja bg-white px-4 font-semibold text-hoja hover:bg-menta"
+                      >
+                        <IconoMas className="h-4 w-4" />
+                        {cand.nombreComun}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Gráfico de semanas de floración (CA-05-15, CA-05-21) */}
+              <Desplegable pregunta="¿Cuándo florecen?">
+                <GraficoFloracionSemanas floracion={floracionActiva} />
+              </Desplegable>
+
+            </Tarjeta>
+          ) : null}
         </div>
 
-        {/* Avisos de la mezcla (sin candidatas, una sola especie, cultivos sin datos) */}
-        {mezclaInicial.avisos.length > 0 ? (
-          <ul className="space-y-1.5">
-            {mezclaInicial.avisos.map((av, i) => (
-              <li
-                key={`${av.codigo}-${i}`}
-                className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950"
+        {/* ── Costado (en la computadora queda fijo mientras se baja) ──
+            Paso 1: cómo quedaría la finca con la forma elegida (plano grande) y sus números. Sin «Guardar»: primero
+            se eligen las plantas. Paso 2: el resumen con el nombre y «Guardar propuesta». */}
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+          {paso === 1 ? (
+            <Tarjeta compacta titulo="Así quedaría tu finca">
+              {metodo !== "cuestionario" && alternativaActual ? (
+                <VistaDibujoPropuesta
+                  metodo={metodo}
+                  superficieTotalHa={superficieTotalHa}
+                  contorno={contorno}
+                  sectores={sectores}
+                  franjas={alternativaActual.franjas}
+                />
+              ) : null}
+              <dl className="grid grid-cols-3 gap-2">
+                {[
+                  { titulo: "Con flores", valor: `${formatearNumeroEsAr(porcentajeResumen, 1, 1)} %` },
+                  { titulo: "Flores nuevas", valor: ha(floresNuevasResumen) },
+                  { titulo: "Le quita a cultivos", valor: ha(leQuitaResumen) },
+                ].map((dato) => (
+                  <div key={dato.titulo} className="flex flex-col gap-0.5 rounded-2xl bg-papel px-3 py-2.5">
+                    <dt className="text-sm font-semibold text-tinta-suave">{dato.titulo}</dt>
+                    <dd className="font-titulos text-lg font-bold text-bosque">{dato.valor}</dd>
+                  </div>
+                ))}
+              </dl>
+              {/* La forma elegida: su nombre, sus ajustes y qué le quita a cada cultivo; y el paso siguiente */}
+              {!(metodo === "cuestionario" && propCuestionario) ? (
+                <>
+                  {/* La alternativa elegida, en grande, con sus ajustes */}
+                  {alternativaActual ? (
+                    <div className="flex flex-col gap-4 border-t-[1.5px] border-borde pt-4">
+                      <h3 className="text-lg font-bold text-bosque">
+                        {ETIQUETAS_DISPOSICION[alternativaActual.disposicion]}
+                        {alternativaActual.anchoResultanteM !== null
+                          ? ` · franjas de ${formatearNumeroEsAr(alternativaActual.anchoResultanteM, 1, 1)} m de ancho`
+                          : ""}
+                      </h3>
+
+                      {/* Ajustes según la forma elegida */}
+                      {(alternativaActual.disposicion === "transversal" || alternativaActual.disposicion === "matriz") && (
+                        <div className="grid grid-cols-1 gap-3 rounded-2xl bg-papel p-4 sm:grid-cols-2">
+                          <label className="flex flex-col gap-1.5 font-semibold text-tinta">
+                            Cantidad de corredores: {alternativaActual.parametros.cantidadCorredores ?? 2}
+                            <input
+                              type="range"
+                              min={LIMITES_PROPUESTA.minCorredores}
+                              max={LIMITES_PROPUESTA.maxCorredores}
+                              value={alternativaActual.parametros.cantidadCorredores ?? 2}
+                              disabled={pendienteCalc}
+                              onChange={(e) =>
+                                ajustarParametros({
+                                  ...alternativaActual.parametros,
+                                  cantidadCorredores: Number(e.target.value),
+                                })
+                              }
+                              className="h-3 cursor-pointer accent-naranja"
+                            />
+                          </label>
+                          <label className="flex flex-col gap-1.5 font-semibold text-tinta">
+                            Ángulo: {alternativaActual.parametros.anguloGrados ?? 0}°
+                            <input
+                              type="range"
+                              min={0}
+                              max={180}
+                              step={15}
+                              value={alternativaActual.parametros.anguloGrados ?? 0}
+                              disabled={pendienteCalc}
+                              onChange={(e) =>
+                                ajustarParametros({
+                                  ...alternativaActual.parametros,
+                                  anguloGrados: Number(e.target.value),
+                                })
+                              }
+                              className="h-3 cursor-pointer accent-naranja"
+                            />
+                          </label>
+                        </div>
+                      )}
+
+                      {alternativaActual.disposicion === "islas" && (
+                        <label className="flex flex-col gap-1.5 rounded-2xl bg-papel p-4 font-semibold text-tinta">
+                          Cantidad de islas: {alternativaActual.parametros.cantidadIslas ?? 4}
+                          <input
+                            type="range"
+                            min={LIMITES_PROPUESTA.minIslas}
+                            max={LIMITES_PROPUESTA.maxIslas}
+                            value={alternativaActual.parametros.cantidadIslas ?? 4}
+                            disabled={pendienteCalc}
+                            onChange={(e) => ajustarParametros({ cantidadIslas: Number(e.target.value) })}
+                            className="h-3 cursor-pointer accent-naranja"
+                          />
+                        </label>
+                      )}
+
+
+                      {alternativaActual.perdidaPorCultivo.length === 0 ? (
+                        <p className="flex items-center gap-2 font-semibold text-bosque">
+                          <IconoOk className="h-5 w-5 text-hoja" />
+                          No le quita lugar a tus cultivos: usa el lugar libre.
+                        </p>
+                      ) : (
+                        <Desplegable pregunta="¿De qué cultivos sale el lugar?">
+                          <ul className="flex flex-col divide-y-[1.5px] divide-borde">
+                            {alternativaActual.perdidaPorCultivo.map((pc, i) => (
+                              <li key={`${pc.sector}-${i}`} className="flex items-baseline justify-between gap-3 py-2">
+                                <span>
+                                  <strong className="text-tinta">{pc.sector}</strong> ({pc.cultivo})
+                                </span>
+                                <span className="text-right font-semibold text-tinta">
+                                  {ha(pc.ha)}
+                                  <span className="block text-sm font-normal text-tinta-suave">
+                                    {formatearNumeroEsAr(pc.pct, 1, 1)} % del sector
+                                  </span>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </Desplegable>
+                      )}
+
+                      {alternativaActual.avisos.length > 0 ? (
+                        <DesplegableAtencion titulo={`Para revisar (${alternativaActual.avisos.length})`}>
+                          <ul className="flex flex-col gap-3">
+                            {alternativaActual.avisos.map((av, i) => (
+                              <li key={`${av.codigo}-${i}`} className="rounded-2xl bg-white p-3.5 text-[0.95rem] text-tinta">
+                                {av.mensaje}
+                              </li>
+                            ))}
+                          </ul>
+                        </DesplegableAtencion>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {botonSiguiente(2, "Siguiente: plantas")}
+                </>
+              ) : null}
+            </Tarjeta>
+          ) : (
+            <Tarjeta compacta titulo="Tu propuesta">
+              {metodo !== "cuestionario" && alternativaActual ? (
+                <VistaDibujoPropuesta
+                  metodo={metodo}
+                  superficieTotalHa={superficieTotalHa}
+                  contorno={contorno}
+                  sectores={sectores}
+                  franjas={alternativaActual.franjas}
+                  compacta
+                />
+              ) : null}
+              <p className="flex items-baseline gap-2">
+                <strong className="font-titulos text-3xl font-extrabold text-bosque">
+                  {formatearNumeroEsAr(porcentajeResumen, 1, 1)} %
+                </strong>
+                <span className="text-tinta-suave">con flores</span>
+              </p>
+              <dl className="flex flex-col divide-y-[1.5px] divide-borde">
+                <div className="flex justify-between gap-2 py-1.5">
+                  <dt className="text-tinta-suave">Flores nuevas</dt>
+                  <dd className="font-semibold text-tinta">{ha(floresNuevasResumen)}</dd>
+                </div>
+                <div className="flex justify-between gap-2 py-1.5">
+                  <dt className="text-tinta-suave">Le quita a tus cultivos</dt>
+                  <dd className="font-semibold text-tinta">{ha(leQuitaResumen)}</dd>
+                </div>
+                <div className="flex justify-between gap-2 py-1.5">
+                  <dt className="text-tinta-suave">Plantas</dt>
+                  <dd className="font-semibold text-tinta">{especiesActivas.length}</dd>
+                </div>
+              </dl>
+
+              <label className="flex flex-col gap-1.5 font-semibold text-tinta">
+                Nombre (opcional)
+                <input
+                  type="text"
+                  maxLength={LIMITES_PROPUESTA.maxNombreLargo}
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej.: Bordes de primavera"
+                  className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 font-normal outline-none focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
+                />
+              </label>
+
+              {cajaErrores}
+
+              <button
+                type="submit"
+                data-guardar-propuesta
+                disabled={pendienteGuardar || pendienteCalc}
+                className={clasesBoton("principal", true)}
               >
-                ⚠️ {av.mensaje}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {/* Gráfico de semanas de floración (CA-05-15, CA-05-21) */}
-        <GraficoFloracionSemanas floracion={floracionActiva} />
-
-        {/* Tarjetas explicativas de cada especie seleccionada */}
-        {especiesActivas.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {especiesActivas.map((esp) => (
-              <div key={esp.plantaId} className="flex flex-col gap-1.5">
-                <TarjetaEspecieMezcla especie={esp} />
-                {especiesActivas.length > 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => alternarEspecie(esp.plantaId)}
-                    className="self-end text-xs font-semibold text-red-700 hover:underline"
-                  >
-                    Quitar de la mezcla
-                  </button>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {/* Reemplazar / agregar solo desde candidatas publicadas (§5.6, CA-05-14) */}
-        {candidatasNoElegidas.length > 0 ? (
-          <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs font-semibold text-stone-800">
-              Otras plantas candidatas compatibles (podés sumar hasta{" "}
-              {LIMITES_PROPUESTA.maxEspeciesMezcla} especies):
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {candidatasNoElegidas.map((cand) => (
-                <button
-                  key={cand.plantaId}
-                  type="button"
-                  onClick={() => alternarEspecie(cand.plantaId)}
-                  className="inline-flex min-h-9 items-center rounded-lg border border-emerald-700 bg-white px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
-                >
-                  + {cand.nombreComun}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      {/* 4. Nombre opcional y Guardar */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
-        <label className="flex flex-col gap-1 text-sm font-semibold text-stone-800">
-          Nombre de la propuesta (opcional)
-          <input
-            type="text"
-            maxLength={LIMITES_PROPUESTA.maxNombreLargo}
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="Ej.: Perimetral 20 % primavera"
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-normal text-stone-900"
-          />
-        </label>
-
-        {errores.length > 0 ? (
-          <div
-            role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-800"
-          >
-            <ul className="list-disc pl-4">
-              {errores.map((err, i) => (
-                <li key={i}>{err}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={pendienteGuardar || pendienteCalc}
-          className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50 sm:w-auto sm:self-start"
-        >
-          {pendienteGuardar ? "Guardando propuesta…" : "Guardar propuesta"}
-        </button>
-      </section>
+                {pendienteGuardar ? "Guardando…" : "Guardar propuesta"}
+              </button>
+            </Tarjeta>
+          )}
+        </aside>
+      </div>
     </form>
   );
 }

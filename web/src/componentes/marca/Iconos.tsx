@@ -140,3 +140,87 @@ export function Hoja({ className = "h-12 w-12" }: Props) {
     </svg>
   );
 }
+
+/** Flecha chica hacia la derecha: separa las "migas de pan" y abre desplegables (gira 90°). */
+export function IconoChevron({ className = "h-4 w-4" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+/** Candado: un paso que todavía no se puede hacer (falta uno anterior). */
+export function IconoCandado({ className = "h-4 w-4" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
+/** Más: agregar algo nuevo (una finca, un sector). */
+export function IconoMas({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+/** Cruz: cerrar un aviso. */
+export function IconoCerrar({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+/** Lista con tildes: cargar la finca respondiendo preguntas (cuestionario). */
+export function IconoLista({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="m4 6 1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6.5h9M11 12.5h9M11 18.5h9" />
+    </svg>
+  );
+}
+
+/** Lápiz sobre un plano: dibujar la finca (croquis). */
+export function IconoLapiz({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />
+    </svg>
+  );
+}
+
+/** Marca de lugar: ubicar la finca en el mapa satelital. */
+export function IconoMapa({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  );
+}
+
+/** Papelera: borrar. */
+export function IconoPapelera({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5" />
+    </svg>
+  );
+}
+
+/** Mira: llevar el mapa hasta algo (un sector). */
+export function IconoUbicar({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+    </svg>
+  );
+}

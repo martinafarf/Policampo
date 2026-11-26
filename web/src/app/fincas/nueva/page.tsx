@@ -8,10 +8,12 @@ async function ContenidoNuevaFinca() {
   return <FormularioNuevaFinca />;
 }
 
+export const metadata = { title: "Nueva finca · PoliCampo" };
+
 export default function PaginaNuevaFinca() {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando formulario…</p>}>
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando…</p>}>
         <ContenidoNuevaFinca />
       </Suspense>
     </main>

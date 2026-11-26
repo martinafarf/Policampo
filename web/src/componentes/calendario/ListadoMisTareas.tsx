@@ -1,12 +1,19 @@
 "use client";
 
 // Listado global "Mis tareas" de todas las fincas del usuario con filtros y checklist (Esp. 06 §5.2, CA-06-12).
+//
+// Pensado para abrir desde el celular y ver qué hay que hacer: arriba, botones grandes para filtrar por estado
+// (Pendientes, Atrasadas, Hechas, Todas); la finca y el tipo, en listas desplegables solo si hacen falta. Cada
+// tarea es una tarjeta con la fecha grande, la finca y «Marcar hecha hoy».
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import {
   desmarcarTareaAccion,
   marcarTareaHechaAccion,
 } from "@/app/fincas/[id]/calendario/acciones";
+import { IconoFinca, IconoOk } from "@/componentes/marca/Iconos";
+import { clasesBoton } from "@/componentes/ui/boton";
+import { Aviso } from "@/componentes/ui/formulario";
 import {
   ETIQUETAS_TIPO_TAREA,
   TIPOS_TAREA_ACCIONABLES,
@@ -16,17 +23,28 @@ import {
 } from "@/dominio/calendario";
 import type { TareaConEstado } from "@/dominio/calendario/servicio";
 import { BadgeEstadoTarea } from "./BadgeEstadoTarea";
+import { COLORES_TIPO, diaYMes } from "./VistaCalendarioFinca";
 
 interface Props {
   tareas: readonly TareaConEstado[];
   hoyIso: string;
 }
 
+type FiltroEstado = "pendientes" | "todas" | EstadoTarea;
+
+const FILTROS_ESTADO: readonly { valor: FiltroEstado; texto: string }[] = [
+  { valor: "pendientes", texto: "Pendientes" },
+  { valor: "atrasada", texto: "Atrasadas" },
+  { valor: "hecha", texto: "Hechas" },
+  { valor: "todas", texto: "Todas" },
+];
+
+const CLASE_SELECT =
+  "min-h-11 rounded-full border-[1.5px] border-borde bg-white px-4 font-semibold text-tinta outline-none focus:border-hoja focus:ring-4 focus:ring-naranja/45";
+
 export function ListadoMisTareas({ tareas, hoyIso }: Props) {
   const [filtroFinca, setFiltroFinca] = useState("todas");
-  const [filtroEstado, setFiltroEstado] = useState<"pendientes" | "todas" | EstadoTarea>(
-    "pendientes",
-  );
+  const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("pendientes");
   const [filtroTipo, setFiltroTipo] = useState<"todos" | TipoTarea>("todos");
   const [error, setError] = useState<string | null>(null);
   const [pendiente, iniciarTransicion] = useTransition();
@@ -38,6 +56,13 @@ export function ListadoMisTareas({ tareas, hoyIso }: Props) {
     }
     return Array.from(mapa.entries()).sort((a, b) => a[1].localeCompare(b[1], "es-AR"));
   }, [tareas]);
+
+  // Cuántas hay en cada estado, para mostrarlo en los botones del filtro
+  const accionables = useMemo(() => tareas.filter((t) => !t.esInformativa), [tareas]);
+  const cantidad = (f: FiltroEstado) =>
+    accionables.filter((t) =>
+      f === "pendientes" ? t.estado !== "hecha" : f === "todas" ? true : t.estado === f,
+    ).length;
 
   const filtradas = useMemo(() => {
     return tareas.filter((t) => {
@@ -74,119 +99,137 @@ export function ListadoMisTareas({ tareas, hoyIso }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <section
-        aria-label="Filtros de tareas"
-        className="grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-3.5 shadow-xs sm:grid-cols-3"
-      >
-        <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-          Finca
-          <select
-            value={filtroFinca}
-            onChange={(e) => setFiltroFinca(e.target.value)}
-            className="min-h-10 rounded-lg border border-stone-300 bg-white px-2.5 text-sm font-normal"
-          >
-            <option value="todas">Todas las fincas</option>
-            {fincas.map(([id, nombre]) => (
-              <option key={id} value={id}>
-                {nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-          Estado
-          <select
-            value={filtroEstado}
-            onChange={(e) =>
-              setFiltroEstado(e.target.value as "pendientes" | "todas" | EstadoTarea)
-            }
-            className="min-h-10 rounded-lg border border-stone-300 bg-white px-2.5 text-sm font-normal"
-          >
-            <option value="pendientes">Pendientes (atrasadas, en curso y próximas)</option>
-            <option value="atrasada">Solo atrasadas</option>
-            <option value="en_curso">Solo en curso</option>
-            <option value="proxima">Solo próximas</option>
-            <option value="hecha">Hechas</option>
-            <option value="todas">Todas</option>
-          </select>
-        </label>
-
-        <label className="flex flex-col gap-1 text-xs font-semibold text-stone-700">
-          Tipo de tarea
-          <select
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value as "todos" | TipoTarea)}
-            className="min-h-10 rounded-lg border border-stone-300 bg-white px-2.5 text-sm font-normal"
-          >
-            <option value="todos">Todos los tipos</option>
-            {TIPOS_TAREA_ACCIONABLES.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {ETIQUETAS_TIPO_TAREA[tipo]}
-              </option>
-            ))}
-          </select>
-        </label>
+    <div className="flex flex-col gap-5">
+      {/* Filtros: el estado con botones grandes; la finca y el tipo, en listas */}
+      <section aria-label="Filtrar tareas" className="flex flex-col gap-3">
+        <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-2">
+          {FILTROS_ESTADO.map((f) => {
+            const activo = filtroEstado === f.valor;
+            return (
+              <button
+                key={f.valor}
+                type="button"
+                aria-pressed={activo}
+                onClick={() => setFiltroEstado(f.valor)}
+                className={`min-h-10 rounded-full border-[1.5px] px-4 text-[0.95rem] font-semibold transition ${
+                  activo ? "border-hoja bg-hoja text-white" : "border-borde bg-white text-tinta hover:bg-menta"
+                }`}
+              >
+                {f.texto} ({cantidad(f.valor)})
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {fincas.length > 1 ? (
+            <label className="flex items-center gap-2">
+              <span className="sr-only">Finca</span>
+              <select value={filtroFinca} onChange={(e) => setFiltroFinca(e.target.value)} className={CLASE_SELECT}>
+                <option value="todas">Todas las fincas</option>
+                {fincas.map(([id, nombre]) => (
+                  <option key={id} value={id}>
+                    {nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <label className="flex items-center gap-2">
+            <span className="sr-only">Tipo de tarea</span>
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value as "todos" | TipoTarea)}
+              className={CLASE_SELECT}
+            >
+              <option value="todos">Todos los tipos</option>
+              {TIPOS_TAREA_ACCIONABLES.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {ETIQUETAS_TIPO_TAREA[tipo]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </section>
 
-      {error ? (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-          {error}
-        </p>
-      ) : null}
+      {error ? <Aviso tipo="error">{error}</Aviso> : null}
 
       {filtradas.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-10 text-center text-sm text-stone-600">
-          No hay tareas que coincidan con estos filtros.
-        </section>
+        <p className="rounded-[28px] border-2 border-borde bg-white px-6 py-10 text-center text-tinta-suave">
+          {filtroEstado === "pendientes"
+            ? "¡No tenés tareas pendientes!"
+            : "No hay tareas con estos filtros."}
+        </p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {filtradas.map((t) => (
-            <li
-              key={t.id}
-              className="flex flex-col gap-2.5 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex flex-col gap-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <BadgeEstadoTarea estado={t.estado} />
+        <ul className="grid gap-3 lg:grid-cols-2">
+          {filtradas.map((t) => {
+            const { dia, mes } = diaYMes(t.fechaInicio);
+            return (
+              <li
+                key={t.id}
+                className={`flex gap-4 rounded-3xl border-2 p-4 ${
+                  t.hechaEn ? "border-menta-fuerte bg-menta/60" : "border-borde bg-white"
+                }`}
+              >
+                {/* La fecha, grande */}
+                <div className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-menta text-bosque">
+                  <span className="font-titulos text-2xl leading-none font-extrabold">{dia}</span>
+                  <span className="text-sm font-semibold">{mes}</span>
+                </div>
+
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-tinta-suave">
+                      <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${COLORES_TIPO[t.tipo].punto}`} />
+                      {ETIQUETAS_TIPO_TAREA[t.tipo]}
+                    </span>
+                    <BadgeEstadoTarea estado={t.estado} />
+                  </div>
+                  <h3 className="text-lg font-bold text-bosque">{t.titulo}</h3>
                   <Link
                     href={`/fincas/${t.establecimientoId}/calendario`}
-                    className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-900 hover:underline"
+                    className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-hoja underline-offset-4 hover:underline"
                   >
+                    <IconoFinca className="h-4 w-4" />
                     {t.establecimientoNombre}
                   </Link>
-                  <span className="text-xs text-stone-500">
-                    {formatearFechaCortaEsAr(t.fechaInicio)}
-                  </span>
-                </div>
-                <p className="text-sm font-bold text-stone-900">{t.titulo}</p>
-                <p className="text-xs text-stone-600">{t.descripcion}</p>
-              </div>
+                  {t.fechaInicio !== t.fechaFin ? (
+                    <p className="text-sm text-tinta-suave">
+                      Del {formatearFechaCortaEsAr(t.fechaInicio)} al {formatearFechaCortaEsAr(t.fechaFin)}
+                    </p>
+                  ) : null}
+                  <p className="text-[0.95rem] text-tinta">{t.descripcion}</p>
 
-              <div className="flex shrink-0 flex-wrap gap-2">
-                {!t.hechaEn ? (
-                  <button
-                    type="button"
-                    disabled={pendiente}
-                    onClick={() => marcarRapido(t)}
-                    className="inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-                  >
-                    Marcar hecha hoy
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={pendiente}
-                    onClick={() => desmarcarRapido(t)}
-                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
-                  >
-                    Desmarcar
-                  </button>
-                )}
-              </div>
-            </li>
-          ))}
+                  {!t.hechaEn ? (
+                    <button
+                      type="button"
+                      disabled={pendiente}
+                      onClick={() => marcarRapido(t)}
+                      className={`${clasesBoton("contorno")} mt-1 min-h-11 self-start`}
+                    >
+                      <IconoOk className="h-5 w-5" />
+                      Marcar hecha hoy
+                    </button>
+                  ) : (
+                    <div className="mt-1 flex flex-wrap items-center gap-3">
+                      <span className="flex items-center gap-1.5 font-semibold text-bosque">
+                        <IconoOk className="h-5 w-5 text-hoja" />
+                        Hecha el {formatearFechaCortaEsAr(t.hechaEn)}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={pendiente}
+                        onClick={() => desmarcarRapido(t)}
+                        className="text-sm font-semibold text-tinta-suave underline underline-offset-4 hover:text-bosque"
+                      >
+                        Desmarcar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -1,8 +1,8 @@
 "use client";
 
 // Formulario de edición de datos generales del establecimiento (Esp. 02, 6.1 y RS-15).
-import Link from "next/link";
 import { useActionState } from "react";
+import { BotonEnlace, clasesBoton } from "@/componentes/ui/boton";
 import { ETIQUETAS_METODO, type MetodoCaracterizacion } from "@/dominio/establecimientos";
 import {
   actualizarDatosGenerales,
@@ -34,29 +34,22 @@ export function FormularioDatosGenerales({
   return (
     <form
       action={accionFormulario}
-      className="flex flex-col gap-6 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-6"
+      className="flex flex-col gap-5 rounded-[28px] border-2 border-borde bg-white p-5 sm:p-6"
     >
       {/* Versión del registro para evitar pisar cambios hechos en otro dispositivo (RS-15) */}
       <input type="hidden" name="version" value={version} />
 
-      <div className="rounded-lg bg-stone-50 px-3.5 py-2.5 text-sm text-stone-700">
-        Método de carga actual: <strong>{ETIQUETAS_METODO[metodo]}</strong>
-      </div>
+      <p className="text-[0.95rem] text-tinta-suave">
+        Tu finca se carga con: <strong className="text-tinta">{ETIQUETAS_METODO[metodo]}</strong>
+      </p>
 
       <CamposUbicacionYDatos metodo={metodo} errores={estado.errores} inicial={inicial} />
 
-      <div className="flex flex-col-reverse gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:justify-end">
-        <Link
-          href={`/fincas/${establecimientoId}`}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-        >
+      <div className="flex flex-col-reverse gap-3 border-t-[1.5px] border-borde pt-5 sm:flex-row sm:justify-end">
+        <BotonEnlace href={`/fincas/${establecimientoId}`} variante="texto">
           Cancelar
-        </Link>
-        <button
-          type="submit"
-          disabled={guardando}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
-        >
+        </BotonEnlace>
+        <button type="submit" disabled={guardando} className={clasesBoton("principal")}>
           {guardando ? "Guardando…" : "Guardar cambios"}
         </button>
       </div>

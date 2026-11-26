@@ -2,92 +2,122 @@
 
 // Flujo de creación de establecimiento (Esp. 02, 5.2, CA-02-01 y CA-02-03).
 // Paso 1: elegir uno de los tres métodos. Paso 2: completar los datos generales.
-import Link from "next/link";
-import { useActionState, useState } from "react";
+//
+// Para que se entienda sin conocer la plataforma: cada método es una tarjeta grande con un dibujo y
+// una frase que dice qué vas a hacer (no cómo se llama la técnica). El más fácil está marcado.
+// En la computadora las tres opciones van una al lado de la otra; en el celular, una debajo de la otra.
+//
+// El método elegido va en la dirección de la página (/fincas/nueva?metodo=croquis) y no solo en la memoria
+// del componente. Así el botón "atrás" del navegador o del celular vuelve a la elección del método, y entrar
+// de nuevo a "Nueva finca" siempre arranca desde el paso 1 (Next.js guarda la memoria de las páginas que
+// visitaste, y antes volvía a aparecer el método elegido la vez anterior).
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useActionState, type ComponentType } from "react";
+import { IconoFlecha, IconoLapiz, IconoLista, IconoMapa } from "@/componentes/marca/Iconos";
+import { Boton, BotonEnlace, clasesBoton } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { Etiqueta } from "@/componentes/ui/etiqueta";
+import { Desplegable } from "@/componentes/ui/mas-info";
 import type { MetodoCaracterizacion } from "@/dominio/establecimientos";
+import { esMetodoCaracterizacionValido } from "@/dominio/establecimientos/validacion";
 import { crearEstablecimiento, type EstadoFormularioEstablecimiento } from "../acciones";
 import { CamposUbicacionYDatos } from "../_componentes/CamposUbicacionYDatos";
 
 const OPCIONES_METODO: readonly {
   id: MetodoCaracterizacion;
-  icono: string;
+  Icono: ComponentType<{ className?: string }>;
   titulo: string;
   descripcion: string;
   etiquetaExtra?: string;
 }[] = [
   {
     id: "cuestionario",
-    icono: "📝",
-    titulo: "Responder un cuestionario",
-    descripcion: "Listás los sectores del terreno con sus superficies y ubicación aproximada.",
-    etiquetaExtra: "Más simple y accesible",
+    Icono: IconoLista,
+    titulo: "Contestar preguntas",
+    descripcion: "Escribís qué tenés sembrado, dónde y cuánto mide. No hace falta dibujar.",
+    etiquetaExtra: "El más fácil",
   },
   {
     id: "croquis",
-    icono: "📐",
-    titulo: "Dibujar un croquis",
-    descripcion: "Dibujás los sectores sobre un plano cuadrado a escala, sin necesitar mapa satelital.",
+    Icono: IconoLapiz,
+    titulo: "Dibujar un plano",
+    descripcion: "Dibujás tus cultivos y flores en un cuadrado, como en un papel.",
   },
   {
     id: "mapa",
-    icono: "🗺️",
-    titulo: "Ubicar mi campo en el mapa",
-    descripcion: "Marcás el contorno y los sectores de tu finca sobre la imagen satelital.",
+    Icono: IconoMapa,
+    titulo: "Marcar en el mapa",
+    descripcion: "Marcás tu finca sobre la foto satelital. Usa más datos del celular.",
   },
 ];
 
 const ESTADO_INICIAL: EstadoFormularioEstablecimiento = { errores: {} };
 
+const MIGAS = [{ texto: "Mis fincas", href: "/fincas" }] as const;
+
+/** "Paso 1 de 2": dos rayitas que muestran cuánto falta. */
+function IndicadorPaso({ actual }: { actual: 1 | 2 }) {
+  return (
+    <p className="flex items-center gap-3 text-[0.95rem] font-semibold text-tinta-suave">
+      <span className="flex gap-1.5" aria-hidden="true">
+        <span className="h-1.5 w-8 rounded-full bg-hoja" />
+        <span className={`h-1.5 w-8 rounded-full ${actual === 2 ? "bg-hoja" : "bg-borde"}`} />
+      </span>
+      Paso {actual} de 2
+    </p>
+  );
+}
+
 export function FormularioNuevaFinca() {
-  const [metodo, setMetodo] = useState<MetodoCaracterizacion | null>(null);
+  const router = useRouter();
+  const ruta = usePathname();
+  const parametro = useSearchParams().get("metodo") ?? "";
+  // Si en la dirección hay algo que no es un método válido, se muestra el paso 1.
+  const metodo: MetodoCaracterizacion | null = esMetodoCaracterizacionValido(parametro) ? parametro : null;
+
+  /** Elegir un método agrega un paso al historial: "atrás" vuelve a la elección. */
+  const elegirMetodo = (id: MetodoCaracterizacion) => router.push(`${ruta}?metodo=${id}`, { scroll: true });
+  /** "Cambiar" vuelve al paso 1. */
+  const volverAElegir = () => router.push(ruta, { scroll: true });
   const [estado, accionFormulario, enviando] = useActionState(crearEstablecimiento, ESTADO_INICIAL);
 
   if (!metodo) {
     return (
-      <section className="flex flex-col gap-5">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">Paso 1 de 2</p>
-          <h1 className="mt-1 text-2xl font-bold text-stone-900">¿Cómo querés cargar tu finca?</h1>
-          <p className="mt-1 text-sm text-stone-600">
-            Cada finca usa un único método de carga. Si después querés cambiarlo, podés empezar de
-            nuevo conservando los datos generales.
-          </p>
-        </div>
+      <section className="flex flex-col gap-6">
+        {/* "Paso 1 de 2" va a la derecha del título (en el celular, debajo) para ahorrar un renglón */}
+        <EncabezadoPagina migas={MIGAS} titulo="¿Cómo querés cargar tu finca?" acciones={<IndicadorPaso actual={1} />} />
 
-        <div className="grid grid-cols-1 gap-3.5">
-          {OPCIONES_METODO.map((opcion) => (
-            <button
-              key={opcion.id}
-              type="button"
-              onClick={() => setMetodo(opcion.id)}
-              className="flex min-h-24 w-full flex-col gap-1.5 rounded-xl border border-stone-300 bg-white p-4 text-left shadow-xs transition hover:border-emerald-600 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-600"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-base font-bold text-stone-900">
-                  <span aria-hidden="true" className="mr-2">
-                    {opcion.icono}
-                  </span>
-                  {opcion.titulo}
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {OPCIONES_METODO.map(({ id, Icono, titulo, descripcion, etiquetaExtra }) => (
+            <li key={id} className="h-full">
+              <button
+                type="button"
+                onClick={() => elegirMetodo(id)}
+                className="group flex h-full w-full items-center gap-4 rounded-[28px] border-2 border-borde bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-hoja hover:shadow-suave md:flex-col md:items-start md:p-6"
+              >
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-menta text-bosque">
+                  <Icono className="h-7 w-7" />
                 </span>
-                {opcion.etiquetaExtra ? (
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                    {opcion.etiquetaExtra}
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="font-titulos text-xl font-bold text-bosque">{titulo}</span>
+                    {etiquetaExtra && <Etiqueta tono="listo">{etiquetaExtra}</Etiqueta>}
                   </span>
-                ) : null}
-              </div>
-              <p className="text-sm text-stone-600">{opcion.descripcion}</p>
-            </button>
+                  <span className="text-tinta-suave">{descripcion}</span>
+                </span>
+                <IconoFlecha className="h-6 w-6 shrink-0 text-hoja transition group-hover:translate-x-0.5 md:hidden" />
+                <span className="inline-flex items-center gap-1.5 font-bold text-hoja max-md:hidden">
+                  Elegir <IconoFlecha className="h-5 w-5 transition group-hover:translate-x-1" />
+                </span>
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        <div className="pt-2">
-          <Link
-            href="/fincas"
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-stone-700 hover:text-stone-950"
-          >
-            ← Volver a Mis fincas
-          </Link>
-        </div>
+        <Desplegable pregunta="¿Puedo cambiarlo después?">
+          Sí. Cada finca se carga de una sola forma, pero desde la finca (menú «Más») podés empezar de nuevo
+          con otra. Se borran los cultivos y flores cargados; el nombre y la ubicación se conservan.
+        </Desplegable>
       </section>
     );
   }
@@ -96,46 +126,37 @@ export function FormularioNuevaFinca() {
 
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">Paso 2 de 2</p>
-          <h1 className="mt-1 text-2xl font-bold text-stone-900">Datos generales de la finca</h1>
-          <p className="mt-1 text-sm text-stone-600">
-            Método elegido:{" "}
-            <strong className="text-stone-900">
-              {metodoSeleccionado.icono} {metodoSeleccionado.titulo}
-            </strong>
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setMetodo(null)}
-          className="inline-flex min-h-10 items-center rounded-lg border border-stone-300 bg-white px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-        >
-          Cambiar método
-        </button>
-      </div>
+      <EncabezadoPagina
+        migas={MIGAS}
+        titulo="Datos de tu finca"
+        acciones={
+          <div className="flex flex-col gap-1 sm:items-end">
+            <IndicadorPaso actual={2} />
+            <p className="flex flex-wrap items-center gap-2 text-[0.95rem] text-tinta-suave">
+              <metodoSeleccionado.Icono className="h-5 w-5 text-hoja" />
+              {metodoSeleccionado.titulo}
+              <Boton variante="texto" onClick={volverAElegir} className="min-h-10">
+                Cambiar
+              </Boton>
+            </p>
+          </div>
+        }
+      />
 
       <form
         action={accionFormulario}
-        className="flex flex-col gap-6 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-6"
+        className="flex flex-col gap-5 rounded-[28px] border-2 border-borde bg-white p-5 sm:p-6"
       >
         <input type="hidden" name="metodoCaracterizacion" value={metodo} />
         <CamposUbicacionYDatos metodo={metodo} errores={estado.errores} />
 
-        <div className="flex flex-col-reverse gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:justify-end">
-          <Link
-            href="/fincas"
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-          >
+        <div className="flex flex-col-reverse gap-3 border-t-[1.5px] border-borde pt-5 sm:flex-row sm:justify-end">
+          <BotonEnlace href="/fincas" variante="texto">
             Cancelar
-          </Link>
-          <button
-            type="submit"
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
-          >
-            {enviando ? "Guardando…" : "Guardar y cargar sectores"}
+          </BotonEnlace>
+          <button type="submit" disabled={enviando} className={clasesBoton("principal")}>
+            {enviando ? "Guardando…" : "Guardar y seguir"}
+            {!enviando && <IconoFlecha className="h-5 w-5" />}
           </button>
         </div>
       </form>

@@ -23,6 +23,7 @@ import {
   obtenerCalendarioActivoDeFinca,
   obtenerPreferenciaResumenSemanal,
   obtenerResumenTareasParaInicio,
+  contarTareasParaHacerAhora,
   procesarBajaResumenPorToken,
 } from "@/dominio/calendario/servicio";
 import { firmarTokenBajaResumen } from "@/dominio/calendario/tokens";
@@ -218,6 +219,13 @@ describe("Calendario agroecológico en PostgreSQL (Esp. 06 T2/T4)", () => {
 
     const resumenInicio = await obtenerResumenTareasParaInicio(DUENO_ID, "2026-07-25");
     expect(resumenInicio.proximasOEnCurso.length).toBeLessThanOrEqual(5);
+
+    // Número junto a "Tareas" en la barra: solo atrasadas o en curso (no las próximas ni las hechas).
+    const paraHacerAhora = misTareas.filter(
+      (t) => !t.esInformativa && (t.estado === "atrasada" || t.estado === "en_curso"),
+    ).length;
+    expect(await contarTareasParaHacerAhora(DUENO_ID, "2026-07-25")).toBe(paraHacerAhora);
+    expect(await contarTareasParaHacerAhora(OTRO_ID, "2026-07-25")).toBe(0);
 
     // Desmarcar y volver a marcar para probar desmarcar + conservar en historial
     expect((await desmarcarTareaEnBase({ tareaId: tareaSiembra.id, usuarioId: DUENO_ID })).ok).toBe(

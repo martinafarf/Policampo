@@ -1,9 +1,15 @@
 // Ruta /fincas/[id]/propuestas: listado de propuestas guardadas de la finca (Esp. 05 §6.2).
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { formatearFechaDiagnostico } from "@/componentes/diagnostico/VistaDiagnostico";
-import { AccionesPropuesta } from "@/componentes/propuesta/AccionesPropuesta";
+import { IconoFlor, IconoMas } from "@/componentes/marca/Iconos";
+import { MenuMasPropuesta } from "@/componentes/propuesta/AccionesPropuesta";
+import { BotonEnlace } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { EstadoVacio } from "@/componentes/ui/estado-vacio";
+import { Etiqueta } from "@/componentes/ui/etiqueta";
+import { Aviso } from "@/componentes/ui/formulario";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { formatearNumeroEsAr } from "@/dominio/diagnostico";
 import { ETIQUETAS_DISPOSICION } from "@/dominio/propuesta";
 import { listarPropuestasDeFinca } from "@/dominio/propuesta/servicio";
@@ -26,128 +32,92 @@ async function ContenidoListadoPropuestas({ params, searchParams }: Props) {
     notFound();
   }
 
+  const rutaFinca = `/fincas/${datos.establecimiento.id}`;
+
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Ruta de navegación" className="text-sm">
-        <Link
-          href={`/fincas/${datos.establecimiento.id}`}
-          className="font-semibold text-emerald-800 hover:underline"
-        >
-          ← Volver a {datos.establecimiento.nombre}
-        </Link>
-      </nav>
+      <EncabezadoPagina
+        titulo="Propuestas"
+        migas={[
+          { texto: "Mis fincas", href: "/fincas" },
+          { texto: datos.establecimiento.nombre, href: rutaFinca },
+        ]}
+        bajada="Formas de sumar flores a tu finca. Elegí una para armar tu calendario y tu informe."
+        acciones={
+          datos.propuestas.length > 0 ? (
+            <BotonEnlace href={`${rutaFinca}/propuestas/nueva`}>
+              <IconoMas className="h-5 w-5" />
+              Nueva propuesta
+            </BotonEnlace>
+          ) : undefined
+        }
+      />
 
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">Propuestas de rediseño</h1>
-          <p className="text-sm text-stone-600">
-            {datos.establecimiento.nombre} · Guardá varias alternativas y marcá una como{" "}
-            <strong>Elegida</strong> para usarla en el calendario y el informe.
-          </p>
-        </div>
-
-        <Link
-          href={`/fincas/${datos.establecimiento.id}/propuestas/nueva`}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-        >
-          + Nueva propuesta
-        </Link>
-      </header>
-
-      {borrada === "1" ? (
-        <div
-          role="status"
-          className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900"
-        >
-          Se borró la propuesta seleccionada.
-        </div>
-      ) : null}
+      {borrada === "1" ? <Aviso tipo="exito">Se borró la propuesta.</Aviso> : null}
 
       {datos.propuestas.length === 0 ? (
-        <section className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-stone-300 bg-white px-6 py-12 text-center">
-          <p className="text-lg font-semibold text-stone-900">Todavía no guardaste propuestas</p>
-          <p className="max-w-md text-sm text-stone-600">
-            Generá alternativas de franjas florales y una mezcla de plantas de servicio adaptada a
-            los cultivos y la ecorregión de tu finca.
-          </p>
-          <Link
-            href={`/fincas/${datos.establecimiento.id}/propuestas/nueva`}
-            className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            Generar primera propuesta
-          </Link>
-        </section>
+        <EstadoVacio
+          Icono={IconoFlor}
+          titulo="Todavía no tenés propuestas"
+          texto="Te mostramos dónde poner franjas de flores y qué plantas sembrar según tus cultivos."
+          accion={<BotonEnlace href={`${rutaFinca}/propuestas/nueva`}>Armar mi primera propuesta</BotonEnlace>}
+        />
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="grid gap-5 lg:grid-cols-2">
           {datos.propuestas.map((p) => (
-            <li
-              key={p.id}
-              className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-bold text-stone-900">
-                      {p.nombre ?? ETIQUETAS_DISPOSICION[p.disposicion]}
-                    </h2>
-                    {p.elegida ? (
-                      <span className="rounded-full bg-emerald-700 px-2.5 py-0.5 text-xs font-bold text-white">
-                        ★ Elegida
-                      </span>
-                    ) : null}
-                    {p.desactualizada ? (
-                      <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
-                        ↻ Desactualizada
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-0.5 text-xs text-stone-600">
-                    {ETIQUETAS_DISPOSICION[p.disposicion]} · Guardada el{" "}
-                    {formatearFechaDiagnostico(p.creadoEn)}
+            <li key={p.id}>
+              <Tarjeta
+                compacta
+                className={p.elegida ? "border-naranja" : ""}
+                titulo={p.nombre ?? ETIQUETAS_DISPOSICION[p.disposicion]}
+                extra={
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    {p.elegida ? <Etiqueta tono="ahora">Elegida</Etiqueta> : null}
+                    {p.desactualizada ? <Etiqueta tono="atencion">Desactualizada</Etiqueta> : null}
+                  </span>
+                }
+              >
+                <p className="-mt-2 text-sm text-tinta-suave">
+                  {p.nombre ? `${ETIQUETAS_DISPOSICION[p.disposicion]} · ` : ""}Guardada el{" "}
+                  {formatearFechaDiagnostico(p.creadoEn)}
+                </p>
+
+                {/* Los datos que sirven para comparar propuestas, grandes */}
+                <dl className="grid grid-cols-3 gap-3">
+                  {[
+                    { titulo: "Llega a", valor: `${formatearNumeroEsAr(p.porcentajeLogrado, 1, 1)} %` },
+                    { titulo: "Flores nuevas", valor: `${formatearNumeroEsAr(p.superficieFranjasHa, 2, 0)} ha` },
+                    {
+                      titulo: "Le quita a cultivos",
+                      valor: `${formatearNumeroEsAr(p.perdidaTotalCultivoHa, 2, 0)} ha`,
+                    },
+                  ].map((dato) => (
+                    <div key={dato.titulo} className="flex flex-col gap-0.5 rounded-2xl bg-papel px-3 py-2.5">
+                      <dt className="text-sm font-semibold text-tinta-suave">{dato.titulo}</dt>
+                      <dd className="font-titulos text-lg font-bold text-bosque">{dato.valor}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-tinta-suave">
+                    {p.especies.length === 0
+                      ? "Sin plantas recomendadas"
+                      : `${p.especies.length} ${p.especies.length === 1 ? "planta recomendada" : "plantas recomendadas"}`}
                   </p>
+                  <div className="flex items-center gap-2">
+                    <BotonEnlace href={`${rutaFinca}/propuestas/${p.id}`} className="min-h-10 px-5">
+                      Ver
+                    </BotonEnlace>
+                    <MenuMasPropuesta
+                      establecimientoId={datos.establecimiento.id}
+                      propuestaId={p.id}
+                      elegida={p.elegida}
+                      chico
+                    />
+                  </div>
                 </div>
-
-                <Link
-                  href={`/fincas/${datos.establecimiento.id}/propuestas/${p.id}`}
-                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-stone-300 px-3.5 py-1.5 text-sm font-semibold text-stone-800 hover:bg-stone-50"
-                >
-                  Ver detalle →
-                </Link>
-              </div>
-
-              <dl className="grid grid-cols-2 gap-2 border-t border-stone-100 pt-2.5 text-xs sm:grid-cols-4">
-                <div>
-                  <dt className="text-stone-500">% logrado</dt>
-                  <dd className="font-bold text-stone-900">
-                    {formatearNumeroEsAr(p.porcentajeLogrado, 1, 1)} %
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-stone-500">Franjas</dt>
-                  <dd className="font-bold text-stone-900">
-                    {formatearNumeroEsAr(p.superficieFranjasHa, 4, 2)} ha
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-stone-500">Pérdida cultivo</dt>
-                  <dd className="font-bold text-stone-900">
-                    {formatearNumeroEsAr(p.perdidaTotalCultivoHa, 4, 2)} ha
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-stone-500">Especies</dt>
-                  <dd className="font-bold text-stone-900">{p.especies.length}</dd>
-                </div>
-              </dl>
-
-              <div className="border-t border-stone-100 pt-2.5">
-                <AccionesPropuesta
-                  establecimientoId={datos.establecimiento.id}
-                  propuestaId={p.id}
-                  elegida={p.elegida}
-                  compacto
-                />
-              </div>
+              </Tarjeta>
             </li>
           ))}
         </ul>
@@ -158,8 +128,8 @@ async function ContenidoListadoPropuestas({ params, searchParams }: Props) {
 
 export default function PaginaPropuestasFinca(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando propuestas…</p>}>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando propuestas…</p>}>
         <ContenidoListadoPropuestas params={props.params} searchParams={props.searchParams} />
       </Suspense>
     </main>

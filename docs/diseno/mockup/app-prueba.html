@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoliCampo · Prueba de estilos de la app</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Prueba de estilos para las pantallas internas (etapa estilos/00-base).
+   Colores y medidas de DESIGN.md. Inspiración: los ejemplos de Dribbble que eligió Martina,
+   simplificados para que se entiendan sin conocer la plataforma. */
+:root {
+  --bosque: #003300; --hoja: #597931; --hoja-oscura: #465f26; --naranja: #ff9900; --naranja-oscuro: #b35f00;
+  --turquesa: #00cc99; --menta: #e3f6ef; --menta-fuerte: #c2ebdc; --papel: #f5f9f2; --tinta: #0f220f;
+  --tinta-suave: #45573a; --borde: #d3e0cc; --error: #b42318; --error-claro: #fdecea;
+  --sombra: 0 14px 34px -16px rgb(0 51 0 / .35); --sombra-chica: 0 4px 14px -6px rgb(0 51 0 / .25);
+  --titulos: "Bricolage Grotesque", system-ui, sans-serif; --texto: "Figtree", system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; }
+body { font: 400 17px/1.55 var(--texto); color: var(--tinta); background: #dfe8da; padding: 32px 16px 64px; }
+h1, h2, h3 { font-family: var(--titulos); color: var(--bosque); letter-spacing: -.02em; line-height: 1.15; }
+.lamina { max-width: 1400px; margin: 0 auto; display: flex; gap: 40px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+.rotulo { font: 600 .85rem var(--texto); color: var(--tinta-suave); margin: 0 0 10px 6px; }
+.icono { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* ── Marco "computadora" ───────────────────────────── */
+.pantalla { width: 1000px; max-width: 100%; background: var(--papel); border-radius: 24px; overflow: hidden; box-shadow: 0 30px 60px -30px rgb(0 51 0 / .5); }
+.barra { background: var(--bosque); color: #fff; display: flex; align-items: center; gap: 28px; padding: 14px 28px; }
+.marca { font: italic 800 1.4rem var(--titulos); color: var(--naranja); }
+.barra nav { display: flex; gap: 22px; font-weight: 600; margin-left: auto; }
+.barra nav a { color: #fff; text-decoration: none; padding-bottom: 4px; }
+.barra nav a.actual { border-bottom: 3px solid var(--naranja); }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--naranja); color: var(--bosque); display: grid; place-items: center; font-weight: 800; }
+.cuerpo { padding: 22px 32px 36px; display: flex; flex-direction: column; gap: 22px; }
+
+/* Migas de pan + encabezado */
+.migas { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: .95rem; color: var(--tinta-suave); }
+.migas a { color: var(--hoja); text-decoration: none; }
+.encabezado { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.encabezado h1 { font-size: 2.3rem; }
+.encabezado h1::after { content: ""; display: block; width: 64px; height: 10px; margin-top: 10px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 10'%3E%3Cpath d='M2 6c6-6 10-6 15 0s9 6 15 0 10-6 15 0 9 6 15 0' fill='none' stroke='%23ff9900' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat; }
+.datos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1.5px solid var(--borde); border-radius: 999px; padding: 5px 12px; font-size: .9rem; font-weight: 600; color: var(--tinta-suave); }
+.punto { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+/* Botones */
+.boton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 700 1rem var(--texto); border: 2px solid transparent; cursor: pointer; text-decoration: none; }
+.principal { background: var(--hoja); color: #fff; box-shadow: var(--sombra-chica); }
+.contorno { background: transparent; color: var(--hoja); border-color: var(--hoja); }
+.enlace { color: var(--hoja); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Camino de pasos */
+.pasos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; background: #fff; border: 2px solid var(--borde); border-radius: 28px; padding: 16px; }
+.paso { border-radius: 18px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; font-size: .92rem; color: var(--tinta-suave); }
+.paso b { font: 700 1.02rem var(--titulos); color: var(--bosque); display: flex; align-items: center; gap: 8px; }
+.num { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 800 .9rem var(--texto); background: var(--papel); border: 2px solid var(--borde); color: var(--tinta-suave); }
+.paso.hecho .num { background: var(--hoja); border-color: var(--hoja); color: #fff; }
+.paso.ahora { background: var(--menta); outline: 2px solid var(--hoja); }
+.paso.ahora .num { background: var(--naranja); border-color: var(--naranja); color: var(--bosque); }
+/* Bloqueado: fondo papel en vez de transparencia, así el texto sigue leyéndose bien. */
+.paso.bloqueado { background: var(--papel); }
+.paso.bloqueado b { color: var(--tinta-suave); }
+.etiqueta { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 10px; font: 700 .8rem var(--texto); width: fit-content; }
+.e-ok { background: var(--menta); color: var(--bosque); }
+.e-ahora { background: var(--naranja); color: var(--bosque); }
+.e-espera { background: var(--papel); color: var(--tinta-suave); border: 1.5px solid var(--borde); }
+.e-alerta { background: #fff3df; color: #7a4100; }
+
+/* Grilla de tarjetas */
+.grilla { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; }
+.tarjeta { background: #fff; border: 2px solid var(--borde); border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.tarjeta h2 { font-size: 1.3rem; }
+.tit { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.croquis { border-radius: 20px; background: #eef3e8; overflow: hidden; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Medidor de flores */
+.medidor { position: relative; width: 100%; max-width: 300px; margin: 0 auto; }
+.medidor .valor { position: absolute; inset: auto 0 6px; text-align: center; }
+.medidor .valor strong { font: 800 2.6rem/1 var(--titulos); color: var(--bosque); display: block; }
+.frase { font: 700 1.15rem var(--titulos); color: var(--bosque); text-align: center; }
+.desplegable { border: 1.5px solid var(--borde); border-radius: 16px; padding: 10px 14px; font-weight: 600; color: var(--hoja); display: flex; align-items: center; gap: 8px; font-size: .95rem; }
+
+/* Tareas */
+/* Filas separadas por una línea (no cajas dentro de la tarjeta). */
+.tareas { list-style: none; padding: 0; display: flex; flex-direction: column; }
+.tarea { display: flex; align-items: center; gap: 12px; padding: 12px 2px; }
+.tarea + .tarea { border-top: 1.5px solid var(--borde); }
+.check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--borde); flex-shrink: 0; display: grid; place-items: center; }
+.check.lista { background: var(--hoja); border-color: var(--hoja); color: #fff; }
+.tarea small { color: var(--tinta-suave); display: block; font-size: .88rem; }
+.progreso { height: 8px; border-radius: 999px; background: var(--menta); overflow: hidden; }
+.progreso span { display: block; height: 100%; background: var(--hoja); }
+
+/* Cultivos con foto */
+.cultivos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.foto { position: relative; height: 150px; border-radius: 999px 999px 24px 24px; overflow: hidden; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 14px 16px; box-shadow: var(--sombra); }
+.foto::before { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 30%, rgb(0 51 0 / .9)); }
+.foto > * { position: relative; }
+.foto b { font: 700 1.15rem var(--titulos); }
+.foto .etiqueta { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+/* ── Marco "celular" ───────────────────────────────── */
+.celular { width: 375px; background: var(--papel); border-radius: 36px; overflow: hidden; box-shadow: 0 30px 60px -30px rgb(0 51 0 / .5); border: 8px solid #10200f; position: relative; }
+.saludo { background: var(--bosque); color: #fff; padding: 18px 18px 30px; border-radius: 0 0 28px 28px; display: flex; flex-direction: column; gap: 14px; }
+.saludo h1 { color: #fff; font-size: 1.6rem; }
+.saludo .marca { font-size: 1.15rem; }
+.cel-cuerpo { padding: 16px; display: flex; flex-direction: column; gap: 14px; margin-top: -18px; }
+.siguiente { background: #fff; border-radius: 24px; padding: 16px; box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 10px; }
+.siguiente p { font-size: .95rem; color: var(--tinta-suave); }
+.finca { background: #fff; border: 2px solid var(--borde); border-radius: 24px; padding: 12px; display: flex; gap: 12px; align-items: center; }
+.mini { width: 74px; height: 74px; border-radius: 16px; background: #eef3e8; flex-shrink: 0; overflow: hidden; }
+.finca .info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.finca b { font: 700 1.05rem var(--titulos); color: var(--bosque); }
+.finca small { color: var(--tinta-suave); font-size: .88rem; }
+.flecha { width: 44px; height: 44px; border-radius: 50%; background: var(--hoja); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+.nav-abajo { position: sticky; bottom: 0; margin: 8px 12px 12px; background: var(--bosque); border-radius: 999px; display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px; }
+.nav-abajo a { color: #fff; text-decoration: none; font-size: .75rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 999px; }
+.nav-abajo a.actual { background: var(--naranja); color: var(--bosque); }
+.notas { max-width: 1400px; margin: 36px auto 0; background: #fff; border-radius: 24px; padding: 24px 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 28px; font-size: .95rem; }
+.notas h3 { font-size: 1.05rem; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-candado" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
+  <symbol id="i-lapiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-finca" viewBox="0 0 24 24"><path d="M3 18c4-3 8-3 12 0s6 3 6 0M3 13c4-3 8-3 12 0s6 3 6 0"/><circle cx="12" cy="6" r="2.5"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+  <symbol id="i-guia" viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4z"/><path d="M5 16a4 4 0 0 1 4-4h10"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M10 6l6 6-6 6"/></symbol>
+  <!-- Croquis de ejemplo (el mismo dibujo en grande y en miniatura) -->
+  <symbol id="croquis" viewBox="0 0 400 230">
+    <rect width="400" height="230" fill="#eef3e8"/>
+    <path d="M20 20h220v120H20z" fill="rgba(225,29,72,.28)" stroke="#be123c" stroke-width="3"/>
+    <path d="M250 20h130v190H250z" fill="rgba(220,38,38,.28)" stroke="#b91c1c" stroke-width="3"/>
+    <path d="M20 150h220v60H20z" fill="rgba(13,148,136,.28)" stroke="#0f766e" stroke-width="3"/>
+    <path d="M240 20h10v190h-10z" fill="rgba(147,51,234,.45)" stroke="#7e22ce" stroke-width="2"/>
+    <path d="M20 140h220v10H20z" fill="rgba(147,51,234,.45)" stroke="#7e22ce" stroke-width="2"/>
+  </symbol>
+</svg>
+
+<div class="lamina">
+
+  <!-- ════════ COMPUTADORA: ficha de la finca ════════ -->
+  <div>
+    <p class="rotulo">Computadora · Ficha de la finca</p>
+    <div class="pantalla">
+      <header class="barra">
+        <span class="marca">Policampo</span>
+        <nav><a href="#">Inicio</a><a href="#" class="actual">Herramientas</a></nav>
+        <span class="avatar">M</span>
+      </header>
+
+      <div class="cuerpo">
+        <div class="migas"><a href="#">Mis fincas</a><svg class="icono" style="width:16px;height:16px"><use href="#i-chevron"/></svg><span>El Molle</span></div>
+
+        <div class="encabezado">
+          <div>
+            <h1>Finca El Molle</h1>
+            <div class="datos">
+              <span class="chip">Perico, El Carmen</span>
+              <span class="chip">4,2 ha</span>
+              <span class="chip">3 cultivos</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="boton contorno" href="#"><svg class="icono"><use href="#i-lapiz"/></svg>Editar terreno</a>
+            <a class="boton principal" href="#">Pedir mi diagnóstico<svg class="icono"><use href="#i-flecha"/></svg></a>
+          </div>
+        </div>
+
+        <!-- Camino de pasos: siempre se sabe qué falta -->
+        <div class="pasos" aria-label="Pasos de tu finca">
+          <div class="paso hecho"><b><span class="num"><svg class="icono" style="width:16px;height:16px"><use href="#i-ok"/></svg></span>Terreno</b><span class="etiqueta e-ok">Listo</span></div>
+          <div class="paso ahora"><b><span class="num">2</span>Diagnóstico</b><span class="etiqueta e-ahora">Te toca</span></div>
+          <div class="paso bloqueado"><b><span class="num">3</span>Rediseño</b><span class="etiqueta e-espera"><svg class="icono" style="width:13px;height:13px"><use href="#i-candado"/></svg>Después del 2</span></div>
+          <div class="paso bloqueado"><b><span class="num">4</span>Calendario</b><span class="etiqueta e-espera"><svg class="icono" style="width:13px;height:13px"><use href="#i-candado"/></svg>Después del 3</span></div>
+          <div class="paso bloqueado"><b><span class="num">5</span>Informe</b><span class="etiqueta e-espera"><svg class="icono" style="width:13px;height:13px"><use href="#i-candado"/></svg>Después del 2</span></div>
+        </div>
+
+        <div class="grilla">
+          <section class="tarjeta">
+            <div class="tit"><h2>Así está tu finca</h2><a class="enlace" href="#">Ver en grande<svg class="icono" style="width:18px;height:18px"><use href="#i-flecha"/></svg></a></div>
+            <svg class="croquis" viewBox="0 0 400 230" role="img" aria-label="Croquis de la finca"><use href="#croquis"/></svg>
+            <div class="leyenda">
+              <span class="chip"><span class="punto" style="background:#e11d48"></span>Frutilla · 2,0 ha</span>
+              <span class="chip"><span class="punto" style="background:#dc2626"></span>Tomate · 1,6 ha</span>
+              <span class="chip"><span class="punto" style="background:#0d9488"></span>Hortícolas · 0,3 ha</span>
+              <span class="chip"><span class="punto" style="background:#9333ea"></span>Flores · 0,3 ha</span>
+            </div>
+          </section>
+
+          <section class="tarjeta">
+            <div class="tit"><h2>Flores en tu finca</h2><span class="etiqueta e-alerta">Bajo</span></div>
+            <div class="medidor">
+              <svg viewBox="0 0 220 125" aria-hidden="true">
+                <path d="M20 110a90 90 0 0 1 180 0" fill="none" stroke="#e3f6ef" stroke-width="20" stroke-linecap="round"/>
+                <path d="M20 110a90 90 0 0 1 180 0" fill="none" stroke="#ff9900" stroke-width="20" stroke-linecap="round" pathLength="100" stroke-dasharray="7 100"/>
+                <!-- marca del 20 % -->
+                <line x1="47" y1="47" x2="35" y2="36" stroke="#003300" stroke-width="3" stroke-linecap="round"/>
+                <text x="16" y="30" font-size="12" font-weight="700" fill="#003300" font-family="Figtree">Meta 20 %</text>
+              </svg>
+              <div class="valor"><strong>7 %</strong></div>
+            </div>
+            <p class="frase">Te falta sumar 0,5 ha de flores</p>
+            <a class="boton principal" href="#">Ver cómo mejorarlo<svg class="icono"><use href="#i-flecha"/></svg></a>
+            <div class="desplegable"><svg class="icono"><use href="#i-info"/></svg>¿Por qué 20 %?<svg class="icono" style="margin-left:auto;transform:rotate(90deg)"><use href="#i-chevron"/></svg></div>
+          </section>
+        </div>
+
+        <section class="tarjeta">
+          <div class="tit"><h2>Tus cultivos</h2><a class="enlace" href="#">Guía de especies<svg class="icono" style="width:18px;height:18px"><use href="#i-flecha"/></svg></a></div>
+          <div class="cultivos">
+            <div class="foto" style="background:radial-gradient(circle at 40% 30%,#e8546f,#7a1d2c 55%,#2f4d1a)"><span class="etiqueta e-ok">Con flores cerca</span><b>Frutilla</b><small>2,0 ha</small></div>
+            <div class="foto" style="background:radial-gradient(circle at 55% 35%,#e0452f,#7d2414 50%,#38561c)"><span class="etiqueta e-alerta">Sin flores cerca</span><b>Tomate</b><small>1,6 ha</small></div>
+            <div class="foto" style="background:radial-gradient(circle at 45% 40%,#7fb04a,#3c6a24 55%,#1f3a12)"><span class="etiqueta e-alerta">Sin flores cerca</span><b>Hortícolas</b><small>0,3 ha</small></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ CELULAR: Mis fincas ════════ -->
+  <div>
+    <p class="rotulo">Celular · Herramientas / Mis fincas</p>
+    <div class="celular">
+      <div class="saludo">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="marca">Policampo</span><span class="avatar">M</span></div>
+        <h1>Hola, Martina</h1>
+      </div>
+      <div class="cel-cuerpo">
+        <div class="siguiente">
+          <span class="etiqueta e-ahora">Lo que sigue</span>
+          <b style="font:700 1.1rem var(--titulos);color:var(--bosque)">Pedí el diagnóstico de El Molle</b>
+          <p>Tarda menos de un minuto y te dice cuántas flores le faltan.</p>
+          <a class="boton principal" href="#">Pedir diagnóstico</a>
+        </div>
+
+        <div class="tit"><h2 style="font-size:1.25rem">Mis fincas</h2><a class="enlace" href="#"><svg class="icono"><use href="#i-mas"/></svg>Nueva</a></div>
+
+        <div class="finca">
+          <svg class="mini" viewBox="0 0 400 230" preserveAspectRatio="xMidYMid slice"><use href="#croquis"/></svg>
+          <div class="info"><b>El Molle</b><small>4,2 ha · 3 cultivos</small><span class="etiqueta e-ahora">Falta diagnóstico</span></div>
+          <span class="flecha"><svg class="icono"><use href="#i-flecha"/></svg></span>
+        </div>
+        <div class="finca">
+          <svg class="mini" viewBox="0 0 400 230" preserveAspectRatio="xMidYMid slice" style="transform:scaleX(-1)"><use href="#croquis"/></svg>
+          <div class="info"><b>Los Alisos</b><small>1,8 ha · 1 cultivo</small><span class="etiqueta e-ok"><svg class="icono" style="width:13px;height:13px"><use href="#i-ok"/></svg>Rediseño listo</span></div>
+          <span class="flecha"><svg class="icono"><use href="#i-flecha"/></svg></span>
+        </div>
+
+        <div class="tarjeta" style="padding:16px;gap:10px">
+          <div class="tit"><h2 style="font-size:1.1rem">Tareas de esta semana</h2><small style="color:var(--tinta-suave);font-weight:600">1 de 3</small></div>
+          <div class="progreso"><span style="width:33%"></span></div>
+          <ul class="tareas">
+            <li class="tarea"><span class="check lista"><svg class="icono" style="width:16px;height:16px"><use href="#i-ok"/></svg></span><div>Sembrar borraja<small>Los Alisos · borde norte</small></div></li>
+            <li class="tarea"><span class="check"></span><div>Cortar las flores secas<small>Los Alisos · antes del viernes</small></div></li>
+          </ul>
+        </div>
+      </div>
+      <nav class="nav-abajo">
+        <a href="#" class="actual"><svg class="icono"><use href="#i-casa"/></svg>Inicio</a>
+        <a href="#"><svg class="icono"><use href="#i-finca"/></svg>Fincas</a>
+        <a href="#"><svg class="icono"><use href="#i-calendario"/></svg>Tareas</a>
+        <a href="#"><svg class="icono"><use href="#i-guia"/></svg>Guía</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<div class="notas">
+  <div><h3>Camino de pasos</h3>La ficha muestra los 5 pasos con su estado (Listo, Te toca, bloqueado y por qué). Siempre se sabe qué falta.</div>
+  <div><h3>El dato primero</h3>"7 %" grande, con la meta del 20 % marcada, la palabra "Bajo" y una frase con lo que falta. El porqué va en un desplegable.</div>
+  <div><h3>Una acción principal</h3>Un solo botón oliva por pantalla ("Pedir mi diagnóstico"). Lo demás, contorno o enlace.</div>
+  <div><h3>Leyenda con color</h3>Cada sector con el mismo color que en el croquis y sus hectáreas: se ve que cultivos y flores conviven.</div>
+  <div><h3>Fotos en arco con estado</h3>Tarjetas de cultivo como las de los ejemplos, con una etiqueta que dice algo útil ("Sin flores cerca"). Acá con colores de relleno: irían fotos reales.</div>
+  <div><h3>Celular</h3>"Lo que sigue" arriba, fincas con su croquis en miniatura y estado, y barra de abajo con íconos y palabras.</div>
+</div>
+</body>
+</html>

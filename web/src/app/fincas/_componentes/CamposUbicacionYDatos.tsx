@@ -3,6 +3,9 @@
 // Campos reutilizables de datos generales del establecimiento (Esp. 02, 4.1 y 6.2).
 // Al elegir departamento carga sus localidades y sugiere la ecorregión sin pisar cambios manuales.
 import { useState } from "react";
+import { IconoAlerta } from "@/componentes/marca/Iconos";
+import { Aviso } from "@/componentes/ui/formulario";
+import { MasInfo } from "@/componentes/ui/mas-info";
 import {
   ECORREGIONES,
   NOMBRES_DEPARTAMENTOS_JUJUY,
@@ -71,20 +74,22 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
     }
   }
 
+  // En la computadora los campos van de a dos por renglón (nombre | dirección, departamento | localidad,
+  // ecorregión | superficie) para que el formulario entre en la pantalla sin bajar.
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
       {errores.general ? (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="rounded-2xl lg:col-span-2 border-[1.5px] border-[#f5c2bd] bg-error-claro px-4 py-3 text-[0.95rem] font-semibold text-error"
         >
           {errores.general}
         </div>
       ) : null}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="nombre" className="text-sm font-semibold text-stone-800">
-          Nombre de la finca <span className="text-red-600">*</span>
+        <label htmlFor="nombre" className="text-[0.95rem] font-semibold text-tinta">
+          Nombre de la finca
         </label>
         <input
           id="nombre"
@@ -95,14 +100,14 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
           maxLength={150}
           defaultValue={inicial?.nombre ?? ""}
           placeholder="Ej.: Finca Los Lapachos"
-          className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+          className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
         />
-        {errores.nombre ? <p className="text-sm text-red-700">{errores.nombre}</p> : null}
+        {errores.nombre ? <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.nombre}</p> : null}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="direccion" className="text-sm font-semibold text-stone-800">
-          Dirección o paraje <span className="text-red-600">*</span>
+        <label htmlFor="direccion" className="text-[0.95rem] font-semibold text-tinta">
+          Dirección o paraje
         </label>
         <input
           id="direccion"
@@ -113,15 +118,15 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
           maxLength={200}
           defaultValue={inicial?.direccion ?? ""}
           placeholder="Ej.: Ruta Provincial 47 km 4,5"
-          className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+          className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
         />
-        {errores.direccion ? <p className="text-sm text-red-700">{errores.direccion}</p> : null}
+        {errores.direccion ? <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.direccion}</p> : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:col-span-2">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="departamento" className="text-sm font-semibold text-stone-800">
-            Departamento <span className="text-red-600">*</span>
+          <label htmlFor="departamento" className="text-[0.95rem] font-semibold text-tinta">
+            Departamento
           </label>
           <select
             id="departamento"
@@ -129,7 +134,7 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             required
             value={departamento}
             onChange={(e) => manejarCambioDepartamento(e.target.value)}
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+            className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
           >
             <option value="">Elegí un departamento…</option>
             {NOMBRES_DEPARTAMENTOS_JUJUY.map((depto) => (
@@ -139,13 +144,13 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             ))}
           </select>
           {errores.departamento ? (
-            <p className="text-sm text-red-700">{errores.departamento}</p>
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.departamento}</p>
           ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="localidad" className="text-sm font-semibold text-stone-800">
-            Localidad <span className="text-red-600">*</span>
+          <label htmlFor="localidad" className="text-[0.95rem] font-semibold text-tinta">
+            Localidad
           </label>
           <select
             id="localidad"
@@ -154,7 +159,7 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             disabled={!departamento}
             value={localidadSelect}
             onChange={(e) => setLocalidadSelect(e.target.value)}
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 disabled:bg-stone-100 disabled:text-stone-500 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+            className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <option value="">
               {departamento ? "Elegí una localidad…" : "Primero elegí un departamento"}
@@ -168,15 +173,15 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
           </select>
           <input type="hidden" name="localidadEsOtra" value={esOtraLocalidad ? "true" : "false"} />
           {!esOtraLocalidad && errores.localidad ? (
-            <p className="text-sm text-red-700">{errores.localidad}</p>
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.localidad}</p>
           ) : null}
         </div>
       </div>
 
       {esOtraLocalidad ? (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="localidadOtra" className="text-sm font-semibold text-stone-800">
-            Nombre de la localidad <span className="text-red-600">*</span>
+          <label htmlFor="localidadOtra" className="text-[0.95rem] font-semibold text-tinta">
+            Nombre de la localidad
           </label>
           <input
             id="localidadOtra"
@@ -188,15 +193,19 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             value={localidadOtra}
             onChange={(e) => setLocalidadOtra(e.target.value)}
             placeholder="Escribí el nombre de la localidad o paraje"
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+            className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
           />
-          {errores.localidad ? <p className="text-sm text-red-700">{errores.localidad}</p> : null}
+          {errores.localidad ? <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.localidad}</p> : null}
         </div>
       ) : null}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="ecorregion" className="text-sm font-semibold text-stone-800">
-          Ecorregión <span className="text-red-600">*</span>
+        <label htmlFor="ecorregion" className="text-[0.95rem] font-semibold text-tinta">
+          Ecorregión
+          <MasInfo sobre="la ecorregión">
+            La zona natural de Jujuy donde está tu finca, por ejemplo Valles templados. Sirve para elegir plantas
+            que se den bien en tu zona.
+          </MasInfo>
         </label>
         <select
           id="ecorregion"
@@ -207,7 +216,7 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             setEcorregion(e.target.value as ClaveEcorregion | "");
             setEcorregionModificadaManualmente(true);
           }}
-          className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+          className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
         >
           <option value="">Elegí una ecorregión…</option>
           {ECORREGIONES.map((eco) => (
@@ -216,22 +225,18 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             </option>
           ))}
         </select>
-        <p className="text-xs text-stone-500">
-          Se sugiere automáticamente según el departamento, pero podés cambiarla si tu finca está en
-          una zona de transición.
+        <p className="text-sm text-tinta-suave">
+          La elegimos según el departamento. Cambiala si tu finca está entre dos zonas.
         </p>
-        {errores.ecorregion ? <p className="text-sm text-red-700">{errores.ecorregion}</p> : null}
+        {errores.ecorregion ? <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.ecorregion}</p> : null}
       </div>
 
       {metodo === "mapa" ? (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900">
-          <strong>Superficie total:</strong> se calcula automáticamente al dibujar el contorno de
-          tu terreno en el mapa (no hace falta escribirla a mano).
-        </div>
+        <Aviso>La superficie se calcula sola cuando marques el borde de tu finca en el mapa.</Aviso>
       ) : (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="superficieTotalHa" className="text-sm font-semibold text-stone-800">
-            Superficie total (hectáreas) <span className="text-red-600">*</span>
+          <label htmlFor="superficieTotalHa" className="text-[0.95rem] font-semibold text-tinta">
+            Superficie total de la finca (hectáreas)
           </label>
           <input
             id="superficieTotalHa"
@@ -242,16 +247,16 @@ export function CamposUbicacionYDatos({ metodo, errores, inicial }: Props) {
             value={superficieTexto}
             onChange={(e) => setSuperficieTexto(e.target.value)}
             placeholder="Ej.: 4,5"
-            className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+            className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 text-base text-tinta outline-none transition hover:border-[#b9cbae] focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
           />
-          <p className="text-xs text-stone-600">
-            Entre 0,01 y 100.000 ha (hasta 4 decimales).
+          <p className="text-sm text-tinta-suave">
+            En hectáreas, por ejemplo 4,5.
             {superficieNumerica !== null && superficieNumerica > 0
-              ? ` Equivale a ${formatearMetrosCuadrados(superficieNumerica)}.`
+              ? ` Son ${formatearMetrosCuadrados(superficieNumerica)}.`
               : ""}
           </p>
           {errores.superficieTotalHa ? (
-            <p className="text-sm text-red-700">{errores.superficieTotalHa}</p>
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-error"><IconoAlerta className="h-4 w-4 shrink-0" />{errores.superficieTotalHa}</p>
           ) : null}
         </div>
       )}

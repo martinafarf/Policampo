@@ -1,20 +1,23 @@
 // Ruta /fincas/[id]/informes/[informeId]: vista en pantalla de las 7 secciones del informe (Esp. 07 §5.3, CA-07-15).
-import Link from "next/link";
+//
+// Se lee como un documento: arriba el resumen (lo importante en una sola tarjeta) y «Descargar PDF»; después las
+// secciones numeradas, cada una en su tarjeta. Los datos técnicos siguen estando (es un informe para guardar o
+// mostrarle a un ingeniero), pero con nombres simples.
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BadgeEstadoTarea } from "@/componentes/calendario/BadgeEstadoTarea";
 import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
 import { AccionesInforme } from "@/componentes/informe/AccionesInforme";
+import { IconoAlerta, IconoFlor } from "@/componentes/marca/Iconos";
 import { EsquemaCuestionario3x3 } from "@/componentes/propuesta/EsquemaCuestionario3x3";
 import { GraficoFloracionSemanas } from "@/componentes/propuesta/GraficoFloracionSemanas";
 import { TarjetaEspecieMezcla } from "@/componentes/propuesta/TarjetaEspecieMezcla";
 import { VistaDibujoPropuesta } from "@/componentes/propuesta/VistaDibujoPropuesta";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { Desplegable, DesplegableAtencion } from "@/componentes/ui/mas-info";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { ETIQUETAS_TIPO_TAREA, formatearFechaCortaEsAr } from "@/dominio/calendario";
-import {
-  construirTextoAlerta,
-  formatearNumeroEsAr,
-  obtenerMensajeNivelRiesgo,
-} from "@/dominio/diagnostico";
+import { construirTextoAlerta, formatearNumeroEsAr, obtenerMensajeNivelRiesgo } from "@/dominio/diagnostico";
 import { ETIQUETAS_METODO, hectareasAMetrosCuadrados } from "@/dominio/establecimientos";
 import { AVISO_LEGAL_INFORME } from "@/dominio/informe";
 import { obtenerInformePorId } from "@/dominio/informe/foto";
@@ -33,7 +36,21 @@ function formatearFechaEmision(iso: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   }).format(new Date(iso));
+}
+
+/** Hectáreas con hasta 2 decimales ("0,61 ha"). */
+const ha = (valor: number) => `${formatearNumeroEsAr(valor, 2, 0)} ha`;
+
+/** Una fila "nombre … valor" para las listas de datos del informe. */
+function Fila({ nombre, children }: { nombre: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-2">
+      <dt className="text-tinta-suave">{nombre}</dt>
+      <dd className="text-right font-semibold text-tinta">{children}</dd>
+    </div>
+  );
 }
 
 async function ContenidoInforme({ params }: Props) {
@@ -47,217 +64,204 @@ async function ContenidoInforme({ params }: Props) {
 
   const foto = inf.contenido;
   const compM2 = Math.round(hectareasAMetrosCuadrados(foto.diagnostico.hectareasACompensar));
+  const rutaFinca = `/fincas/${inf.establecimientoId}`;
 
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Ruta de navegación" className="flex flex-wrap items-center gap-3 text-sm">
-        <Link
-          href={`/fincas/${inf.establecimientoId}/informes`}
-          className="font-semibold text-emerald-800 hover:underline"
+      <EncabezadoPagina
+        titulo={`Informe ${foto.codigo}`}
+        migas={[
+          { texto: "Mis fincas", href: "/fincas" },
+          { texto: inf.establecimientoNombre, href: rutaFinca },
+          { texto: "Informes", href: `${rutaFinca}/informes` },
+        ]}
+        datos={[
+          `Generado el ${formatearFechaEmision(foto.emitidoEnIso)}`,
+          ...(foto.preparadoPara ? [`Preparado para: ${foto.preparadoPara}`] : []),
+        ]}
+        acciones={<AccionesInforme establecimientoId={inf.establecimientoId} informeId={inf.id} codigo={foto.codigo} />}
+      />
+
+      {foto.desactualizado.hayAviso ? (
+        <p
+          role="status"
+          className="flex items-start gap-2.5 rounded-[28px] border-2 border-[#f3d3a3] bg-[#fff3df] p-5 text-[#7a4100]"
         >
-          ← Informes de {inf.establecimientoNombre}
-        </Link>
-        <Link href="/informes" className="font-medium text-stone-600 hover:underline">
-          · Mis informes
-        </Link>
-      </nav>
+          <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+          Este informe usa los datos del {formatearFechaEmision(foto.desactualizado.fechaReferenciaIso)}. Tu finca
+          cambió después.
+        </p>
+      ) : null}
 
-      {/* Sección 1: Portada y resumen ejecutivo */}
-      <header className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
-              PoliCampo · {foto.codigo}
-            </span>
-            <h1 className="mt-1.5 text-2xl font-bold text-stone-900">
-              Informe técnico de rediseño agroecológico
-            </h1>
-            <p className="mt-1 text-sm font-semibold text-stone-800">{foto.finca.nombre}</p>
-            <p className="text-xs text-stone-600">
-              {foto.finca.localidad}, {foto.finca.departamento} · {foto.finca.ecorregionNombre}
-            </p>
-            <p className="mt-0.5 text-xs text-stone-500">
-              Emitido el {formatearFechaEmision(foto.emitidoEnIso)}
-            </p>
-            {foto.preparadoPara ? (
-              <p className="mt-1 text-sm font-semibold text-emerald-900">
-                Preparado para: {foto.preparadoPara}
-              </p>
-            ) : null}
-          </div>
-
-          <AccionesInforme
-            establecimientoId={inf.establecimientoId}
-            informeId={inf.id}
-            codigo={foto.codigo}
-          />
-        </div>
-
-        {foto.desactualizado.hayAviso ? (
-          <div
-            role="status"
-            className="rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-950"
-          >
-            <p className="font-bold">
-              ⚠️ Basado en datos del {formatearFechaEmision(foto.desactualizado.fechaReferenciaIso)};
-              la finca cambió después.
-            </p>
-          </div>
-        ) : null}
-
-        <dl className="grid grid-cols-2 gap-3 border-t border-stone-100 pt-4 text-xs sm:grid-cols-3">
-          <div className="rounded-lg bg-stone-50 p-2.5">
-            <dt className="text-stone-500">Nivel de riesgo</dt>
-            <dd className="mt-1">
+      {/* 1. Resumen: lo importante en una sola tarjeta */}
+      <Tarjeta tono="menta" titulo="Resumen">
+        <p className="-mt-2 text-tinta">
+          <strong className="text-bosque">{foto.finca.nombre}</strong> · {foto.finca.localidad},{" "}
+          {foto.finca.departamento} · {foto.finca.ecorregionNombre}
+        </p>
+        <dl className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="flex flex-col gap-1 rounded-2xl bg-white px-4 py-3">
+            <dt className="text-sm font-semibold text-tinta-suave">Cómo está</dt>
+            <dd>
               <BadgeNivelDiagnostico nivel={foto.diagnostico.nivelRiesgo} />
             </dd>
           </div>
-          <div className="rounded-lg bg-stone-50 p-2.5">
-            <dt className="text-stone-500">Flores actuales / Objetivo</dt>
-            <dd className="mt-1 text-sm font-bold text-stone-900">
-              {formatearNumeroEsAr(foto.diagnostico.porcentajeFlores, 1, 1)} % /{" "}
-              {formatearNumeroEsAr(foto.propuesta.objetivoPct, 1, 0)} %
+          <div className="flex flex-col gap-0.5 rounded-2xl bg-white px-4 py-3">
+            <dt className="text-sm font-semibold text-tinta-suave">Flores hoy</dt>
+            <dd className="font-titulos text-xl font-bold text-bosque">
+              {formatearNumeroEsAr(foto.diagnostico.porcentajeFlores, 1, 1)} %
             </dd>
           </div>
-          <div className="rounded-lg bg-stone-50 p-2.5">
-            <dt className="text-stone-500">A compensar</dt>
-            <dd className="mt-1 text-sm font-bold text-stone-900">
-              {formatearNumeroEsAr(foto.diagnostico.hectareasACompensar, 4, 1)} ha
+          <div className="flex flex-col gap-0.5 rounded-2xl bg-white px-4 py-3">
+            <dt className="text-sm font-semibold text-tinta-suave">Con la propuesta</dt>
+            <dd className="font-titulos text-xl font-bold text-bosque">
+              {formatearNumeroEsAr(foto.propuesta.porcentajeLogrado, 1, 1)} %{" "}
+              <span className="text-sm font-semibold text-tinta-suave">
+                (meta {formatearNumeroEsAr(foto.propuesta.objetivoPct, 0, 0)} %)
+              </span>
             </dd>
           </div>
-          <div className="rounded-lg bg-stone-50 p-2.5">
-            <dt className="text-stone-500">Disposición</dt>
-            <dd className="mt-1 text-sm font-bold text-stone-900">
-              {ETIQUETAS_DISPOSICION[foto.propuesta.disposicion]}
-            </dd>
+          <div className="flex flex-col gap-0.5 rounded-2xl bg-white px-4 py-3">
+            <dt className="text-sm font-semibold text-tinta-suave">Flores que faltaban</dt>
+            <dd className="font-titulos text-xl font-bold text-bosque">{ha(foto.diagnostico.hectareasACompensar)}</dd>
           </div>
-          <div className="rounded-lg bg-stone-50 p-2.5">
-            <dt className="text-stone-500">% logrado</dt>
-            <dd className="mt-1 text-sm font-bold text-emerald-900">
-              {formatearNumeroEsAr(foto.propuesta.porcentajeLogrado, 1, 1)} %
-            </dd>
+          <div className="flex flex-col gap-0.5 rounded-2xl bg-white px-4 py-3">
+            <dt className="text-sm font-semibold text-tinta-suave">Forma elegida</dt>
+            <dd className="font-bold text-bosque">{ETIQUETAS_DISPOSICION[foto.propuesta.disposicion]}</dd>
           </div>
-          <div className="rounded-lg bg-stone-50 p-2.5">
-            <dt className="text-stone-500">Próxima tarea</dt>
-            <dd className="mt-1 font-bold text-stone-900">
+          <div className="flex flex-col gap-0.5 rounded-2xl bg-white px-4 py-3">
+            <dt className="text-sm font-semibold text-tinta-suave">Próxima tarea</dt>
+            <dd className="font-bold text-bosque">
               {foto.calendario?.proximaTarea
                 ? `${foto.calendario.proximaTarea.titulo} (${formatearFechaCortaEsAr(foto.calendario.proximaTarea.fechaInicio)})`
                 : "Sin tareas pendientes"}
             </dd>
           </div>
         </dl>
-      </header>
+      </Tarjeta>
 
-      {/* Sección 2: Datos de la finca */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">2. Datos de la finca</h2>
-        <p className="text-xs text-stone-600">
-          Método: <strong>{ETIQUETAS_METODO[foto.finca.metodo]}</strong> · Superficie total:{" "}
-          <strong>{formatearNumeroEsAr(foto.finca.superficieTotalHa, 4, 1)} ha</strong>.
-        </p>
-        <ul className="flex flex-col gap-2">
-          {foto.finca.sectores.map((s, idx) => (
-            <li
-              key={idx}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-xs"
-            >
-              <div>
-                <span className="font-bold text-stone-900">{s.nombre}</span>{" "}
-                <span className="text-stone-600">
-                  ({s.tipo === "sector_flores" ? "Flores" : "Cultivo"} · {s.detalleTipo})
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+        {/* 2. Datos de la finca */}
+        <Tarjeta titulo="2. La finca">
+          <dl className="-mt-2 flex flex-col divide-y-[1.5px] divide-borde">
+            <Fila nombre="Cargada con">{ETIQUETAS_METODO[foto.finca.metodo]}</Fila>
+            <Fila nombre="Superficie total">{ha(foto.finca.superficieTotalHa)}</Fila>
+          </dl>
+          <ul className="flex flex-col divide-y-[1.5px] divide-borde">
+            {foto.finca.sectores.map((s, idx) => (
+              <li key={idx} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
+                <span>
+                  <strong className="text-tinta">{s.nombre}</strong>{" "}
+                  <span className="text-tinta-suave">
+                    ({s.tipo === "sector_flores" ? "Flores" : "Cultivo"} · {s.detalleTipo})
+                  </span>
                 </span>
-              </div>
-              <span className="font-semibold text-stone-900">
-                {formatearNumeroEsAr(s.superficieHa, 4, 2)} ha (
-                {formatearNumeroEsAr(s.porcentajeTotal, 1, 1)} %)
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Sección 3: Diagnóstico */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">3. Diagnóstico</h2>
-        <p className="text-sm font-medium text-stone-800">
-          {obtenerMensajeNivelRiesgo(
-            foto.diagnostico.nivelRiesgo,
-            foto.diagnostico.hectareasACompensar,
-          )}
-        </p>
-        <p className="text-xs text-stone-600">
-          Cultivos: {formatearNumeroEsAr(foto.diagnostico.superficieCultivosHa, 4, 1)} ha · Flores:{" "}
-          {formatearNumeroEsAr(foto.diagnostico.superficieFloresHa, 4, 1)} ha · Sin asignar:{" "}
-          {formatearNumeroEsAr(foto.diagnostico.superficieSinAsignarHa, 4, 1)} ha · Déficit:{" "}
-          {formatearNumeroEsAr(foto.diagnostico.deficitPp, 1, 1)} pp · A compensar:{" "}
-          {formatearNumeroEsAr(foto.diagnostico.hectareasACompensar, 4, 1)} ha (
-          {formatearNumeroEsAr(compM2, 0, 0)} m²).
-        </p>
-        <ul className="list-disc space-y-1 pl-5 text-xs text-stone-700">
-          {foto.diagnostico.areasAptas.textos.map((txt, idx) => (
-            <li key={idx}>{txt}</li>
-          ))}
-        </ul>
-        {foto.diagnostico.alertas.length > 0 ? (
-          <ul className="space-y-1.5">
-            {foto.diagnostico.alertas.map((al, idx) => {
-              const t = construirTextoAlerta(al);
-              return (
-                <li
-                  key={idx}
-                  className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950"
-                >
-                  <strong>⚠️ {t.titulo}:</strong> {t.descripcion}
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </section>
-
-      {/* Sección 4: Propuesta de rediseño */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">4. Propuesta de rediseño</h2>
-        <p className="text-xs text-stone-600">
-          <strong>{foto.propuesta.nombre ?? ETIQUETAS_DISPOSICION[foto.propuesta.disposicion]}</strong>{" "}
-          · Franjas nuevas: {formatearNumeroEsAr(foto.propuesta.superficieFranjasHa, 4, 2)} ha ·
-          Pérdida de cultivo: {formatearNumeroEsAr(foto.propuesta.perdidaTotalCultivoHa, 4, 2)} ha
-          {foto.propuesta.editadaAMano ? " · Editada a mano" : ""}.
-        </p>
-
-        {foto.finca.metodo === "cuestionario" ? (
-          <EsquemaCuestionario3x3
-            reparto={foto.propuesta.reparto ?? []}
-            ocupadasPorSectores={foto.finca.sectores}
-          />
-        ) : (
-          <VistaDibujoPropuesta
-            metodo={foto.finca.metodo}
-            superficieTotalHa={foto.finca.superficieTotalHa}
-            contorno={foto.finca.contorno}
-            sectores={foto.finca.sectores}
-            franjas={foto.propuesta.franjas ?? []}
-          />
-        )}
-
-        {foto.propuesta.perdidaPorCultivo.length > 0 ? (
-          <ul className="space-y-1 text-xs text-stone-700">
-            {foto.propuesta.perdidaPorCultivo.map((p, i) => (
-              <li key={i}>
-                <strong>{p.sector}</strong> ({p.cultivo}): {formatearNumeroEsAr(p.ha, 4, 2)} ha (
-                {formatearNumeroEsAr(p.pct, 1, 1)} %)
+                <span className="font-semibold text-tinta">
+                  {ha(s.superficieHa)}{" "}
+                  <span className="font-normal text-tinta-suave">
+                    ({formatearNumeroEsAr(s.porcentajeTotal, 1, 1)} %)
+                  </span>
+                </span>
               </li>
             ))}
           </ul>
-        ) : null}
-      </section>
+        </Tarjeta>
 
-      {/* Sección 5: Mezcla de plantas de servicio */}
-      <section className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">5. Mezcla de plantas de servicio</h2>
-        <GraficoFloracionSemanas floracion={foto.propuesta.floracion} />
+        {/* 3. Diagnóstico */}
+        <Tarjeta titulo="3. Diagnóstico">
+          <p className="-mt-2 font-semibold text-tinta">
+            {obtenerMensajeNivelRiesgo(foto.diagnostico.nivelRiesgo, foto.diagnostico.hectareasACompensar)}
+          </p>
+          <dl className="flex flex-col divide-y-[1.5px] divide-borde">
+            <Fila nombre="Cultivos">{ha(foto.diagnostico.superficieCultivosHa)}</Fila>
+            <Fila nombre="Flores">{ha(foto.diagnostico.superficieFloresHa)}</Fila>
+            <Fila nombre="Sin cargar">{ha(foto.diagnostico.superficieSinAsignarHa)}</Fila>
+            <Fila nombre="Diferencia con la meta">{formatearNumeroEsAr(foto.diagnostico.deficitPp, 1, 1)} puntos</Fila>
+            <Fila nombre="Flores que faltan">
+              {ha(foto.diagnostico.hectareasACompensar)}{" "}
+              <span className="font-normal text-tinta-suave">({formatearNumeroEsAr(compM2, 0, 0)} m²)</span>
+            </Fila>
+          </dl>
+          <ul className="flex flex-col gap-2 text-tinta">
+            {foto.diagnostico.areasAptas.textos.map((txt, idx) => (
+              <li key={idx} className="flex items-start gap-2.5">
+                <IconoFlor className="mt-0.5 h-5 w-5 shrink-0 text-hoja" />
+                {txt}
+              </li>
+            ))}
+          </ul>
+          {foto.diagnostico.alertas.length > 0 ? (
+            <DesplegableAtencion titulo={`Para revisar (${foto.diagnostico.alertas.length})`}>
+              <ul className="flex flex-col gap-3">
+                {foto.diagnostico.alertas.map((al, idx) => {
+                  const t = construirTextoAlerta(al);
+                  return (
+                    <li key={idx} className="flex flex-col gap-1 rounded-2xl bg-white p-3.5">
+                      <p className="font-bold text-[#7a4100]">{t.titulo}</p>
+                      <p className="text-[0.95rem] text-tinta">{t.descripcion}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </DesplegableAtencion>
+          ) : null}
+        </Tarjeta>
+      </div>
+
+      {/* 4. Propuesta de rediseño */}
+      <Tarjeta titulo="4. Propuesta de rediseño">
+        <p className="-mt-2 text-tinta">
+          <strong className="text-bosque">
+            {foto.propuesta.nombre ?? ETIQUETAS_DISPOSICION[foto.propuesta.disposicion]}
+          </strong>{" "}
+          · Flores nuevas: {ha(foto.propuesta.superficieFranjasHa)} · Le quita a los cultivos:{" "}
+          {ha(foto.propuesta.perdidaTotalCultivoHa)}
+          {foto.propuesta.editadaAMano ? " · Editada a mano" : ""}
+        </p>
+        {/* Con detalle de cultivos: plano y lista lado a lado. Sin detalle: el plano solo, centrado */}
+        <div
+          className={
+            foto.propuesta.perdidaPorCultivo.length > 0
+              ? "grid items-start gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]"
+              : "mx-auto w-full max-w-3xl"
+          }
+        >
+          {foto.finca.metodo === "cuestionario" ? (
+            <EsquemaCuestionario3x3 reparto={foto.propuesta.reparto ?? []} ocupadasPorSectores={foto.finca.sectores} />
+          ) : (
+            <VistaDibujoPropuesta
+              metodo={foto.finca.metodo}
+              superficieTotalHa={foto.finca.superficieTotalHa}
+              contorno={foto.finca.contorno}
+              sectores={foto.finca.sectores}
+              franjas={foto.propuesta.franjas ?? []}
+            />
+          )}
+          {foto.propuesta.perdidaPorCultivo.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-tinta">De qué cultivos sale el lugar:</p>
+              <ul className="flex flex-col divide-y-[1.5px] divide-borde">
+                {foto.propuesta.perdidaPorCultivo.map((p, i) => (
+                  <li key={i} className="flex items-baseline justify-between gap-3 py-2">
+                    <span>
+                      <strong className="text-tinta">{p.sector}</strong> ({p.cultivo})
+                    </span>
+                    <span className="font-semibold text-tinta">
+                      {ha(p.ha)}{" "}
+                      <span className="font-normal text-tinta-suave">({formatearNumeroEsAr(p.pct, 1, 1)} %)</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </Tarjeta>
+
+      {/* 5. Plantas de servicio */}
+      <Tarjeta titulo={`5. Plantas para sembrar (${foto.propuesta.especies.length})`}>
         {foto.propuesta.especies.length === 0 ? (
-          <p className="text-sm text-stone-600">Sin especies compatibles registradas al emitir.</p>
+          <p className="-mt-2 text-tinta-suave">Al generar el informe, la propuesta no tenía plantas.</p>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {foto.propuesta.especies.map((esp) => (
@@ -265,34 +269,34 @@ async function ContenidoInforme({ params }: Props) {
             ))}
           </div>
         )}
-      </section>
+        <Desplegable pregunta="¿Cuándo florecen?">
+          <GraficoFloracionSemanas floracion={foto.propuesta.floracion} />
+        </Desplegable>
+      </Tarjeta>
 
-      {/* Sección 6: Calendario */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">6. Calendario agroecológico</h2>
+      {/* 6. Calendario */}
+      <Tarjeta titulo="6. Calendario">
         {!foto.calendario ? (
-          <p className="text-sm text-stone-600">Calendario no generado.</p>
+          <p className="-mt-2 text-tinta-suave">Al generar el informe, todavía no había calendario.</p>
         ) : (
           <>
-            <p className="text-xs text-stone-600">
+            <p className="-mt-2 text-tinta-suave">
               Temporada del {formatearFechaCortaEsAr(foto.calendario.temporadaInicio)} al{" "}
               {formatearFechaCortaEsAr(foto.calendario.temporadaFin)}.
             </p>
-            <ul className="flex flex-col gap-2">
+            <ul className="grid gap-x-6 md:grid-cols-2">
               {foto.calendario.tareas.map((t, idx) => (
                 <li
                   key={idx}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-xs"
+                  className="flex flex-wrap items-center justify-between gap-2 border-b-[1.5px] border-borde py-2.5"
                 >
                   <div>
-                    <span className="font-semibold text-stone-500">
-                      {ETIQUETAS_TIPO_TAREA[t.tipo]} ·{" "}
-                    </span>
-                    <strong className="text-stone-900">{t.titulo}</strong>
-                    <p className="text-stone-600">
+                    <p className="text-sm font-semibold text-tinta-suave">{ETIQUETAS_TIPO_TAREA[t.tipo]}</p>
+                    <p className="font-semibold text-tinta">{t.titulo}</p>
+                    <p className="text-sm text-tinta-suave">
                       {t.fechaInicio === t.fechaFin
                         ? formatearFechaCortaEsAr(t.fechaInicio)
-                        : `${formatearFechaCortaEsAr(t.fechaInicio)} – ${formatearFechaCortaEsAr(t.fechaFin)}`}
+                        : `Del ${formatearFechaCortaEsAr(t.fechaInicio)} al ${formatearFechaCortaEsAr(t.fechaFin)}`}
                     </p>
                   </div>
                   <BadgeEstadoTarea estado={t.estadoAlEmitir} />
@@ -301,36 +305,35 @@ async function ContenidoInforme({ params }: Props) {
             </ul>
           </>
         )}
-      </section>
+      </Tarjeta>
 
-      {/* Sección 7: Cómo se calculó, fuentes y aviso legal */}
-      <section className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-bold text-stone-900">7. Cómo se calculó, fuentes y aviso</h2>
-        <ol className="list-decimal space-y-1 pl-5 text-xs text-stone-700">
-          {foto.diagnostico.pasosCalculo.map((paso, i) => (
-            <li key={i}>{paso}</li>
-          ))}
-        </ol>
-        <div className="border-t border-stone-100 pt-3">
-          <p className="text-xs font-bold text-stone-800">Fuentes</p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-stone-600">
+      {/* 7. Cómo se calculó, fuentes y aviso legal */}
+      <Tarjeta titulo="7. Cómo se calculó y fuentes">
+        <Desplegable pregunta="¿Cómo se calculó?">
+          <ol className="flex list-decimal flex-col gap-1.5 pl-5">
+            {foto.diagnostico.pasosCalculo.map((paso, i) => (
+              <li key={i}>{paso}</li>
+            ))}
+          </ol>
+        </Desplegable>
+        <div>
+          <p className="font-semibold text-tinta">Fuentes</p>
+          <ul className="mt-1 flex list-disc flex-col gap-0.5 pl-5 text-tinta-suave">
             {foto.fuentes.map((f, i) => (
               <li key={i}>{f}</li>
             ))}
           </ul>
         </div>
-        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-          {AVISO_LEGAL_INFORME}
-        </p>
-      </section>
+        <p className="rounded-2xl bg-papel p-4 text-sm text-tinta-suave">{AVISO_LEGAL_INFORME}</p>
+      </Tarjeta>
     </div>
   );
 }
 
 export default function PaginaDetalleInforme(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando informe…</p>}>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando informe…</p>}>
         <ContenidoInforme params={props.params} />
       </Suspense>
     </main>

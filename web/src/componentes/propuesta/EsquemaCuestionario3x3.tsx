@@ -29,8 +29,8 @@ export function EsquemaCuestionario3x3({ reparto, ocupadasPorSectores = [] }: Pr
   }
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-3">
-      <p className="mb-2 text-xs font-semibold text-stone-600">
+    <div className="rounded-2xl border-[1.5px] border-borde bg-white p-3">
+      <p className="mb-2 text-xs font-semibold text-tinta-suave">
         Esquema 3×3 de ubicaciones propuestas
       </p>
       <div
@@ -47,27 +47,27 @@ export function EsquemaCuestionario3x3({ reparto, ocupadasPorSectores = [] }: Pr
             <div
               key={ubic}
               role="gridcell"
-              className={`flex min-h-20 flex-col justify-between rounded-lg border p-2 text-xs ${
+              className={`flex min-h-20 flex-col justify-between rounded-xl border p-2 text-xs ${
                 propuestaAqui
                   ? "border-pink-400 bg-pink-50 text-pink-950"
                   : existentes.length > 0
-                    ? "border-emerald-200 bg-emerald-50/50 text-stone-800"
-                    : "border-stone-200 bg-stone-50 text-stone-500"
+                    ? "border-menta-fuerte bg-menta text-tinta"
+                    : "border-borde bg-papel text-tinta-suave"
               }`}
             >
-              <span className="text-[11px] font-medium leading-tight">
+              <span className="text-xs font-medium leading-tight">
                 {ETIQUETAS_UBICACION_RELATIVA[ubic]}
               </span>
               {propuestaAqui ? (
-                <span className="mt-1 inline-block rounded-md bg-pink-700 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                <span className="mt-1 inline-block rounded-md bg-pink-700 px-1.5 py-0.5 text-xs font-bold text-white">
                   +{formatearNumeroEsAr(haProp, 4, 2)} ha
                 </span>
               ) : existentes.length > 0 ? (
-                <span className="mt-1 truncate text-[10px] font-medium text-emerald-800">
+                <span className="mt-1 truncate text-xs font-medium text-bosque">
                   {existentes.join(", ")}
                 </span>
               ) : (
-                <span className="mt-1 text-[10px] text-stone-400">Libre</span>
+                <span className="mt-1 text-xs text-tinta-suave">Libre</span>
               )}
             </div>
           );

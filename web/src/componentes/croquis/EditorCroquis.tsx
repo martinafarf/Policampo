@@ -287,8 +287,9 @@ export function EditorCroquis({
   const [guardando, iniciarTransicion] = useTransition();
 
   const onRecuperarBorrador = useCallback((datos: SectorLocalCroquis[]) => {
-    setSectores(datos);
-    setSiguienteId((n) => n + datos.length + 1);
+    // Los sectores del borrador traen claves de la visita anterior (ej. «croquis-nuevo-8») que pueden
+    // coincidir con las que se generen ahora. Se les da claves propias para que React no las repita.
+    setSectores(datos.map((s, i) => ({ ...s, claveLocal: `croquis-borrador-${i}` })));
     setIndiceSeleccionado(null);
   }, []);
 

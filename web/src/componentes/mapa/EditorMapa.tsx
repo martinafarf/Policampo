@@ -166,8 +166,9 @@ export function EditorMapa({
   const onRecuperarBorrador = useCallback(
     (datos: { contorno: PoligonoGeoJson | null; sectores: SectorLocalMapa[] }) => {
       setContorno(datos.contorno);
-      setSectores(datos.sectores);
-      setSiguienteId((n) => n + datos.sectores.length + 1);
+      // Los sectores del borrador traen claves de la visita anterior (ej. «mapa-nuevo-8») que pueden
+      // coincidir con las que se generen ahora. Se les da claves propias para que React no las repita.
+      setSectores(datos.sectores.map((s, i) => ({ ...s, claveLocal: `mapa-borrador-${i}` })));
       setIndiceSeleccionado(null);
       if (datos.contorno) {
         setModo("dibujar_sector");

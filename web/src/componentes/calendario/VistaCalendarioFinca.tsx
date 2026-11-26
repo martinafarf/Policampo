@@ -31,7 +31,7 @@ interface Props {
 }
 
 // Un color por tipo de tarea (el mismo en la tarjeta y en el año completo), con la paleta de la marca
-const COLORES_TIPO: Readonly<Record<TipoTarea, { barra: string; punto: string }>> = {
+export const COLORES_TIPO: Readonly<Record<TipoTarea, { barra: string; punto: string }>> = {
   siembra: { barra: "bg-hoja", punto: "bg-hoja" },
   limite_siembra: { barra: "bg-error", punto: "bg-error" },
   corte: { barra: "bg-naranja", punto: "bg-naranja" },
@@ -55,7 +55,7 @@ function nombreMesAnio(yyyyMm: string): string {
 }
 
 /** Día y mes corto de una fecha ISO, para el bloque de la fecha grande: { dia: "12", mes: "dic" }. */
-function diaYMes(iso: string): { dia: string; mes: string } {
+export function diaYMes(iso: string): { dia: string; mes: string } {
   const [anio, mes, dia] = iso.split("-").map(Number);
   const nombreMes = new Intl.DateTimeFormat("es-AR", { timeZone: "UTC", month: "short" })
     .format(new Date(Date.UTC(anio, mes - 1, dia)))

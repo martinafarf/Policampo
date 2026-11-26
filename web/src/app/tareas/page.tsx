@@ -1,7 +1,10 @@
 // Ruta /tareas: vista global "Mis tareas" de todas las fincas del usuario (Esp. 06 §5.2, CA-06-12).
-import Link from "next/link";
 import { Suspense } from "react";
 import { ListadoMisTareas } from "@/componentes/calendario/ListadoMisTareas";
+import { IconoCalendario } from "@/componentes/marca/Iconos";
+import { BotonEnlace, clasesBoton } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { EstadoVacio } from "@/componentes/ui/estado-vacio";
 import { obtenerHoyJujuyIso } from "@/dominio/calendario";
 import { listarMisTareas } from "@/dominio/calendario/servicio";
 import { requerirUsuario } from "@/lib/sesion";
@@ -15,38 +18,28 @@ async function ContenidoMisTareas() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">Mis tareas</h1>
-          <p className="text-sm text-stone-600">
-            Todas las tareas activas de tus fincas, ordenadas por fecha.
-          </p>
-        </div>
-
-        {tareas.length > 0 ? (
-          <a
-            href="/tareas/ics"
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-700 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-          >
-            📅 Descargar .ics
-          </a>
-        ) : null}
-      </header>
+      <EncabezadoPagina
+        titulo="Mis tareas"
+        migas={[{ texto: "Herramientas", href: "/inicio" }]}
+        bajada="Lo que hay que hacer en todas tus fincas, ordenado por fecha."
+        acciones={
+          tareas.length > 0 ? (
+            // Descarga un archivo .ics: es un enlace común (no de Next) para que el navegador lo baje
+            <a href="/tareas/ics" className={clasesBoton("contorno")}>
+              <IconoCalendario className="h-5 w-5" />
+              Pasar a mi celular
+            </a>
+          ) : undefined
+        }
+      />
 
       {tareas.length === 0 ? (
-        <section className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-stone-300 bg-white px-6 py-12 text-center">
-          <p className="text-lg font-semibold text-stone-900">Todavía no tenés tareas activas</p>
-          <p className="max-w-md text-sm text-stone-600">
-            Entrá a una de tus fincas, elegí una propuesta de rediseño y tocá{" "}
-            <strong>Armar mi calendario</strong> para ver tus tareas de siembra y manejo.
-          </p>
-          <Link
-            href="/fincas"
-            className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            Ir a Mis fincas
-          </Link>
-        </section>
+        <EstadoVacio
+          Icono={IconoCalendario}
+          titulo="Todavía no tenés tareas"
+          texto="Aparecen cuando armás el calendario de una finca, a partir de la propuesta que elegiste."
+          accion={<BotonEnlace href="/fincas">Ir a Mis fincas</BotonEnlace>}
+        />
       ) : (
         <ListadoMisTareas tareas={tareas} hoyIso={hoyIso} />
       )}
@@ -56,8 +49,8 @@ async function ContenidoMisTareas() {
 
 export default function PaginaMisTareas() {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando tus tareas…</p>}>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando tus tareas…</p>}>
         <ContenidoMisTareas />
       </Suspense>
     </main>

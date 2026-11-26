@@ -286,6 +286,10 @@ export function ConstructorPropuesta({
 
   function alGuardar(e: React.FormEvent) {
     e.preventDefault();
+    if (paso !== 2) {
+      irAPaso(2);
+      return;
+    }
     setErrores([]);
 
     if (metodo === "cuestionario" && !validacionReparto.valido) {
@@ -327,10 +331,13 @@ export function ConstructorPropuesta({
 
   function irAPaso(nuevo: 1 | 2 | 3) {
     if (nuevo === 3) {
-      // «Guardar»: se lleva la vista al botón de guardar del resumen
-      const boton = document.querySelector<HTMLElement>("[data-guardar-propuesta]");
-      boton?.scrollIntoView({ block: "center", behavior: "smooth" });
-      boton?.focus();
+      // «Guardar»: el botón está en el paso «Plantas»; se pasa ahí (si hace falta) y se lleva la vista al botón
+      setPaso(2);
+      window.setTimeout(() => {
+        const boton = document.querySelector<HTMLElement>("[data-guardar-propuesta]");
+        boton?.scrollIntoView({ block: "center", behavior: "smooth" });
+        boton?.focus();
+      }, 50);
       return;
     }
     setPaso(nuevo);
@@ -469,7 +476,11 @@ export function ConstructorPropuesta({
         <Pasos pasos={pasos} etiqueta="Pasos para armar tu propuesta" />
       </div>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div
+        className={`grid items-start gap-5 ${
+          paso === 1 ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : "lg:grid-cols-[minmax(0,1fr)_22rem]"
+        }`}
+      >
         {/* ── Columna principal: el paso actual ── */}
         <div className="flex min-w-0 flex-col gap-5">
           {cajaErrores}
@@ -548,7 +559,7 @@ export function ConstructorPropuesta({
                 </span>
               </label>
 
-              {/* Alternativas: carrusel de una fila. Se ven 1 (celular), 2 o 3 (computadora); con › se ven más formas.
+              {/* Alternativas: carrusel de una fila. Se ven 1 (celular) o 2; con › se ven más formas.
                   También se puede deslizar con el dedo. Primero están las que menos lugar le quitan a los cultivos. */}
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-tinta">
@@ -591,7 +602,7 @@ export function ConstructorPropuesta({
                       type="button"
                       aria-pressed={seleccionada}
                       onClick={() => setDisposicionElegida(alt.disposicion)}
-                      className={`flex w-[85%] shrink-0 snap-start flex-col gap-2 rounded-2xl border-2 p-3 text-left transition sm:w-[calc((100%-0.75rem)/2)] xl:w-[calc((100%-1.5rem)/3)] ${
+                      className={`flex w-[85%] shrink-0 snap-start flex-col gap-2 rounded-2xl border-2 p-3 text-left transition sm:w-[calc((100%-0.75rem)/2)] ${
                         seleccionada ? "border-naranja bg-[#fff8ec]" : "border-borde bg-white hover:border-hoja"
                       }`}
                     >
@@ -699,13 +710,6 @@ export function ConstructorPropuesta({
                     </label>
                   )}
 
-                  <VistaDibujoPropuesta
-                    metodo={metodo}
-                    superficieTotalHa={superficieTotalHa}
-                    contorno={contorno}
-                    sectores={sectores}
-                    franjas={alternativaActual.franjas}
-                  />
 
                   {alternativaActual.perdidaPorCultivo.length === 0 ? (
                     <p className="flex items-center gap-2 font-semibold text-bosque">
@@ -830,63 +834,91 @@ export function ConstructorPropuesta({
           ) : null}
         </div>
 
-        {/* ── Resumen, siempre a la vista (en la computadora queda fijo al costado) ── */}
+        {/* ── Costado (en la computadora queda fijo mientras se baja) ──
+            Paso 1: cómo quedaría la finca con la forma elegida (plano grande) y sus números. Sin «Guardar»: primero
+            se eligen las plantas. Paso 2: el resumen con el nombre y «Guardar propuesta». */}
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
-          <Tarjeta compacta titulo="Tu propuesta">
-            {metodo !== "cuestionario" && alternativaActual ? (
-              <VistaDibujoPropuesta
-                metodo={metodo}
-                superficieTotalHa={superficieTotalHa}
-                contorno={contorno}
-                sectores={sectores}
-                franjas={alternativaActual.franjas}
-                compacta
-              />
-            ) : null}
-            <p className="flex items-baseline gap-2">
-              <strong className="font-titulos text-3xl font-extrabold text-bosque">
-                {formatearNumeroEsAr(porcentajeResumen, 1, 1)} %
-              </strong>
-              <span className="text-tinta-suave">con flores</span>
-            </p>
-            <dl className="flex flex-col divide-y-[1.5px] divide-borde">
-              <div className="flex justify-between gap-2 py-1.5">
-                <dt className="text-tinta-suave">Flores nuevas</dt>
-                <dd className="font-semibold text-tinta">{ha(floresNuevasResumen)}</dd>
-              </div>
-              <div className="flex justify-between gap-2 py-1.5">
-                <dt className="text-tinta-suave">Le quita a tus cultivos</dt>
-                <dd className="font-semibold text-tinta">{ha(leQuitaResumen)}</dd>
-              </div>
-              <div className="flex justify-between gap-2 py-1.5">
-                <dt className="text-tinta-suave">Plantas</dt>
-                <dd className="font-semibold text-tinta">{especiesActivas.length}</dd>
-              </div>
-            </dl>
+          {paso === 1 ? (
+            <Tarjeta compacta titulo="Así quedaría tu finca">
+              {metodo !== "cuestionario" && alternativaActual ? (
+                <VistaDibujoPropuesta
+                  metodo={metodo}
+                  superficieTotalHa={superficieTotalHa}
+                  contorno={contorno}
+                  sectores={sectores}
+                  franjas={alternativaActual.franjas}
+                />
+              ) : null}
+              <dl className="grid grid-cols-3 gap-2">
+                {[
+                  { titulo: "Con flores", valor: `${formatearNumeroEsAr(porcentajeResumen, 1, 1)} %` },
+                  { titulo: "Flores nuevas", valor: ha(floresNuevasResumen) },
+                  { titulo: "Le quita a cultivos", valor: ha(leQuitaResumen) },
+                ].map((dato) => (
+                  <div key={dato.titulo} className="flex flex-col gap-0.5 rounded-2xl bg-papel px-3 py-2.5">
+                    <dt className="text-sm font-semibold text-tinta-suave">{dato.titulo}</dt>
+                    <dd className="font-titulos text-lg font-bold text-bosque">{dato.valor}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Tarjeta>
+          ) : (
+            <Tarjeta compacta titulo="Tu propuesta">
+              {metodo !== "cuestionario" && alternativaActual ? (
+                <VistaDibujoPropuesta
+                  metodo={metodo}
+                  superficieTotalHa={superficieTotalHa}
+                  contorno={contorno}
+                  sectores={sectores}
+                  franjas={alternativaActual.franjas}
+                  compacta
+                />
+              ) : null}
+              <p className="flex items-baseline gap-2">
+                <strong className="font-titulos text-3xl font-extrabold text-bosque">
+                  {formatearNumeroEsAr(porcentajeResumen, 1, 1)} %
+                </strong>
+                <span className="text-tinta-suave">con flores</span>
+              </p>
+              <dl className="flex flex-col divide-y-[1.5px] divide-borde">
+                <div className="flex justify-between gap-2 py-1.5">
+                  <dt className="text-tinta-suave">Flores nuevas</dt>
+                  <dd className="font-semibold text-tinta">{ha(floresNuevasResumen)}</dd>
+                </div>
+                <div className="flex justify-between gap-2 py-1.5">
+                  <dt className="text-tinta-suave">Le quita a tus cultivos</dt>
+                  <dd className="font-semibold text-tinta">{ha(leQuitaResumen)}</dd>
+                </div>
+                <div className="flex justify-between gap-2 py-1.5">
+                  <dt className="text-tinta-suave">Plantas</dt>
+                  <dd className="font-semibold text-tinta">{especiesActivas.length}</dd>
+                </div>
+              </dl>
 
-            <label className="flex flex-col gap-1.5 font-semibold text-tinta">
-              Nombre (opcional)
-              <input
-                type="text"
-                maxLength={LIMITES_PROPUESTA.maxNombreLargo}
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                placeholder="Ej.: Bordes de primavera"
-                className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 font-normal outline-none focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
-              />
-            </label>
+              <label className="flex flex-col gap-1.5 font-semibold text-tinta">
+                Nombre (opcional)
+                <input
+                  type="text"
+                  maxLength={LIMITES_PROPUESTA.maxNombreLargo}
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej.: Bordes de primavera"
+                  className="min-h-12 w-full rounded-2xl border-[1.5px] border-borde bg-papel px-4 font-normal outline-none focus:border-hoja focus:bg-white focus:ring-4 focus:ring-naranja/45"
+                />
+              </label>
 
-            {cajaErrores}
+              {cajaErrores}
 
-            <button
-              type="submit"
-              data-guardar-propuesta
-              disabled={pendienteGuardar || pendienteCalc}
-              className={clasesBoton("principal", true)}
-            >
-              {pendienteGuardar ? "Guardando…" : "Guardar propuesta"}
-            </button>
-          </Tarjeta>
+              <button
+                type="submit"
+                data-guardar-propuesta
+                disabled={pendienteGuardar || pendienteCalc}
+                className={clasesBoton("principal", true)}
+              >
+                {pendienteGuardar ? "Guardando…" : "Guardar propuesta"}
+              </button>
+            </Tarjeta>
+          )}
         </aside>
       </div>
     </form>

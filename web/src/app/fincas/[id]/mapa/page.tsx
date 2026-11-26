@@ -70,7 +70,7 @@ async function ContenidoMapa({ params }: Props) {
 
 export default function PaginaMapa(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-[100rem] flex-1 px-4 py-3 sm:px-6 sm:py-4">
+    <main className="mx-auto w-full max-w-[92rem] flex-1 px-4 py-3 sm:px-6 sm:py-4 lg:px-10 lg:py-5">
       <Suspense fallback={<p className="text-tinta-suave">Cargando tu mapa…</p>}>
         <ContenidoMapa params={props.params} />
       </Suspense>

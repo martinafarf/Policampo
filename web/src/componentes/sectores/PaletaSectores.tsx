@@ -13,6 +13,7 @@ import { useState } from "react";
 import { IconoChevron, IconoLupa, IconoOk } from "@/componentes/marca/Iconos";
 import { MasInfo } from "@/componentes/ui/mas-info";
 import { Tarjeta } from "@/componentes/ui/tarjeta";
+import { colorDeSector } from "./colores";
 import {
   ETIQUETAS_SUBTIPO_FLORES,
   SUBTIPOS_FLORES,
@@ -20,6 +21,9 @@ import {
   type SubtipoFlores,
   type TipoSector,
 } from "@/dominio/establecimientos";
+
+// Se sigue exportando desde acá para no cambiar los import del croquis y del mapa.
+export { colorDeSector };
 
 export interface SeleccionPaleta {
   tipo: TipoSector;
@@ -44,32 +48,6 @@ const ICONOS_CULTIVO: Readonly<Record<string, string>> = {
 /** El emoji de un cultivo del catálogo (🌱 si no tiene uno propio). */
 export function iconoDeCultivo(clave: string | undefined): string {
   return (clave ? ICONOS_CULTIVO[clave] : undefined) ?? "🌱";
-}
-
-export function colorDeSector(tipo: TipoSector, claveCultivo?: string): {
-  borde: string;
-  relleno: string;
-} {
-  if (tipo === "sector_flores") {
-    return { borde: "#7e22ce", relleno: "rgba(147, 51, 234, 0.34)" };
-  }
-  const coloresPorCultivo: Readonly<Record<string, { borde: string; relleno: string }>> = {
-    frutilla: { borde: "#be123c", relleno: "rgba(225, 29, 72, 0.28)" },
-    arandano: { borde: "#4338ca", relleno: "rgba(79, 70, 229, 0.28)" },
-    durazno: { borde: "#c2410c", relleno: "rgba(234, 88, 12, 0.28)" },
-    tomate: { borde: "#b91c1c", relleno: "rgba(220, 38, 38, 0.28)" },
-    pimiento: { borde: "#15803d", relleno: "rgba(22, 163, 74, 0.30)" },
-    palta: { borde: "#166534", relleno: "rgba(21, 128, 61, 0.30)" },
-    citricos: { borde: "#a16207", relleno: "rgba(202, 138, 4, 0.28)" },
-    zapallo: { borde: "#b45309", relleno: "rgba(217, 119, 6, 0.28)" },
-    horticolas: { borde: "#0f766e", relleno: "rgba(13, 148, 136, 0.28)" },
-  };
-  return (
-    (claveCultivo ? coloresPorCultivo[claveCultivo] : undefined) ?? {
-      borde: "#15803d",
-      relleno: "rgba(22, 163, 74, 0.30)",
-    }
-  );
 }
 
 interface Props {

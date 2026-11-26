@@ -41,6 +41,7 @@ import { obtenerEstadoDeFinca } from "../_lib/pasos-finca";
 import { MenuMasFicha } from "./MenuMasFicha";
 import type { EstadoPaso, Paso } from "./pasos";
 import { VistaPreviaDibujo } from "./VistaPreviaDibujo";
+import { colorDeSector } from "@/componentes/sectores/colores";
 
 const ETIQUETAS_UBICACION: Readonly<Record<UbicacionRelativa, string>> = {
   arriba_izquierda: "Arriba a la izquierda",
@@ -393,9 +394,11 @@ async function ContenidoFicha({ params, searchParams }: Props) {
                         <li key={s.id} className="flex items-center gap-3 py-2.5">
                           <span
                             aria-hidden="true"
-                            className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
-                              esFlores ? "border-purple-700 bg-purple-600/35" : "border-green-700 bg-green-600/35"
-                            }`}
+                            className="h-3.5 w-3.5 shrink-0 rounded-full border"
+                            style={{
+                              borderColor: colorDeSector(s.tipo, s.cultivoClave).borde,
+                              backgroundColor: colorDeSector(s.tipo, s.cultivoClave).relleno,
+                            }}
                           />
                           <div className="min-w-0 flex-1">
                             <p className="font-semibold break-words text-tinta">{s.nombre}</p>

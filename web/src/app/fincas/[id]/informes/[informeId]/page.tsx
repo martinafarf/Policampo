@@ -218,7 +218,14 @@ async function ContenidoInforme({ params }: Props) {
           {ha(foto.propuesta.perdidaTotalCultivoHa)}
           {foto.propuesta.editadaAMano ? " · Editada a mano" : ""}
         </p>
-        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        {/* Con detalle de cultivos: plano y lista lado a lado. Sin detalle: el plano solo, centrado */}
+        <div
+          className={
+            foto.propuesta.perdidaPorCultivo.length > 0
+              ? "grid items-start gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]"
+              : "mx-auto w-full max-w-3xl"
+          }
+        >
           {foto.finca.metodo === "cuestionario" ? (
             <EsquemaCuestionario3x3 reparto={foto.propuesta.reparto ?? []} ocupadasPorSectores={foto.finca.sectores} />
           ) : (

@@ -384,41 +384,66 @@ export function ConstructorPropuesta({
   }
 
   // Meta de flores (10 % a 40 %, CA-05-06): compacta, arriba del lugar donde van. Se recalcula al soltar el control.
+  // El control tiene una escala de colores para que se entienda sin leer: rojo = poco, naranja = casi,
+  // verde = lo recomendado o más. El número y la etiqueta toman el color de donde está parado.
+  const { objetivoMinPct: minMeta, objetivoMaxPct: maxMeta, objetivoRecomendadoPct: recomendada } = LIMITES_PROPUESTA;
+  const umbralCasi = recomendada - 5; // desde acá ya no es "poco"
+  const posicion = (pct: number) => ((pct - minMeta) / (maxMeta - minMeta)) * 100; // % del ancho del control
+  const nivelMeta =
+    objetivoPct < umbralCasi
+      ? { tono: "error" as const, texto: "Poco", color: "text-error" }
+      : objetivoPct < recomendada
+        ? { tono: "atencion" as const, texto: "Casi", color: "text-naranja-oscuro" }
+        : { tono: "listo" as const, texto: objetivoPct === recomendada ? "Recomendado" : "Muy bien", color: "text-hoja" };
+  // Rojo → naranja → verde: el naranja justo en el "casi" y el verde desde lo recomendado
+  const escalaColores = `linear-gradient(to right, #d92d20 0%, #ff9900 ${posicion(umbralCasi)}%, #ff9900 ${posicion(recomendada - 1)}%, #597931 ${posicion(recomendada)}%, #597931 100%)`;
+
   const bloqueMeta = (
     <div className="flex flex-col gap-2.5 rounded-2xl bg-papel p-4">
-      <p className="flex flex-wrap items-baseline gap-x-2">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="font-semibold text-tinta">Meta:</span>
-        <strong className="font-titulos text-3xl font-extrabold text-bosque">
+        <strong className={`font-titulos text-3xl font-extrabold ${nivelMeta.color}`}>
           {formatearNumeroEsAr(objetivoPct, 0, 0)} %
         </strong>
         <span className="text-tinta-suave">de tu finca con flores</span>
+        <Etiqueta tono={nivelMeta.tono}>{nivelMeta.texto}</Etiqueta>
         <span className="ml-auto text-sm text-tinta-suave">
           {pendienteCalc
             ? "Calculando…"
             : `Ya tenés ${ha(superficieFloresActualHa)} · hay que sumar ${ha(superficieAAgregarHa)}`}
         </span>
       </p>
+      {/* Control con la escala pintada en la barra y una bolita blanca para arrastrar (grande para el dedo) */}
       <input
         type="range"
         aria-label="Porcentaje de la finca con flores"
-        min={LIMITES_PROPUESTA.objetivoMinPct}
-        max={LIMITES_PROPUESTA.objetivoMaxPct}
+        aria-valuetext={`${objetivoPct} %, ${nivelMeta.texto}`}
+        min={minMeta}
+        max={maxMeta}
         step={1}
         value={objetivoPct}
         onChange={(e) => setObjetivoPct(Number(e.target.value))}
         onPointerUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
         onKeyUp={(e) => aplicarObjetivo(Number(e.currentTarget.value))}
-        className="h-3 w-full cursor-pointer accent-naranja"
+        style={{ background: escalaColores }}
+        className="my-1.5 h-3 w-full cursor-pointer appearance-none rounded-full [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-4 [&::-moz-range-thumb]:border-bosque [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-bosque [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-chica"
       />
-      <div className="flex justify-between text-sm font-semibold text-tinta-suave">
-        <span>{LIMITES_PROPUESTA.objetivoMinPct} %</span>
-        <span>Recomendado: {LIMITES_PROPUESTA.objetivoRecomendadoPct} %</span>
-        <span>{LIMITES_PROPUESTA.objetivoMaxPct} %</span>
+      {/* Referencias debajo de la barra, cada una en su lugar (la del recomendado, justo debajo del 20 %) */}
+      <div aria-hidden="true" className="relative h-5 text-sm font-semibold text-tinta-suave">
+        <span className="absolute left-0">{minMeta} %</span>
+        <span
+          className="absolute -translate-x-1/2 whitespace-nowrap text-hoja"
+          style={{ left: `${posicion(recomendada)}%` }}
+        >
+          ▲ <span className="max-sm:hidden">Recomendado </span>
+          {recomendada} %
+        </span>
+        <span className="absolute right-0">{maxMeta} %</span>
       </div>
-      {objetivoPct < LIMITES_PROPUESTA.objetivoRecomendadoPct ? (
+      {objetivoPct < recomendada ? (
         <p role="status" className="flex items-start gap-2 text-[#7a4100]">
           <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
-          Con menos del {LIMITES_PROPUESTA.objetivoRecomendadoPct} % los beneficios para tus cultivos son menores.
+          Con menos del {recomendada} % los beneficios para tus cultivos son menores.
         </p>
       ) : null}
     </div>

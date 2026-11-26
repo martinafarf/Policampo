@@ -55,8 +55,19 @@ const FINCAS_PARA_MOSTRAR_FILTROS = 3;
 
 interface Props {
   fincas: readonly FincaEnListado[];
-  enfoqueDiagnostico?: boolean;
+  /**
+   * Desde Herramientas: a dónde lleva cada finca. "diagnostico" → su diagnóstico; "rediseno" → sus propuestas.
+   * Sin enfoque, a la ficha de la finca.
+   */
+  enfoque?: EnfoqueListado | null;
 }
+
+export type EnfoqueListado = "diagnostico" | "rediseno";
+
+const DESTINO_ENFOQUE: Readonly<Record<EnfoqueListado, { ruta: string; texto: string }>> = {
+  diagnostico: { ruta: "diagnostico", texto: "Ver diagnóstico" },
+  rediseno: { ruta: "propuestas", texto: "Ver propuestas de rediseño" },
+};
 
 function normalizarTexto(texto: string): string {
   return texto
@@ -82,7 +93,7 @@ function EstadoFinca({ finca }: { finca: FincaEnListado }) {
   );
 }
 
-export function ListadoFincasConFiltro({ fincas, enfoqueDiagnostico = false }: Props) {
+export function ListadoFincasConFiltro({ fincas, enfoque = null }: Props) {
   const [busqueda, setBusqueda] = useState("");
   const [estadoDiag, setEstadoDiag] = useState<FiltroEstadoDiagnostico>("todos");
   const mostrarFiltros = fincas.length > FINCAS_PARA_MOSTRAR_FILTROS;
@@ -170,7 +181,7 @@ export function ListadoFincasConFiltro({ fincas, enfoqueDiagnostico = false }: P
       ) : (
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {fincasFiltradas.map((finca) => {
-            const href = enfoqueDiagnostico ? `/fincas/${finca.id}/diagnostico` : `/fincas/${finca.id}`;
+            const href = enfoque ? `/fincas/${finca.id}/${DESTINO_ENFOQUE[enfoque].ruta}` : `/fincas/${finca.id}`;
             const datos = [
               `${finca.localidad}, ${finca.departamento}`,
               ...(finca.superficieTotalHa !== null ? [`${formatearNumeroEsAr(finca.superficieTotalHa, 2)} ha`] : []),
@@ -205,7 +216,7 @@ export function ListadoFincasConFiltro({ fincas, enfoqueDiagnostico = false }: P
                   >
                     <IconoFlecha className="h-5 w-5" />
                   </span>
-                  <span className="sr-only">{enfoqueDiagnostico ? "Ver diagnóstico" : "Abrir la finca"}</span>
+                  <span className="sr-only">{enfoque ? DESTINO_ENFOQUE[enfoque].texto : "Abrir la finca"}</span>
                 </Link>
               </li>
             );

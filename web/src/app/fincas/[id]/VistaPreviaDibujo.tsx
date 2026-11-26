@@ -21,7 +21,7 @@ export interface SectorDibujable {
   geometria?: PoligonoGeoJson | null;
 }
 
-interface EntradaLeyenda {
+export interface EntradaLeyenda {
   clave: string;
   etiqueta: string;
   borde: string;
@@ -29,7 +29,7 @@ interface EntradaLeyenda {
 }
 
 /** Una entrada de leyenda por cada color que aparece en el dibujo (los cultivos primero, las flores al final). */
-function armarLeyenda(sectores: readonly SectorDibujable[]): EntradaLeyenda[] {
+export function armarLeyenda(sectores: readonly SectorDibujable[]): EntradaLeyenda[] {
   const entradas = new Map<string, EntradaLeyenda>();
   for (const s of sectores) {
     const color = colorDeSector(s.tipo, s.cultivoClave);

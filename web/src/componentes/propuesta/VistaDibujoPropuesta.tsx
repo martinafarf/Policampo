@@ -1,8 +1,9 @@
 "use client";
 
 // Dibujo SVG 2D y vista 3D interactiva de una propuesta de rediseño (Esp. 05 §7).
+import { colorDeSector } from "@/componentes/sectores/colores";
 import { useState } from "react";
-import type { SectorDibujable } from "@/app/fincas/[id]/VistaPreviaDibujo";
+import { armarLeyenda, type SectorDibujable } from "@/app/fincas/[id]/VistaPreviaDibujo";
 import {
   crearContornoCroquis,
   type MetodoCaracterizacion,
@@ -98,32 +99,31 @@ export function VistaDibujoPropuesta({
   }
 
   return (
-    <figure className={compacta ? "w-full" : "flex flex-col gap-2.5 rounded-xl border border-stone-200 bg-white p-3"}>
+    // Sin borde propio: va dentro de una Tarjeta (sin tarjeta en tarjeta).
+    <figure className={compacta ? "w-full" : "flex flex-col gap-3"}>
       {!compacta ? (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-stone-700">Visualización de la propuesta</span>
-          <div className="inline-flex rounded-lg border border-stone-200 bg-stone-100 p-0.5 text-xs">
+        // Plano o 3D: dos botones pegados (el elegido, relleno)
+        <div className="flex justify-end">
+          <div role="group" aria-label="Cómo ver el dibujo" className="inline-flex rounded-full bg-menta p-1">
             <button
               type="button"
               onClick={() => setModoVista("2d")}
-              className={`rounded-md px-3 py-1 font-semibold transition ${
-                modoVista === "2d"
-                  ? "bg-white text-emerald-900 shadow-xs"
-                  : "text-stone-600 hover:text-stone-900"
+              aria-pressed={modoVista === "2d"}
+              className={`min-h-9 rounded-full px-4 text-sm font-bold transition ${
+                modoVista === "2d" ? "bg-white text-bosque shadow-chica" : "text-tinta-suave hover:text-bosque"
               }`}
             >
-              Plano 2D
+              Plano
             </button>
             <button
               type="button"
               onClick={() => setModoVista("3d")}
-              className={`rounded-md px-3 py-1 font-semibold transition ${
-                modoVista === "3d"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-stone-600 hover:text-stone-900"
+              aria-pressed={modoVista === "3d"}
+              className={`min-h-9 rounded-full px-4 text-sm font-bold transition ${
+                modoVista === "3d" ? "bg-white text-bosque shadow-chica" : "text-tinta-suave hover:text-bosque"
               }`}
             >
-              Vista 3D
+              En 3D
             </button>
           </div>
         </div>
@@ -142,24 +142,26 @@ export function VistaDibujoPropuesta({
           viewBox={`0 0 ${anchoSvg} ${altoSvg}`}
           role="img"
           aria-label="Esquema espacial de la propuesta de franjas florales sobre la finca"
-          className={`w-full rounded-lg bg-stone-50 ${compacta ? "h-32" : "h-60"}`}
+          className={`w-full rounded-2xl bg-papel ${compacta ? "h-32" : "h-72 sm:h-80"}`}
         >
           <path
             d={pathDeGeometria(poligonoContorno)}
-            fill="#f5f5f4"
-            stroke="#57534e"
+            fill="#ffffff"
+            stroke="#45573a"
             strokeWidth={compacta ? 1.5 : 2}
             strokeDasharray={metodo === "croquis" ? "5 3" : undefined}
           />
 
           {sectoresConGeo.map((s, idx) => {
             const esFlores = s.tipo === "sector_flores";
+            // El mismo color de cada cultivo que en el mapa, el croquis y la ficha
+            const color = colorDeSector(s.tipo, s.cultivoClave);
             return (
               <path
                 key={s.id ?? `sec-${idx}`}
                 d={pathDeGeometria(s.geometria)}
-                fill={esFlores ? "rgba(147, 51, 234, 0.25)" : "rgba(22, 163, 74, 0.25)"}
-                stroke={esFlores ? "#7e22ce" : "#15803d"}
+                fill={color.relleno}
+                stroke={color.borde}
                 strokeWidth={compacta ? 1 : 1.4}
               >
                 <title>{s.nombre ?? (esFlores ? "Flores existentes" : "Cultivo")}</title>
@@ -183,19 +185,24 @@ export function VistaDibujoPropuesta({
       )}
 
       {!compacta ? (
-        <figcaption className="flex flex-wrap items-center gap-4 px-1 text-xs text-stone-600">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-xs border border-pink-700 bg-pink-600/45" />
-            Franjas propuestas
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-xs border border-green-700 bg-green-600/25" />
-            Cultivo
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-xs border border-purple-700 bg-purple-600/25" />
-            Flores existentes
-          </span>
+        <figcaption className="flex flex-wrap items-center gap-2 text-sm font-semibold text-tinta-suave">
+          {[
+            { texto: "Flores nuevas", borde: "#be185d", relleno: "rgba(219, 39, 119, 0.45)" },
+            // Después, cada cultivo con su color (y las flores que ya hay), como en la ficha
+            ...armarLeyenda(sectoresConGeo).map((e) => ({
+              texto: e.clave === "flores" ? "Flores que ya tenés" : e.etiqueta,
+              borde: e.borde,
+              relleno: e.relleno,
+            })),
+          ].map((e) => (
+            <span
+              key={e.texto}
+              className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-borde bg-white px-3 py-1"
+            >
+              <span className="h-3 w-3 rounded-full border" style={{ borderColor: e.borde, backgroundColor: e.relleno }} />
+              {e.texto}
+            </span>
+          ))}
         </figcaption>
       ) : null}
     </figure>

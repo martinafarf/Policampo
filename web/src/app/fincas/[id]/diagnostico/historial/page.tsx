@@ -1,7 +1,12 @@
 // Ruta /fincas/[id]/diagnostico/historial: historial y evolución temporal (Esp. 04, §5.4, CA-04-11).
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { IconoLupa } from "@/componentes/marca/Iconos";
+import { BotonEnlace } from "@/componentes/ui/boton";
+import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
+import { EstadoVacio } from "@/componentes/ui/estado-vacio";
+import { Etiqueta } from "@/componentes/ui/etiqueta";
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
 import { GraficoEvolucion } from "@/componentes/diagnostico/GraficoEvolucion";
 import { formatearFechaDiagnostico } from "@/componentes/diagnostico/VistaDiagnostico";
@@ -22,75 +27,58 @@ async function ContenidoHistorial({ params }: Props) {
     notFound();
   }
 
+  const rutaFinca = `/fincas/${datos.establecimiento.id}`;
+
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Ruta de navegación" className="flex flex-wrap items-center gap-3 text-sm">
-        <Link
-          href={`/fincas/${datos.establecimiento.id}/diagnostico`}
-          className="font-semibold text-emerald-800 hover:underline"
-        >
-          ← Volver al diagnóstico actual
-        </Link>
-        <Link
-          href={`/fincas/${datos.establecimiento.id}`}
-          className="font-medium text-stone-600 hover:underline"
-        >
-          · Ficha de {datos.establecimiento.nombre}
-        </Link>
-      </nav>
-
-      <header>
-        <h1 className="text-2xl font-bold text-stone-900">Historial de diagnósticos</h1>
-        <p className="mt-1 text-sm text-stone-600">
-          {datos.establecimiento.nombre} · Ordenados del más reciente al más antiguo. Cada uno
-          conserva los datos exactos del momento en que se calculó.
-        </p>
-      </header>
+      <EncabezadoPagina
+        titulo="Diagnósticos anteriores"
+        migas={[
+          { texto: "Mis fincas", href: "/fincas" },
+          { texto: datos.establecimiento.nombre, href: rutaFinca },
+          { texto: "Diagnóstico", href: `${rutaFinca}/diagnostico` },
+        ]}
+        bajada="Cada diagnóstico guarda cómo estaba tu finca el día que lo pediste."
+      />
 
       {datos.diagnosticos.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-stone-300 bg-white p-6 text-center text-sm text-stone-600">
-          Todavía no hay diagnósticos guardados para esta finca.
-        </section>
+        <EstadoVacio
+          Icono={IconoLupa}
+          titulo="Todavía no hay diagnósticos"
+          accion={<BotonEnlace href={`${rutaFinca}/diagnostico`}>Ir al diagnóstico</BotonEnlace>}
+        />
       ) : (
-        <>
-          <ul className="flex flex-col gap-3">
-            {datos.diagnosticos.map((d, idx) => (
-              <li
-                key={d.id}
-                className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex flex-col gap-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-bold text-stone-900">
-                      {formatearFechaDiagnostico(d.creadoEn)}
-                    </span>
-                    <BadgeNivelDiagnostico nivel={d.nivelRiesgo} />
-                    {idx === 0 ? (
-                      <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
-                        Último
-                      </span>
-                    ) : null}
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <Tarjeta titulo={`Diagnósticos (${datos.diagnosticos.length})`}>
+            <ul className="flex flex-col divide-y-[1.5px] divide-borde">
+              {datos.diagnosticos.map((d, idx) => (
+                <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-tinta">{formatearFechaDiagnostico(d.creadoEn)}</span>
+                      {idx === 0 ? <Etiqueta tono="ahora">Último</Etiqueta> : null}
+                    </div>
+                    <p className="flex flex-wrap items-center gap-2 text-tinta-suave">
+                      <strong className="font-titulos text-lg text-bosque">
+                        {formatearNumeroEsAr(d.porcentajeFlores, 1, 1)} %
+                      </strong>
+                      con flores
+                      <BadgeNivelDiagnostico nivel={d.nivelRiesgo} />
+                    </p>
                   </div>
-                  <p className="text-xs text-stone-600">
-                    <strong>{formatearNumeroEsAr(d.porcentajeFlores, 1, 1)} %</strong> con flores ·
-                    A compensar:{" "}
-                    <strong>{formatearNumeroEsAr(d.hectareasACompensar, 4, 1)} ha</strong> · Reglas
-                    v{d.versionReglas}
-                  </p>
-                </div>
-
-                <Link
-                  href={`/fincas/${datos.establecimiento.id}/diagnostico/${d.id}`}
-                  className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg border border-emerald-700 px-3.5 py-1.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
-                >
-                  Ver detalle →
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  <BotonEnlace
+                    href={idx === 0 ? `${rutaFinca}/diagnostico` : `${rutaFinca}/diagnostico/${d.id}`}
+                    variante="texto"
+                  >
+                    Ver
+                  </BotonEnlace>
+                </li>
+              ))}
+            </ul>
+          </Tarjeta>
 
           <GraficoEvolucion diagnosticos={datos.diagnosticos} />
-        </>
+        </div>
       )}
     </div>
   );
@@ -98,8 +86,8 @@ async function ContenidoHistorial({ params }: Props) {
 
 export default function PaginaHistorialDiagnosticos(props: Props) {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-8">
-      <Suspense fallback={<p className="text-sm text-stone-600">Cargando historial…</p>}>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 sm:py-6">
+      <Suspense fallback={<p className="text-tinta-suave">Cargando diagnósticos…</p>}>
         <ContenidoHistorial params={props.params} />
       </Suspense>
     </main>

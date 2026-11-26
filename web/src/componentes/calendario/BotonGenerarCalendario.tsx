@@ -1,8 +1,11 @@
 "use client";
 
 // Botón cliente para armar, regenerar (con confirmación) o abrir próxima temporada de calendario (Esp. 06).
+// Usa los botones comunes (DESIGN.md): «principal» para la acción importante de la pantalla y «contorno» cuando
+// va al lado de otra acción más importante.
 import { useState, useTransition } from "react";
 import { generarCalendarioAccion } from "@/app/fincas/[id]/calendario/acciones";
+import { clasesBoton } from "@/componentes/ui/boton";
 
 interface Props {
   establecimientoId: string;
@@ -10,7 +13,8 @@ interface Props {
   texto: string;
   pedirConfirmacion?: boolean;
   textoConfirmacion?: string;
-  variante?: "primario" | "alerta";
+  /** "alerta" se mantiene por compatibilidad: se ve como el principal (el aviso de alrededor ya marca la alerta). */
+  variante?: "primario" | "alerta" | "contorno";
 }
 
 export function BotonGenerarCalendario({
@@ -35,39 +39,30 @@ export function BotonGenerarCalendario({
     });
   }
 
-  const estilo =
-    variante === "alerta"
-      ? "bg-amber-700 text-white hover:bg-amber-800"
-      : "bg-emerald-700 text-white hover:bg-emerald-800";
-
   return (
-    <div className="flex flex-col gap-2">
+    // items-center: el botón mantiene su ancho aunque abajo aparezca un mensaje de error largo
+    <div className="flex flex-col items-center gap-2">
       {!confirmando ? (
         <button
           type="button"
           disabled={pendiente}
           onClick={() => (pedirConfirmacion ? setConfirmando(true) : ejecutar())}
-          className={`inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 ${estilo}`}
+          className={clasesBoton(variante === "contorno" ? "contorno" : "principal")}
         >
-          {pendiente ? "Generando calendario…" : texto}
+          {pendiente ? "Armando el calendario…" : texto}
         </button>
       ) : (
-        <div className="flex flex-col gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
+        <div className="flex flex-col gap-3 rounded-2xl border-[1.5px] border-[#f3d3a3] bg-white p-4 text-tinta">
           <p>{textoConfirmacion}</p>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={pendiente}
-              onClick={ejecutar}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg bg-amber-700 px-3.5 py-1.5 font-semibold text-white hover:bg-amber-800 disabled:opacity-50"
-            >
-              {pendiente ? "Regenerando…" : "Sí, regenerar calendario"}
+            <button type="button" disabled={pendiente} onClick={ejecutar} className={clasesBoton("principal")}>
+              {pendiente ? "Rehaciendo…" : "Sí, rehacer el calendario"}
             </button>
             <button
               type="button"
               disabled={pendiente}
               onClick={() => setConfirmando(false)}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-stone-300 bg-white px-3.5 py-1.5 font-semibold text-stone-700 hover:bg-stone-50"
+              className={clasesBoton("texto")}
             >
               Cancelar
             </button>
@@ -78,7 +73,7 @@ export function BotonGenerarCalendario({
       {error ? (
         <p
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800"
+          className="rounded-2xl border-[1.5px] border-[#f5c2bd] bg-error-claro px-3 py-2 text-sm font-semibold text-error"
         >
           {error}
         </p>

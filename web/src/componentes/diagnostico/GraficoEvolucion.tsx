@@ -1,4 +1,5 @@
 // Gráfico liviano en SVG de la evolución del % con flores a lo largo del tiempo (Esp. 04, §5.4).
+import { Tarjeta } from "@/componentes/ui/tarjeta";
 import { formatearNumeroEsAr } from "@/dominio/diagnostico";
 import type { DiagnosticoNormalizado } from "@/dominio/diagnostico/entrada";
 
@@ -40,20 +41,16 @@ export function GraficoEvolucion({ diagnosticos }: Props) {
 
   const polylinePoints = puntos.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
   const y20 = yDePct(20);
-  const y10 = yDePct(10);
 
   return (
-    <figure className="rounded-xl border border-stone-200 bg-white p-4">
-      <h2 className="text-base font-bold text-stone-900">Evolución del % con flores</h2>
-      <p className="mt-0.5 text-xs text-stone-600">
-        Referencia: línea verde en 20 % (recomendado) y línea amarilla en 10 % (moderado).
-      </p>
+    <Tarjeta titulo="Cómo fueron cambiando tus flores">
+      <p className="-mt-2 text-tinta-suave">La línea punteada es la meta del 20 %.</p>
 
       <svg
         viewBox={`0 0 ${ancho} ${alto}`}
         role="img"
         aria-label={`Evolución del porcentaje con flores en ${ordenados.length} diagnósticos`}
-        className="mt-3 h-44 w-full"
+        className="h-52 w-full"
       >
         {/* Líneas de referencia */}
         <line
@@ -61,25 +58,12 @@ export function GraficoEvolucion({ diagnosticos }: Props) {
           y1={y20}
           x2={ancho - padDer}
           y2={y20}
-          stroke="#15803d"
+          stroke="#003300"
           strokeDasharray="4 3"
           strokeWidth={1.2}
         />
-        <text x={padIzq - 6} y={y20 + 3} textAnchor="end" fontSize="10" fill="#15803d">
+        <text x={padIzq - 6} y={y20 + 3} textAnchor="end" fontSize="10" fill="#003300">
           20%
-        </text>
-
-        <line
-          x1={padIzq}
-          y1={y10}
-          x2={ancho - padDer}
-          y2={y10}
-          stroke="#d97706"
-          strokeDasharray="4 3"
-          strokeWidth={1.2}
-        />
-        <text x={padIzq - 6} y={y10 + 3} textAnchor="end" fontSize="10" fill="#b45309">
-          10%
         </text>
 
         {/* Eje base 0 % */}
@@ -88,10 +72,10 @@ export function GraficoEvolucion({ diagnosticos }: Props) {
           y1={padArr + altoUtil}
           x2={ancho - padDer}
           y2={padArr + altoUtil}
-          stroke="#d6d3d1"
+          stroke="#d3e0cc"
           strokeWidth={1}
         />
-        <text x={padIzq - 6} y={padArr + altoUtil + 3} textAnchor="end" fontSize="10" fill="#78716c">
+        <text x={padIzq - 6} y={padArr + altoUtil + 3} textAnchor="end" fontSize="10" fill="#45573a">
           0%
         </text>
 
@@ -99,7 +83,7 @@ export function GraficoEvolucion({ diagnosticos }: Props) {
         {puntos.length > 1 ? (
           <polyline
             fill="none"
-            stroke="#047857"
+            stroke="#ff9900"
             strokeWidth={2.2}
             points={polylinePoints}
           />
@@ -108,23 +92,22 @@ export function GraficoEvolucion({ diagnosticos }: Props) {
         {/* Puntos */}
         {puntos.map((p) => (
           <g key={p.id}>
-            <circle cx={p.x} cy={p.y} r={4.5} fill="#047857" stroke="#ffffff" strokeWidth={1.5}>
-              <title>
-                {p.fecha}: {formatearNumeroEsAr(p.pct, 1, 1)} %
-              </title>
+            <circle cx={p.x} cy={p.y} r={4.5} fill="#ff9900" stroke="#ffffff" strokeWidth={1.5}>
+              {/* Un solo texto (no varios pedazos): <title> con varios hijos no coincide al hidratar */}
+              <title>{`${p.fecha}: ${formatearNumeroEsAr(p.pct, 1, 1)} %`}</title>
             </circle>
             <text
               x={p.x}
               y={alto - 8}
               textAnchor="middle"
               fontSize="9"
-              fill="#57534e"
+              fill="#45573a"
             >
               {p.fecha}
             </text>
           </g>
         ))}
       </svg>
-    </figure>
+    </Tarjeta>
   );
 }

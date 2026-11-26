@@ -643,114 +643,6 @@ export function ConstructorPropuesta({
                   );
                 })}
               </div>
-
-              {/* La alternativa elegida, en grande, con sus ajustes */}
-              {alternativaActual ? (
-                <div className="flex flex-col gap-4 border-t-[1.5px] border-borde pt-4">
-                  <h3 className="text-lg font-bold text-bosque">
-                    {ETIQUETAS_DISPOSICION[alternativaActual.disposicion]}
-                    {alternativaActual.anchoResultanteM !== null
-                      ? ` · franjas de ${formatearNumeroEsAr(alternativaActual.anchoResultanteM, 1, 1)} m de ancho`
-                      : ""}
-                  </h3>
-
-                  {/* Ajustes según la forma elegida */}
-                  {(alternativaActual.disposicion === "transversal" || alternativaActual.disposicion === "matriz") && (
-                    <div className="grid grid-cols-1 gap-3 rounded-2xl bg-papel p-4 sm:grid-cols-2">
-                      <label className="flex flex-col gap-1.5 font-semibold text-tinta">
-                        Cantidad de corredores: {alternativaActual.parametros.cantidadCorredores ?? 2}
-                        <input
-                          type="range"
-                          min={LIMITES_PROPUESTA.minCorredores}
-                          max={LIMITES_PROPUESTA.maxCorredores}
-                          value={alternativaActual.parametros.cantidadCorredores ?? 2}
-                          disabled={pendienteCalc}
-                          onChange={(e) =>
-                            ajustarParametros({
-                              ...alternativaActual.parametros,
-                              cantidadCorredores: Number(e.target.value),
-                            })
-                          }
-                          className="h-3 cursor-pointer accent-naranja"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1.5 font-semibold text-tinta">
-                        Ángulo: {alternativaActual.parametros.anguloGrados ?? 0}°
-                        <input
-                          type="range"
-                          min={0}
-                          max={180}
-                          step={15}
-                          value={alternativaActual.parametros.anguloGrados ?? 0}
-                          disabled={pendienteCalc}
-                          onChange={(e) =>
-                            ajustarParametros({
-                              ...alternativaActual.parametros,
-                              anguloGrados: Number(e.target.value),
-                            })
-                          }
-                          className="h-3 cursor-pointer accent-naranja"
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {alternativaActual.disposicion === "islas" && (
-                    <label className="flex flex-col gap-1.5 rounded-2xl bg-papel p-4 font-semibold text-tinta">
-                      Cantidad de islas: {alternativaActual.parametros.cantidadIslas ?? 4}
-                      <input
-                        type="range"
-                        min={LIMITES_PROPUESTA.minIslas}
-                        max={LIMITES_PROPUESTA.maxIslas}
-                        value={alternativaActual.parametros.cantidadIslas ?? 4}
-                        disabled={pendienteCalc}
-                        onChange={(e) => ajustarParametros({ cantidadIslas: Number(e.target.value) })}
-                        className="h-3 cursor-pointer accent-naranja"
-                      />
-                    </label>
-                  )}
-
-
-                  {alternativaActual.perdidaPorCultivo.length === 0 ? (
-                    <p className="flex items-center gap-2 font-semibold text-bosque">
-                      <IconoOk className="h-5 w-5 text-hoja" />
-                      No le quita lugar a tus cultivos: usa el lugar libre.
-                    </p>
-                  ) : (
-                    <Desplegable pregunta="¿De qué cultivos sale el lugar?">
-                      <ul className="flex flex-col divide-y-[1.5px] divide-borde">
-                        {alternativaActual.perdidaPorCultivo.map((pc, i) => (
-                          <li key={`${pc.sector}-${i}`} className="flex items-baseline justify-between gap-3 py-2">
-                            <span>
-                              <strong className="text-tinta">{pc.sector}</strong> ({pc.cultivo})
-                            </span>
-                            <span className="text-right font-semibold text-tinta">
-                              {ha(pc.ha)}
-                              <span className="block text-sm font-normal text-tinta-suave">
-                                {formatearNumeroEsAr(pc.pct, 1, 1)} % del sector
-                              </span>
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </Desplegable>
-                  )}
-
-                  {alternativaActual.avisos.length > 0 ? (
-                    <DesplegableAtencion titulo={`Para revisar (${alternativaActual.avisos.length})`}>
-                      <ul className="flex flex-col gap-3">
-                        {alternativaActual.avisos.map((av, i) => (
-                          <li key={`${av.codigo}-${i}`} className="rounded-2xl bg-white p-3.5 text-[0.95rem] text-tinta">
-                            {av.mensaje}
-                          </li>
-                        ))}
-                      </ul>
-                    </DesplegableAtencion>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {botonSiguiente(2, "Siguiente: plantas")}
             </Tarjeta>
           ) : null}
 
@@ -861,6 +753,118 @@ export function ConstructorPropuesta({
                   </div>
                 ))}
               </dl>
+              {/* La forma elegida: su nombre, sus ajustes y qué le quita a cada cultivo; y el paso siguiente */}
+              {!(metodo === "cuestionario" && propCuestionario) ? (
+                <>
+                  {/* La alternativa elegida, en grande, con sus ajustes */}
+                  {alternativaActual ? (
+                    <div className="flex flex-col gap-4 border-t-[1.5px] border-borde pt-4">
+                      <h3 className="text-lg font-bold text-bosque">
+                        {ETIQUETAS_DISPOSICION[alternativaActual.disposicion]}
+                        {alternativaActual.anchoResultanteM !== null
+                          ? ` · franjas de ${formatearNumeroEsAr(alternativaActual.anchoResultanteM, 1, 1)} m de ancho`
+                          : ""}
+                      </h3>
+
+                      {/* Ajustes según la forma elegida */}
+                      {(alternativaActual.disposicion === "transversal" || alternativaActual.disposicion === "matriz") && (
+                        <div className="grid grid-cols-1 gap-3 rounded-2xl bg-papel p-4 sm:grid-cols-2">
+                          <label className="flex flex-col gap-1.5 font-semibold text-tinta">
+                            Cantidad de corredores: {alternativaActual.parametros.cantidadCorredores ?? 2}
+                            <input
+                              type="range"
+                              min={LIMITES_PROPUESTA.minCorredores}
+                              max={LIMITES_PROPUESTA.maxCorredores}
+                              value={alternativaActual.parametros.cantidadCorredores ?? 2}
+                              disabled={pendienteCalc}
+                              onChange={(e) =>
+                                ajustarParametros({
+                                  ...alternativaActual.parametros,
+                                  cantidadCorredores: Number(e.target.value),
+                                })
+                              }
+                              className="h-3 cursor-pointer accent-naranja"
+                            />
+                          </label>
+                          <label className="flex flex-col gap-1.5 font-semibold text-tinta">
+                            Ángulo: {alternativaActual.parametros.anguloGrados ?? 0}°
+                            <input
+                              type="range"
+                              min={0}
+                              max={180}
+                              step={15}
+                              value={alternativaActual.parametros.anguloGrados ?? 0}
+                              disabled={pendienteCalc}
+                              onChange={(e) =>
+                                ajustarParametros({
+                                  ...alternativaActual.parametros,
+                                  anguloGrados: Number(e.target.value),
+                                })
+                              }
+                              className="h-3 cursor-pointer accent-naranja"
+                            />
+                          </label>
+                        </div>
+                      )}
+
+                      {alternativaActual.disposicion === "islas" && (
+                        <label className="flex flex-col gap-1.5 rounded-2xl bg-papel p-4 font-semibold text-tinta">
+                          Cantidad de islas: {alternativaActual.parametros.cantidadIslas ?? 4}
+                          <input
+                            type="range"
+                            min={LIMITES_PROPUESTA.minIslas}
+                            max={LIMITES_PROPUESTA.maxIslas}
+                            value={alternativaActual.parametros.cantidadIslas ?? 4}
+                            disabled={pendienteCalc}
+                            onChange={(e) => ajustarParametros({ cantidadIslas: Number(e.target.value) })}
+                            className="h-3 cursor-pointer accent-naranja"
+                          />
+                        </label>
+                      )}
+
+
+                      {alternativaActual.perdidaPorCultivo.length === 0 ? (
+                        <p className="flex items-center gap-2 font-semibold text-bosque">
+                          <IconoOk className="h-5 w-5 text-hoja" />
+                          No le quita lugar a tus cultivos: usa el lugar libre.
+                        </p>
+                      ) : (
+                        <Desplegable pregunta="¿De qué cultivos sale el lugar?">
+                          <ul className="flex flex-col divide-y-[1.5px] divide-borde">
+                            {alternativaActual.perdidaPorCultivo.map((pc, i) => (
+                              <li key={`${pc.sector}-${i}`} className="flex items-baseline justify-between gap-3 py-2">
+                                <span>
+                                  <strong className="text-tinta">{pc.sector}</strong> ({pc.cultivo})
+                                </span>
+                                <span className="text-right font-semibold text-tinta">
+                                  {ha(pc.ha)}
+                                  <span className="block text-sm font-normal text-tinta-suave">
+                                    {formatearNumeroEsAr(pc.pct, 1, 1)} % del sector
+                                  </span>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </Desplegable>
+                      )}
+
+                      {alternativaActual.avisos.length > 0 ? (
+                        <DesplegableAtencion titulo={`Para revisar (${alternativaActual.avisos.length})`}>
+                          <ul className="flex flex-col gap-3">
+                            {alternativaActual.avisos.map((av, i) => (
+                              <li key={`${av.codigo}-${i}`} className="rounded-2xl bg-white p-3.5 text-[0.95rem] text-tinta">
+                                {av.mensaje}
+                              </li>
+                            ))}
+                          </ul>
+                        </DesplegableAtencion>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {botonSiguiente(2, "Siguiente: plantas")}
+                </>
+              ) : null}
             </Tarjeta>
           ) : (
             <Tarjeta compacta titulo="Tu propuesta">

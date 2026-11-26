@@ -455,9 +455,19 @@ export async function obtenerCalendarioActivoDeFinca(
   }
 
   if (!activo) {
+    // Cuántas plantas tiene la propuesta elegida: sin plantas no hay tareas que armar, y la pantalla lo avisa
+    // antes de que la persona toque «Armar mi calendario».
+    const especiesElegida = propElegida
+      ? await db
+          .select({ id: propuestaEspecie.propuestaId })
+          .from(propuestaEspecie)
+          .where(eq(propuestaEspecie.propuestaId, propElegida.id))
+          .limit(1)
+      : [];
     return {
       establecimiento: est,
       propuestaElegida: propElegida ?? null,
+      propuestaElegidaTienePlantas: especiesElegida.length > 0,
       calendario: null,
       tareas: [] as TareaConEstado[],
       hoyIso,
@@ -479,6 +489,7 @@ export async function obtenerCalendarioActivoDeFinca(
   return {
     establecimiento: est,
     propuestaElegida: propElegida ?? null,
+    propuestaElegidaTienePlantas: true,
     calendario: activo,
     tareas: filasTareas.map((t) => enriquecerTarea(t, est.id, est.nombre, hoyIso)),
     hoyIso,

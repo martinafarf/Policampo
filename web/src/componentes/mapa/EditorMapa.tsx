@@ -536,7 +536,7 @@ export function EditorMapa({
   }
 
   /** Pasar de un paso a otro con la barra de pasos de arriba. */
-  function irAPaso(paso: 1 | 2 | 3 | 4) {
+  function irAPaso(paso: 1 | 2 | 3) {
     setAvisoMapa(null);
     if (paso === 1) {
       setModo("dibujar_contorno");
@@ -547,9 +547,6 @@ export function EditorMapa({
       setModo("dibujar_sector");
       setVerticesEnCurso([]);
       setIndiceSeleccionado(null);
-    } else if (paso === 3) {
-      setModo("navegar");
-      setVerticesEnCurso([]);
     } else {
       // Guardar: se lleva la vista al botón (hay uno en la computadora y otro en el celular; solo uno se ve)
       const boton = [...document.querySelectorAll<HTMLElement>("[data-guardar-mapa]")].find((b) => b.offsetParent !== null);
@@ -558,10 +555,10 @@ export function EditorMapa({
     }
   }
 
-  /** «Cancelar»: se descarta lo que se estaba marcando y se pasa a revisar lo que ya hay. */
+  /** «Cancelar»: se descarta lo que se estaba marcando (se puede volver a empezar enseguida). */
   function cancelarTrazo() {
     setVerticesEnCurso([]);
-    setModo("navegar");
+    setAvisoMapa(null);
   }
 
   /** La mira de la lista: lleva el mapa hasta ese sector. */
@@ -609,7 +606,7 @@ export function EditorMapa({
 
   // ───────────── Datos para mostrar ─────────────
   const hayBorde = contorno !== null;
-  const pasoActual = modo === "dibujar_contorno" ? 1 : modo === "dibujar_sector" ? 2 : 3;
+  const pasoActual = modo === "dibujar_contorno" ? 1 : 2;
   const pasos: PasoDeProceso[] = [
     {
       titulo: "Delimitar finca",
@@ -618,31 +615,14 @@ export function EditorMapa({
     },
     {
       titulo: "Distribuir cultivos",
-      estado: pasoActual === 2 ? "actual" : sectores.length > 0 ? "hecho" : "pendiente",
+      estado: pasoActual === 2 ? "actual" : "pendiente",
       onClick: () => irAPaso(2),
       deshabilitado: !hayBorde,
     },
-    {
-      titulo: "Revisar distribución",
-      estado: pasoActual === 3 ? "actual" : "pendiente",
-      onClick: () => irAPaso(3),
-      deshabilitado: !hayBorde,
-    },
-    { titulo: "Guardar finca", estado: "pendiente", onClick: () => irAPaso(4), deshabilitado: !hayBorde },
+    { titulo: "Guardar finca", estado: "pendiente", onClick: () => irAPaso(3), deshabilitado: !hayBorde },
   ];
 
-  const titulo =
-    modo === "dibujar_contorno"
-      ? "Delimitar tu finca"
-      : modo === "dibujar_sector"
-        ? "Distribución de cultivos"
-        : "Revisar distribución";
-  const bajada =
-    modo === "dibujar_contorno"
-      ? "Marcá en el mapa el borde de tu finca."
-      : modo === "dibujar_sector"
-        ? "Marcá en el mapa los sectores de cada cultivo dentro de tu finca."
-        : "Elegí un sector para cambiarle el cultivo o el nombre.";
+  const titulo = pasoActual === 1 ? "Delimitar tu finca" : "Distribuir cultivos";
 
   const porcentajeUsado =
     superficieTotalHa !== null && superficieTotalHa > 0
@@ -699,7 +679,6 @@ export function EditorMapa({
           { texto: nombreEstablecimiento, href: `/fincas/${establecimientoId}` },
         ]}
         titulo={titulo}
-        bajada={bajada}
         ayuda={
           <MasInfo ancho sobre="cómo marcar tu finca en el mapa">
             <span className="block font-bold text-bosque">Cómo marcar tu finca en el mapa</span>
@@ -708,14 +687,12 @@ export function EditorMapa({
               Tocá cada esquina de tu finca y después «Finalizar borde».
             </span>
             <span className="mt-1 block">
-              <strong>2. Distribuir cultivos.</strong> Elegí un cultivo a la izquierda y marcá las esquinas de su sector
-              dentro del borde. Al terminar, «Finalizar sector». Repetí con cada cultivo.
+              <strong>2. Distribuir cultivos.</strong> Elegí un cultivo a la izquierda y tocá las esquinas de su sector
+              dentro del borde. Después «Finalizar sector». Repetí con cada cultivo. Para cambiar o borrar uno, usá la
+              lista de la derecha.
             </span>
             <span className="mt-1 block">
-              <strong>3. Revisar distribución.</strong> Tocá un sector para cambiarle el cultivo o el nombre, o borrarlo.
-            </span>
-            <span className="mt-1 block">
-              <strong>4. Guardar finca.</strong> Cuando esté todo, tocá «Guardar mi terreno».
+              <strong>3. Guardar finca.</strong> Cuando esté todo, tocá «Guardar mi terreno».
             </span>
           </MasInfo>
         }
@@ -736,13 +713,11 @@ export function EditorMapa({
       {/* Computadora: tres paneles que entran en la pantalla sin bajar. A la izquierda qué hacer en este paso, en el
           medio el mapa (lo más grande que entre) y a la derecha cuánto llevás y la lista de sectores.
           Celular: una cosa debajo de la otra, en el orden en que se usan (ver "max-lg:order-N"). */}
-      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[18rem_minmax(0,1fr)_20rem] lg:gap-4">
+      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[17rem_minmax(0,1fr)_19rem] lg:gap-4">
         {/* Izquierda: lo que corresponde al paso en el que estás */}
         <div className="contents lg:flex lg:min-h-0 lg:flex-col lg:gap-2 lg:overflow-y-auto">
           <div className="max-lg:order-3">
-            {modo === "dibujar_sector" && contorno ? (
-              <PaletaAgrupada cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
-            ) : modo === "dibujar_contorno" ? (
+            {pasoActual === 1 || !contorno ? (
               <Tarjeta compacta titulo="Paso 1: Marcá el borde">
                 <ol className="flex flex-col gap-2.5 text-sm text-tinta">
                   {[
@@ -760,15 +735,7 @@ export function EditorMapa({
                 </ol>
               </Tarjeta>
             ) : (
-              <Tarjeta compacta titulo="Revisá tu distribución">
-                <p className="text-sm text-tinta-suave">
-                  Tocá un sector en el mapa o en la lista de la derecha para cambiarle el cultivo o el nombre. Con la mira
-                  lo ves en el mapa, con el lápiz lo editás y con la papelera lo borrás.
-                </p>
-                <Boton variante="contorno" onClick={() => irAPaso(2)} className="min-h-10 text-sm">
-                  ✏️ Dibujar otro sector
-                </Boton>
-              </Tarjeta>
+              <PaletaAgrupada cultivos={cultivos} seleccion={paleta} onCambiar={setPaleta} />
             )}
           </div>
         </div>
@@ -850,8 +817,7 @@ export function EditorMapa({
           </div>
 
           {/* Qué hacer ahora y las herramientas del trazo, centradas debajo del mapa (no tapan la vista) */}
-          {modo !== "navegar" ? (
-            <div className="flex flex-col items-center gap-2 rounded-2xl bg-menta px-4 py-3 text-center">
+          <div className="flex flex-col items-center gap-1.5 rounded-2xl bg-menta px-4 py-2 text-center">
               <p className="text-[0.95rem] text-bosque">
                 <strong>{queDibujo}</strong> {queHacer}
               </p>
@@ -881,11 +847,6 @@ export function EditorMapa({
                 </Boton>
               </div>
             </div>
-          ) : (
-            <div className="rounded-2xl bg-menta px-4 py-3 text-center text-[0.95rem] text-bosque">
-              <strong>Revisando.</strong> Tocá un sector del mapa o de la lista para elegirlo.
-            </div>
-          )}
 
           <div className="empty:hidden">
             <BannerBorrador

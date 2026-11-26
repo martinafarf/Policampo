@@ -40,7 +40,7 @@ export function Pasos({ pasos, etiqueta }: { pasos: readonly PasoDeProceso[]; et
                 disabled={paso.deshabilitado}
                 aria-current={actual ? "step" : undefined}
                 style={{ clipPath: formaDelPaso(i, pasos.length) }}
-                className={`flex min-h-11 w-full items-center justify-center gap-2 px-5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 sm:text-[0.95rem] ${
+                className={`flex min-h-9 w-full items-center justify-center gap-2 px-5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 sm:text-[0.95rem] ${
                   actual
                     ? "bg-bosque text-white"
                     : hecho
@@ -49,7 +49,7 @@ export function Pasos({ pasos, etiqueta }: { pasos: readonly PasoDeProceso[]; et
                 }`}
               >
                 <span
-                  className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 text-sm ${
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 text-xs ${
                     hecho
                       ? "border-hoja bg-hoja text-white"
                       : actual

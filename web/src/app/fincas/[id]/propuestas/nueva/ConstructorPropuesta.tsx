@@ -344,6 +344,14 @@ export function ConstructorPropuesta({
     document.getElementById("pasos-propuesta")?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
+  // Orden fijo del carrusel (el mismo siempre, para que la persona se ubique). La «Recomendada» sigue siendo la
+  // que menos le quita a los cultivos: la primera que devuelve el cálculo.
+  const ORDEN_CARRUSEL: readonly DisposicionPropuesta[] = ["perimetral", "superficie_libre", "matriz", "islas", "transversal"];
+  const alternativasEnOrden = [...alternativas].sort(
+    (a, b) => ORDEN_CARRUSEL.indexOf(a.disposicion) - ORDEN_CARRUSEL.indexOf(b.disposicion),
+  );
+  const disposicionRecomendada = alternativas[0]?.disposicion;
+
   // Carrusel de alternativas: ‹ › mueven una tarjeta por vez y se apagan en los extremos.
   const carruselRef = useRef<HTMLDivElement | null>(null);
   const [puedeIzquierda, setPuedeIzquierda] = useState(false);
@@ -560,7 +568,7 @@ export function ConstructorPropuesta({
               </label>
 
               {/* Alternativas: carrusel de una fila. Se ven 1 (celular) o 2; con › se ven más formas.
-                  También se puede deslizar con el dedo. Primero están las que menos lugar le quitan a los cultivos. */}
+                  También se puede deslizar con el dedo. La «Recomendada» es la que menos lugar le quita a los cultivos. */}
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-tinta">
                   Elegí una forma{" "}
@@ -594,7 +602,7 @@ export function ConstructorPropuesta({
                 onScroll={actualizarFlechas}
                 className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                {alternativas.map((alt, i) => {
+                {alternativasEnOrden.map((alt) => {
                   const seleccionada = alt.disposicion === alternativaActual?.disposicion;
                   return (
                     <button
@@ -616,7 +624,7 @@ export function ConstructorPropuesta({
                       />
                       <span className="flex flex-wrap items-center gap-1.5">
                         <span className="font-bold text-bosque">{alt.titulo}</span>
-                        {i === 0 ? (
+                        {alt.disposicion === disposicionRecomendada ? (
                           <Etiqueta tono="listo" conIcono={false}>
                             Recomendada
                           </Etiqueta>

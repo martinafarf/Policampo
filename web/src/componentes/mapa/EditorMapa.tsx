@@ -713,7 +713,7 @@ export function EditorMapa({
       {/* Computadora: tres paneles que entran en la pantalla sin bajar. A la izquierda qué hacer en este paso, en el
           medio el mapa (lo más grande que entre) y a la derecha cuánto llevás y la lista de sectores.
           Celular: una cosa debajo de la otra, en el orden en que se usan (ver "max-lg:order-N"). */}
-      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[17rem_minmax(0,1fr)_19rem] lg:gap-4">
+      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[18.5rem_minmax(0,1fr)_20rem] lg:gap-4">
         {/* Izquierda: lo que corresponde al paso en el que estás */}
         <div className="contents lg:flex lg:min-h-0 lg:flex-col lg:gap-2 lg:overflow-y-auto">
           <div className="max-lg:order-3">

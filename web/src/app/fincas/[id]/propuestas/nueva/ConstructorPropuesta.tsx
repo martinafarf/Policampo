@@ -62,6 +62,8 @@ interface Props {
   disposicionInicial?: DisposicionPropuesta;
   respetarCultivosInicial?: boolean;
   especiesInicialesIds?: readonly string[];
+  /** En qué paso se abre (2 = Plantas, cuando se viene a completar las plantas de una propuesta). */
+  pasoInicial?: 1 | 2;
 }
 
 function claveBorrador(establecimientoId: string) {
@@ -85,6 +87,7 @@ export function ConstructorPropuesta({
   disposicionInicial,
   respetarCultivosInicial = false,
   especiesInicialesIds,
+  pasoInicial = 1,
 }: Props) {
   const [objetivoPct, setObjetivoPct] = useState<number>(objetivoInicialPct);
   const [respetarCultivos, setRespetarCultivos] = useState<boolean>(respetarCultivosInicial);
@@ -320,7 +323,7 @@ export function ConstructorPropuesta({
   // ── Pasos (como en el mapa): se ve un paso por vez para no abrumar; el resumen con «Guardar» queda siempre al
   //    costado. Son pocos a propósito (la meta y el lugar van juntos) para que no sea engorroso. Todos traen valores
   //    recomendados, así que se puede guardar en cualquier momento.
-  const [paso, setPaso] = useState<1 | 2>(1);
+  const [paso, setPaso] = useState<1 | 2>(pasoInicial);
 
   function irAPaso(nuevo: 1 | 2 | 3) {
     if (nuevo === 3) {
@@ -791,8 +794,9 @@ export function ConstructorPropuesta({
                 </div>
               ) : (
                 <p className="rounded-2xl bg-papel p-4 text-tinta-suave">
-                  Para tus cultivos todavía no tenemos plantas recomendadas en el catálogo. Igual podés guardar la
-                  propuesta con las franjas de flores.
+                  Todavía no hay plantas cargadas en el catálogo para tus cultivos en tu zona (lo ves en «Para revisar»).
+                  Cuando estén cargadas, vas a poder elegirlas acá. Igual podés guardar la propuesta con las franjas de
+                  flores.
                 </p>
               )}
 

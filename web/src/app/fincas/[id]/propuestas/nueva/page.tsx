@@ -16,13 +16,14 @@ import { ConstructorPropuesta } from "./ConstructorPropuesta";
 
 interface Props {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ desde?: string }>;
+  /** desde: propuesta a duplicar. paso=plantas: abrir directo en el paso de las plantas (para completarlas). */
+  searchParams: Promise<{ desde?: string; paso?: string }>;
 }
 
 async function ContenidoNuevaPropuesta({ params, searchParams }: Props) {
   const { id } = await params;
   const usuario = await requerirUsuario(`/fincas/${id}/propuestas/nueva`);
-  const { desde } = await searchParams;
+  const { desde, paso } = await searchParams;
 
   // Si viene de "Duplicar y editar" (?desde=<propuestaId>), cargamos sus parámetros iniciales (CA-05-17).
   const baseDuplicar = desde ? await obtenerDetallePropuesta(id, desde, usuario.id) : null;
@@ -104,6 +105,7 @@ async function ContenidoNuevaPropuesta({ params, searchParams }: Props) {
         disposicionInicial={baseDuplicar?.propuesta.disposicion}
         respetarCultivosInicial={respetarCultivosInicial}
         especiesInicialesIds={baseDuplicar?.propuesta.especies.map((e) => e.plantaId)}
+        pasoInicial={paso === "plantas" ? 2 : 1}
       />
     </div>
   );

@@ -40,6 +40,10 @@ async function ContenidoDetallePropuesta({ params }: Props) {
   const fechaTexto = formatearFechaDiagnostico(propuesta.creadoEn);
   const rutaFinca = `/fincas/${establecimiento.id}`;
   const titulo = propuesta.nombre ?? ETIQUETAS_DISPOSICION[propuesta.disposicion];
+  // Si se guardó sin plantas, se puede completar ese paso: abre el armado desde esta propuesta, directo en «Plantas»
+  // (las propuestas guardadas no se modifican: al guardar queda una nueva, con las plantas).
+  const rutaElegirPlantas = `${rutaFinca}/propuestas/nueva?desde=${propuesta.id}&paso=plantas`;
+  const sinPlantas = propuesta.especies.length === 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -191,6 +195,21 @@ async function ContenidoDetallePropuesta({ params }: Props) {
             )}
           </Tarjeta>
 
+          {sinPlantas ? (
+            <section className="flex flex-col gap-3 rounded-2xl border-[1.5px] border-[#f3d3a3] bg-[#fff3df] p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex items-start gap-2 text-[#7a4100]">
+                <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0" />
+                <span>
+                  <strong className="block">Te falta elegir las plantas</strong>
+                  Qué sembrar en las franjas de flores.
+                </span>
+              </p>
+              <BotonEnlace href={rutaElegirPlantas} className="shrink-0">
+                Elegir plantas
+              </BotonEnlace>
+            </section>
+          ) : null}
+
           {propuesta.avisos.length > 0 ? (
             <DesplegableAtencion titulo={`Para revisar (${propuesta.avisos.length})`}>
               <ul className="flex flex-col gap-3">
@@ -208,9 +227,12 @@ async function ContenidoDetallePropuesta({ params }: Props) {
       {/* Plantas para sembrar y cuándo florecen (desde copia inmutable — CA-05-15, CA-05-18) */}
       <Tarjeta titulo={`Plantas para sembrar (${propuesta.especies.length})`}>
         {propuesta.especies.length === 0 ? (
-          <p className="text-tinta-suave">
-            Para los cultivos de esta finca todavía no tenemos plantas recomendadas en el catálogo.
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-tinta-suave">Esta propuesta se guardó sin plantas.</p>
+            <BotonEnlace href={rutaElegirPlantas} variante="contorno" className="shrink-0">
+              Elegir plantas
+            </BotonEnlace>
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {propuesta.especies.map((esp) => (

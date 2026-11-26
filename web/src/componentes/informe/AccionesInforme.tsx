@@ -1,14 +1,19 @@
 "use client";
 
 // Botones de descarga PDF (con estado "Generando…" y reintento) y borrado con confirmación (Esp. 07 §5.4, §6).
+// Como en las propuestas: «Descargar PDF» a la vista y «Borrar» escondido en «Más» (con un cartel para confirmar),
+// para que no se toque sin querer.
 import { useState, useTransition } from "react";
 import { borrarInformeAccion } from "@/app/fincas/[id]/informes/acciones";
+import { IconoDocumento } from "@/componentes/marca/Iconos";
+import { clasesBoton } from "@/componentes/ui/boton";
 
 interface Props {
   establecimientoId: string;
   informeId: string;
   codigo: string;
   volverA?: "finca" | "global";
+  /** En las listas: botones un poco más bajos y «Descargar PDF» con borde (la acción principal es «Ver»). */
   compacto?: boolean;
 }
 
@@ -21,6 +26,7 @@ export function AccionesInforme({
 }: Props) {
   const [descargando, setDescargando] = useState(false);
   const [errorPdf, setErrorPdf] = useState<string | null>(null);
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
   const [pendienteBorrar, iniciarBorrado] = useTransition();
 
@@ -66,6 +72,8 @@ export function AccionesInforme({
     });
   }
 
+  const alto = compacto ? "min-h-10 px-4" : "";
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -73,59 +81,82 @@ export function AccionesInforme({
           type="button"
           disabled={descargando}
           onClick={descargarPdf}
-          className={`inline-flex items-center justify-center rounded-lg bg-emerald-700 font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 ${
-            compacto ? "min-h-10 px-3 py-1.5 text-xs" : "min-h-11 px-4 py-2 text-sm"
-          }`}
+          className={`${clasesBoton(compacto ? "contorno" : "principal")} ${alto}`}
         >
-          {descargando ? "Generando…" : "⬇️ Descargar PDF"}
+          <IconoDocumento className="h-5 w-5" />
+          {descargando ? "Generando…" : "Descargar PDF"}
         </button>
 
-        {!confirmandoBorrado ? (
+        <div className="relative">
           <button
             type="button"
-            disabled={pendienteBorrar}
-            onClick={() => setConfirmandoBorrado(true)}
-            className={`inline-flex items-center justify-center rounded-lg border border-red-200 bg-white font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 ${
-              compacto ? "min-h-10 px-3 py-1.5 text-xs" : "min-h-11 px-4 py-2 text-sm"
-            }`}
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto((abierto) => !abierto)}
+            className={`${clasesBoton("contorno")} ${alto}`}
           >
-            Borrar
+            Más
           </button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs">
-            <span className="font-semibold text-red-900">¿Borrar definitivo?</span>
-            <button
-              type="button"
-              disabled={pendienteBorrar}
-              onClick={confirmarBorrado}
-              className="rounded-md bg-red-700 px-2.5 py-1 font-semibold text-white hover:bg-red-800"
-            >
-              Sí, borrar
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmandoBorrado(false)}
-              className="rounded-md border border-stone-300 bg-white px-2.5 py-1 font-semibold text-stone-700"
-            >
-              Cancelar
-            </button>
-          </div>
-        )}
+          {menuAbierto ? (
+            <div className="absolute right-0 z-20 mt-2 w-56 rounded-3xl border-[1.5px] border-borde bg-white p-2 shadow-suave">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuAbierto(false);
+                  setConfirmandoBorrado(true);
+                }}
+                className="flex min-h-12 w-full items-center rounded-2xl px-4 text-left font-semibold text-error hover:bg-error-claro"
+              >
+                Borrar informe
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {errorPdf ? (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-[1.5px] border-[#f5c2bd] bg-error-claro px-3 py-2 text-sm text-error"
         >
           <span>{errorPdf}</span>
-          <button
-            type="button"
-            onClick={descargarPdf}
-            className="font-semibold underline hover:text-red-950"
-          >
+          <button type="button" onClick={descargarPdf} className="font-semibold underline">
             Reintentar
           </button>
+        </div>
+      ) : null}
+
+      {/* Confirmación de borrado (mismo cartel que en propuestas y en la ficha) */}
+      {confirmandoBorrado ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`titulo-borrar-${informeId}`}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bosque/60 p-4"
+        >
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-white p-6 shadow-suave">
+            <h2 id={`titulo-borrar-${informeId}`} className="text-xl font-bold text-bosque">
+              ¿Borrar el informe {codigo}?
+            </h2>
+            <p className="text-tinta-suave">Se borra para siempre, también el PDF. No se puede deshacer.</p>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={pendienteBorrar}
+                onClick={() => setConfirmandoBorrado(false)}
+                className={clasesBoton("texto")}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={pendienteBorrar}
+                onClick={confirmarBorrado}
+                className={clasesBoton("peligro")}
+              >
+                {pendienteBorrar ? "Borrando…" : "Sí, borrar"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

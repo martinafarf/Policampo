@@ -11,7 +11,7 @@ import {
   desmarcarTareaAccion,
   marcarTareaHechaAccion,
 } from "@/app/fincas/[id]/calendario/acciones";
-import { IconoFinca, IconoOk } from "@/componentes/marca/Iconos";
+import { IconoChevron, IconoFinca, IconoOk } from "@/componentes/marca/Iconos";
 import { clasesBoton } from "@/componentes/ui/boton";
 import { Aviso } from "@/componentes/ui/formulario";
 import {
@@ -161,31 +161,35 @@ export function ListadoMisTareas({ tareas, hoyIso }: Props) {
             : "No hay tareas con estos filtros."}
         </p>
       ) : (
-        <ul className="grid gap-3 lg:grid-cols-2">
+        // Tarjetas verticales, 3 por fila en la computadora (2 en tablet, 1 en el celular). A la vista solo lo
+        // necesario (fecha, qué hacer, dónde); la explicación larga queda en «Detalles», que se abre al tocarlo.
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtradas.map((t) => {
             const { dia, mes } = diaYMes(t.fechaInicio);
             return (
               <li
                 key={t.id}
-                className={`flex gap-4 rounded-3xl border-2 p-4 ${
+                className={`flex flex-col gap-3 rounded-3xl border-2 p-4 ${
                   t.hechaEn ? "border-menta-fuerte bg-menta/60" : "border-borde bg-white"
                 }`}
               >
-                {/* La fecha, grande */}
-                <div className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-menta text-bosque">
-                  <span className="font-titulos text-2xl leading-none font-extrabold">{dia}</span>
-                  <span className="text-sm font-semibold">{mes}</span>
-                </div>
-
-                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
+                {/* Arriba: la fecha grande y, al lado, el tipo y el estado */}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-menta text-bosque">
+                    <span className="font-titulos text-2xl leading-none font-extrabold">{dia}</span>
+                    <span className="text-sm font-semibold">{mes}</span>
+                  </div>
+                  <div className="flex min-w-0 flex-col items-start gap-1.5">
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-tinta-suave">
-                      <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${COLORES_TIPO[t.tipo].punto}`} />
+                      <span aria-hidden className={`h-2.5 w-2.5 shrink-0 rounded-full ${COLORES_TIPO[t.tipo].punto}`} />
                       {ETIQUETAS_TIPO_TAREA[t.tipo]}
                     </span>
                     <BadgeEstadoTarea estado={t.estado} />
                   </div>
-                  <h3 className="text-lg font-bold text-bosque">{t.titulo}</h3>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-lg leading-snug font-bold text-bosque">{t.titulo}</h3>
                   <Link
                     href={`/fincas/${t.establecimientoId}/calendario`}
                     className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-hoja underline-offset-4 hover:underline"
@@ -193,25 +197,38 @@ export function ListadoMisTareas({ tareas, hoyIso }: Props) {
                     <IconoFinca className="h-4 w-4" />
                     {t.establecimientoNombre}
                   </Link>
-                  {t.fechaInicio !== t.fechaFin ? (
-                    <p className="text-sm text-tinta-suave">
-                      Del {formatearFechaCortaEsAr(t.fechaInicio)} al {formatearFechaCortaEsAr(t.fechaFin)}
-                    </p>
-                  ) : null}
-                  <p className="text-[0.95rem] text-tinta">{t.descripcion}</p>
+                </div>
 
+                {/* Detalles: cerrado; adentro, las fechas y la explicación */}
+                <details className="group rounded-2xl bg-papel text-[0.95rem]">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 font-semibold text-hoja hover:bg-menta [&::-webkit-details-marker]:hidden">
+                    Detalles
+                    <IconoChevron className="h-5 w-5 shrink-0 transition-transform group-open:rotate-90" />
+                  </summary>
+                  <div className="flex flex-col gap-1.5 px-3 pb-3">
+                    {t.fechaInicio !== t.fechaFin ? (
+                      <p className="text-sm font-semibold text-tinta-suave">
+                        Del {formatearFechaCortaEsAr(t.fechaInicio)} al {formatearFechaCortaEsAr(t.fechaFin)}
+                      </p>
+                    ) : null}
+                    <p className="text-tinta">{t.descripcion}</p>
+                  </div>
+                </details>
+
+                {/* Abajo de todo (mt-auto): así los botones quedan alineados aunque las tarjetas tengan distinto alto */}
+                <div className="mt-auto pt-1">
                   {!t.hechaEn ? (
                     <button
                       type="button"
                       disabled={pendiente}
                       onClick={() => marcarRapido(t)}
-                      className={`${clasesBoton("contorno")} mt-1 min-h-11 self-start`}
+                      className={`${clasesBoton("contorno", true)} min-h-11`}
                     >
                       <IconoOk className="h-5 w-5" />
                       Marcar hecha hoy
                     </button>
                   ) : (
-                    <div className="mt-1 flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <span className="flex items-center gap-1.5 font-semibold text-bosque">
                         <IconoOk className="h-5 w-5 text-hoja" />
                         Hecha el {formatearFechaCortaEsAr(t.hechaEn)}

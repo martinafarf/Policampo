@@ -8,11 +8,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { BadgeNivelDiagnostico } from "@/componentes/diagnostico/BadgeNivelDiagnostico";
-import { IconoFinca, IconoFlecha, IconoLupa } from "@/componentes/marca/Iconos";
+import { IconoFinca, IconoFlecha, IconoLapiz, IconoLista, IconoLupa, IconoMapa } from "@/componentes/marca/Iconos";
 import { Boton } from "@/componentes/ui/boton";
 import { Etiqueta } from "@/componentes/ui/etiqueta";
 import { formatearNumeroEsAr, type NivelRiesgo } from "@/dominio/diagnostico";
-import type { MetodoCaracterizacion } from "@/dominio/establecimientos";
+import { ETIQUETAS_METODO, type MetodoCaracterizacion } from "@/dominio/establecimientos";
 import { VistaPreviaDibujo } from "./[id]/VistaPreviaDibujo";
 import type { DibujoFinca } from "./_lib/consultas";
 
@@ -50,6 +50,9 @@ const FILTROS: readonly { valor: FiltroEstadoDiagnostico; texto: string }[] = [
   { valor: "desactualizado", texto: "Desactualizado" },
 ];
 
+/** Un ícono por método de carga, para reconocerlo de un vistazo en la tarjeta. */
+const ICONOS_METODO = { cuestionario: IconoLista, croquis: IconoLapiz, mapa: IconoMapa } as const;
+
 /** Con más fincas que esto se muestran el buscador y los filtros. */
 const FINCAS_PARA_MOSTRAR_FILTROS = 3;
 
@@ -75,6 +78,17 @@ function normalizarTexto(texto: string): string {
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim();
+}
+
+/** Con qué se cargó la finca: ícono + nombre del método ("Cargada con mapa"). */
+function MetodoFinca({ metodo }: { metodo: MetodoCaracterizacion }) {
+  const Icono = ICONOS_METODO[metodo];
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-hoja">
+      <Icono className="h-4 w-4" />
+      Cargada con {ETIQUETAS_METODO[metodo].toLowerCase()}
+    </span>
+  );
 }
 
 /** El estado de la finca en una etiqueta: lo próximo que le falta, o cómo le fue en el diagnóstico. */
@@ -208,6 +222,8 @@ export function ListadoFincasConFiltro({ fincas, enfoque = null }: Props) {
                   <span className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <span className="font-titulos text-xl font-bold break-words text-bosque">{finca.nombre}</span>
                     <span className="text-[0.95rem] text-tinta-suave">{datos}</span>
+                    {/* Con qué método se cargó (cuestionario, croquis o mapa) */}
+                    <MetodoFinca metodo={finca.metodoCaracterizacion} />
                     <EstadoFinca finca={finca} />
                   </span>
                   <span

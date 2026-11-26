@@ -1,5 +1,6 @@
 // Ruta /fincas: listado "Mis fincas" ordenado por última modificación (Esp. 02 §5.1, Esp. 04 §5.5).
-// Con ?enfoque=diagnostico (desde Herramientas → Diagnóstico) cada finca lleva directo a su diagnóstico.
+// Con ?enfoque=diagnostico (desde Herramientas → Diagnóstico) cada finca lleva directo a su diagnóstico, y con
+// ?enfoque=rediseno (Herramientas → Rediseño), a sus propuestas de rediseño.
 import { Suspense } from "react";
 import { IconoFinca, IconoMas } from "@/componentes/marca/Iconos";
 import { BotonEnlace } from "@/componentes/ui/boton";
@@ -8,7 +9,7 @@ import { EstadoVacio } from "@/componentes/ui/estado-vacio";
 import { Aviso } from "@/componentes/ui/formulario";
 import { obtenerResumenDiagnosticosPorEstablecimientos } from "@/dominio/diagnostico/entrada";
 import { requerirUsuario } from "@/lib/sesion";
-import { ListadoFincasConFiltro, type FincaEnListado } from "./ListadoFincasConFiltro";
+import { ListadoFincasConFiltro, type EnfoqueListado, type FincaEnListado } from "./ListadoFincasConFiltro";
 import { listarDibujosDeFincasDelUsuario, listarEstablecimientosDelUsuario } from "./_lib/consultas";
 
 export const metadata = { title: "Mis fincas · PoliCampo" };
@@ -26,7 +27,12 @@ async function ContenidoMisFincas({ searchParams }: Props) {
   ]);
   const resumenesDiag = await obtenerResumenDiagnosticosPorEstablecimientos(fincas);
   const nombreBorrada = borrada?.trim().slice(0, 150) || null;
-  const enfoqueDiagnostico = enfoque === "diagnostico";
+  const enfoqueListado: EnfoqueListado | null =
+    enfoque === "diagnostico" || enfoque === "rediseno" ? enfoque : null;
+  const BAJADA_ENFOQUE: Record<EnfoqueListado, string> = {
+    diagnostico: "Tocá la finca para ver o pedir su diagnóstico.",
+    rediseno: "Tocá la finca para ver sus propuestas de rediseño o armar una nueva.",
+  };
 
   const fincasSerializadas: FincaEnListado[] = fincas.map((finca) => {
     const diag = resumenesDiag.get(finca.id);
@@ -59,8 +65,8 @@ async function ContenidoMisFincas({ searchParams }: Props) {
     <div className="flex flex-col gap-6">
       <EncabezadoPagina
         migas={[{ texto: "Herramientas", href: "/inicio" }]}
-        titulo={enfoqueDiagnostico ? "Elegí una finca" : "Mis fincas"}
-        bajada={enfoqueDiagnostico ? "Tocá la finca para ver o pedir su diagnóstico." : undefined}
+        titulo={enfoqueListado ? "Elegí una finca" : "Mis fincas"}
+        bajada={enfoqueListado ? BAJADA_ENFOQUE[enfoqueListado] : undefined}
         acciones={fincasSerializadas.length > 0 ? botonNueva : undefined}
       />
 
@@ -74,7 +80,7 @@ async function ContenidoMisFincas({ searchParams }: Props) {
           accion={<BotonEnlace href="/fincas/nueva">Cargar mi primera finca</BotonEnlace>}
         />
       ) : (
-        <ListadoFincasConFiltro fincas={fincasSerializadas} enfoqueDiagnostico={enfoqueDiagnostico} />
+        <ListadoFincasConFiltro fincas={fincasSerializadas} enfoque={enfoqueListado} />
       )}
     </div>
   );

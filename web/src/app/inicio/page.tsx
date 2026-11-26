@@ -43,7 +43,7 @@ const PRINCIPALES: readonly Modulo[] = [
     texto: "Cuántas flores tiene tu finca y cuántas le faltan.",
     href: "/fincas?enfoque=diagnostico",
   },
-  { titulo: "Rediseño", Icono: IconoFlor, texto: "Dónde sumar flores y qué plantas sembrar.", href: "/fincas" },
+  { titulo: "Rediseño", Icono: IconoFlor, texto: "Dónde sumar flores y qué plantas sembrar.", href: "/fincas?enfoque=rediseno" },
 ];
 
 const SECUNDARIAS: readonly Modulo[] = [

@@ -169,6 +169,15 @@ export function IconoMas({ className = "h-5 w-5" }: Props) {
   );
 }
 
+/** Cruz: cerrar un aviso. */
+export function IconoCerrar({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...TRAZO}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
 /** Lista con tildes: cargar la finca respondiendo preguntas (cuestionario). */
 export function IconoLista({ className = "h-6 w-6" }: Props) {
   return (

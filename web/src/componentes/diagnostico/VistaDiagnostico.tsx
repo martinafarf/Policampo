@@ -6,7 +6,8 @@
 //    acción principal: ver cómo sumar flores (la propuesta de rediseño).
 // 2. Al lado, el dibujo con el lugar libre donde se pueden poner flores.
 // 3. Debajo, solo 3 números a la vista; los demás, escondidos en «Ver más números».
-// 4. Lo que conviene revisar (alertas), los beneficios y «¿Cómo se calculó?» al final, para quien quiera leer más.
+// 4. Lo que conviene revisar (alertas) en un desplegable debajo de los números.
+// 5. Los beneficios y «¿Cómo se calculó?» al final, para quien quiera leer más.
 import {
   BENEFICIOS_DIAGNOSTICO,
   construirExplicacionCalculo,
@@ -16,7 +17,7 @@ import {
 import type { DiagnosticoNormalizado } from "@/dominio/diagnostico/entrada";
 import { hectareasAMetrosCuadrados } from "@/dominio/establecimientos";
 import { VistaPreviaDibujo } from "@/app/fincas/[id]/VistaPreviaDibujo";
-import { IconoAlerta, IconoFlor, IconoLupa, IconoOk } from "@/componentes/marca/Iconos";
+import { IconoAlerta, IconoChevron, IconoFlor, IconoLupa, IconoOk } from "@/componentes/marca/Iconos";
 import { BotonEnlace } from "@/componentes/ui/boton";
 import { EncabezadoPagina } from "@/componentes/ui/encabezado-pagina";
 import { Desplegable, MasInfo } from "@/componentes/ui/mas-info";
@@ -115,6 +116,7 @@ export function VistaDiagnostico({
         <div className="flex flex-col gap-5">
           {/* 1. El resultado (color + palabras + ícono, CA-04-17) */}
           <Tarjeta
+            compacta
             titulo="Flores en tu finca"
             extra={
               <span className="flex items-center gap-1.5">
@@ -127,10 +129,10 @@ export function VistaDiagnostico({
             }
           >
             <p className="flex items-baseline gap-2">
-              <strong className="font-titulos text-5xl font-extrabold text-bosque">
+              <strong className="font-titulos text-4xl font-extrabold text-bosque">
                 {formatearNumeroEsAr(diagnostico.porcentajeFlores, 1, 1)} %
               </strong>
-              <span className="text-lg text-tinta-suave">con flores</span>
+              <span className="text-tinta-suave">con flores</span>
             </p>
 
             {/* Barra: cuánto hay (naranja) y dónde está la meta del 20 % (marca bosque) */}
@@ -159,7 +161,7 @@ export function VistaDiagnostico({
               />
             </div>
 
-            <p className="font-titulos text-xl font-bold text-bosque">
+            <p className="font-titulos text-lg font-bold text-bosque">
               {llegaALaMeta
                 ? "Tu finca ya tiene las flores recomendadas."
                 : `Te faltan ${ha(diagnostico.hectareasACompensar)} de flores para llegar a la meta.`}
@@ -167,10 +169,10 @@ export function VistaDiagnostico({
 
             {!esHistorico ? (
               <div className="flex flex-wrap items-center gap-2">
-                <BotonEnlace href={`${rutaFinca}/propuestas/nueva`}>
+                <BotonEnlace href={`${rutaFinca}/propuestas/nueva`} className="min-h-11 px-5">
                   {llegaALaMeta ? "Ver ideas para sumar más flores" : "Ver cómo sumar flores"}
                 </BotonEnlace>
-                <BotonEnlace href={`${rutaFinca}/propuestas`} variante="texto">
+                <BotonEnlace href={`${rutaFinca}/propuestas`} variante="texto" className="min-h-11">
                   Propuestas guardadas
                 </BotonEnlace>
               </div>
@@ -178,7 +180,7 @@ export function VistaDiagnostico({
           </Tarjeta>
 
           {/* 2. Solo 3 números a la vista (Esp. 04 §6); el resto, en «Ver más números» */}
-          <Tarjeta titulo="Tu superficie">
+          <Tarjeta compacta titulo="Tu superficie">
             <dl className="grid grid-cols-3 gap-3">
               {[
                 { titulo: "Total", valor: ha(diagnostico.superficieTotalHa) },
@@ -223,6 +225,29 @@ export function VistaDiagnostico({
               </dl>
             </Desplegable>
           </Tarjeta>
+
+          {/* 3. Lo que conviene revisar (Esp. 04 §4.5): cerrado, con la cantidad a la vista. Mismo formato que
+              un Desplegable, pero en el tono de "atención" (naranja suave) para que se note que hay algo para ver. */}
+          {diagnostico.alertas.length > 0 ? (
+            <details className="group rounded-2xl border-[1.5px] border-[#f3d3a3] bg-[#fff3df]">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-2xl px-4 font-semibold text-[#7a4100] hover:bg-[#ffe9c7] [&::-webkit-details-marker]:hidden">
+                <IconoAlerta className="h-5 w-5 shrink-0" />
+                <span className="flex-1">Para revisar ({diagnostico.alertas.length})</span>
+                <IconoChevron className="h-5 w-5 shrink-0 transition-transform group-open:rotate-90" />
+              </summary>
+              <ul className="flex flex-col gap-3 px-4 pt-1 pb-4">
+                {diagnostico.alertas.map((alerta, i) => {
+                  const { titulo, descripcion } = construirTextoAlerta(alerta);
+                  return (
+                    <li key={`${alerta.tipo}-${i}`} className="flex flex-col gap-1 rounded-2xl bg-white p-3.5">
+                      <p className="font-bold text-[#7a4100]">{titulo}</p>
+                      <p className="text-[0.95rem] text-tinta">{descripcion}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          ) : null}
         </div>
 
         {/* Columna derecha: dónde poner las flores (Esp. 04 §4.4 y §6) */}
@@ -250,26 +275,6 @@ export function VistaDiagnostico({
           ) : null}
         </Tarjeta>
       </div>
-
-      {/* 3. Lo que conviene revisar (Esp. 04 §4.5) */}
-      {diagnostico.alertas.length > 0 ? (
-        <Tarjeta titulo="Para revisar">
-          <ul className="grid gap-3 md:grid-cols-2">
-            {diagnostico.alertas.map((alerta, i) => {
-              const { titulo, descripcion } = construirTextoAlerta(alerta);
-              return (
-                <li key={`${alerta.tipo}-${i}`} className="flex items-start gap-3 rounded-2xl bg-[#fff3df] p-4">
-                  <IconoAlerta className="mt-0.5 h-5 w-5 shrink-0 text-[#7a4100]" />
-                  <div className="flex flex-col gap-1">
-                    <p className="font-bold text-[#7a4100]">{titulo}</p>
-                    <p className="text-[0.95rem] text-tinta">{descripcion}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </Tarjeta>
-      ) : null}
 
       {/* 4. Beneficios en palabras (Esp. 04 §4.6, RN-07) */}
       <Tarjeta titulo="Qué ganás sumando flores" tono="menta">

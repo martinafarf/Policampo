@@ -1,8 +1,8 @@
 // Cálculos geométricos del diagnóstico: perímetro del contorno y superficie libre (Esp. 04, 4.4).
 // Reutiliza @turf/difference y las funciones de superficie del módulo 02 (CA-04-03, CA-04-04).
-import difference from "@turf/difference";
-import { featureCollection, polygon as turfPolygon } from "@turf/helpers";
+import { polygon as turfPolygon } from "@turf/helpers";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
+import { restarSeguro } from "@/dominio/geometria-segura";
 import {
   calcularAreaGeograficaM2,
   calcularAreaPlanaM2,
@@ -95,7 +95,8 @@ export function calcularSuperficieLibre(params: {
   for (const sectorGeo of params.geometriasSectores) {
     if (!restante) break;
     const poligonoSector = turfPolygon(sectorGeo.coordinates);
-    restante = difference(featureCollection([restante, poligonoSector]));
+    // Resta segura: si la librería de polígonos falla con un dibujo raro, no se cae el diagnóstico
+    restante = restarSeguro(restante, poligonoSector);
   }
 
   if (!restante) {

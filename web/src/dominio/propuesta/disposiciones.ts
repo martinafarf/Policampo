@@ -1,9 +1,7 @@
 // Motor espacial puro para propuestas de rediseño (Esp. 05, §4, CA-05-01 a 05, 08, 09).
 // Genera las 5 disposiciones (superficie libre, perimetral, transversales, islas y matriz)
 // tanto para croquis (metros) como para mapa (WGS 84), con tope de 50 iteraciones y 10 s (auditoría B-01).
-import difference from "@turf/difference";
-import { featureCollection, polygon as turfPolygon } from "@turf/helpers";
-import intersect from "@turf/intersect";
+import { polygon as turfPolygon } from "@turf/helpers";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import {
   calcularPerimetroGeodesicoMetros,
@@ -36,6 +34,13 @@ import {
   type PerdidaCultivoItem,
   type SectorEspacialEntrada,
 } from "./tipos";
+import { intersectarSeguro, restarSeguro } from "@/dominio/geometria-segura";
+
+/**
+ * Error pensado para mostrarle a la persona (en castellano y con qué hacer). Cualquier otro error del cálculo
+ * (por ejemplo, de la librería de polígonos) NO se muestra tal cual: la pantalla pone un mensaje amable.
+ */
+export class ErrorPropuesta extends Error {}
 
 const M2_POR_HA = 10_000;
 const METROS_POR_GRADO_LAT = 111_132.95;
@@ -271,9 +276,7 @@ function contraerPoligonoMetros(
     signoCand === signoOrig &&
     validarPoligonoBasico(candidato, "croquis").valido
   ) {
-    const fuera = difference(
-      featureCollection([turfPolygon(candidato.coordinates), turfPolygon(contornoMetros.coordinates)]),
-    );
+    const fuera = restarSeguro(turfPolygon(candidato.coordinates), turfPolygon(contornoMetros.coordinates));
     const areaFuera = fuera ? calcularAreaPlanaM2(fuera.geometry) : 0;
     if (areaFuera / areaCand <= 0.01) {
       return candidato;
@@ -292,9 +295,7 @@ function contraerPoligonoMetros(
     centro[1] + (y - centro[1]) * escala,
   ]);
   const escalado: PoligonoGeoJson = { type: "Polygon", coordinates: [escaladoAnillo] };
-  const inter = intersect(
-    featureCollection([turfPolygon(contornoMetros.coordinates), turfPolygon(escalado.coordinates)]),
-  );
+  const inter = intersectarSeguro(turfPolygon(contornoMetros.coordinates), turfPolygon(escalado.coordinates));
   if (!inter || inter.geometry.type !== "Polygon") return null;
   return inter.geometry as PoligonoGeoJson;
 }
@@ -310,7 +311,7 @@ function calcularAreaNuevaFloresM2(
     let restante: Feature<Polygon | MultiPolygon> | null = featureDesdeGeometria(franja);
     for (const flor of sectoresFlores) {
       if (!restante) break;
-      restante = difference(featureCollection([restante, turfPolygon(flor.coordinates)]));
+      restante = restarSeguro(restante, turfPolygon(flor.coordinates));
     }
     if (restante) {
       totalM2 += areaM2(restante.geometry, sistema);
@@ -336,7 +337,7 @@ export function calcularPerdidaPorCultivo(
     let remanente: Feature<Polygon | MultiPolygon> | null = turfPolygon(sector.geometria.coordinates);
     for (const franja of franjas) {
       if (!remanente) break;
-      remanente = difference(featureCollection([remanente, featureDesdeGeometria(franja)]));
+      remanente = restarSeguro(remanente, featureDesdeGeometria(franja));
     }
 
     const areaRemanenteM2 = remanente ? areaM2(remanente.geometry, sistema) : 0;
@@ -367,9 +368,7 @@ function construirFranjaPerimetralMetros(
 ): { franja: GeometriaFranja; inner: PoligonoGeoJson } | null {
   const inner = contraerPoligonoMetros(contornoMetros, anchoM);
   if (!inner) return null;
-  const diff = difference(
-    featureCollection([turfPolygon(contornoMetros.coordinates), turfPolygon(inner.coordinates)]),
-  );
+  const diff = restarSeguro(turfPolygon(contornoMetros.coordinates), turfPolygon(inner.coordinates));
   if (!diff || calcularAreaPlanaM2(diff.geometry) <= 1) return null;
   return { franja: diff.geometry, inner };
 }
@@ -403,7 +402,7 @@ function construirTransversalesMetros(
     const x1 = cx - anchoM / 2;
     const x2 = cx + anchoM / 2;
     const banda = rectanguloGeo(x1, box.minY - margenY, x2, box.maxY + margenY);
-    const inter = intersect(featureCollection([poligonoRotadoFeat, turfPolygon(banda.coordinates)]));
+    const inter = intersectarSeguro(poligonoRotadoFeat, turfPolygon(banda.coordinates));
     if (!inter || calcularAreaPlanaM2(inter.geometry) <= 1) continue;
 
     const devuelta =
@@ -437,7 +436,7 @@ function construirIslasMetros(
       const x1 = box.minX + c * stepX;
       const y1 = box.minY + r * stepY;
       const celda = rectanguloGeo(x1, y1, x1 + stepX, y1 + stepY);
-      const inter = intersect(featureCollection([contornoFeat, turfPolygon(celda.coordinates)]));
+      const inter = intersectarSeguro(contornoFeat, turfPolygon(celda.coordinates));
       if (inter && inter.geometry.type === "Polygon") {
         const a = calcularAreaPlanaM2(inter.geometry);
         if (a > 10) celdas.push({ geo: inter.geometry, area: a });
@@ -461,7 +460,7 @@ function construirIslasMetros(
         ]),
       ],
     };
-    const segura = intersect(featureCollection([contornoFeat, turfPolygon(escalado.coordinates)]));
+    const segura = intersectarSeguro(contornoFeat, turfPolygon(escalado.coordinates));
     if (segura && calcularAreaPlanaM2(segura.geometry) > 4) {
       islas.push(segura.geometry);
     }
@@ -471,7 +470,7 @@ function construirIslasMetros(
 
 function verificarDeadline(inicioMs: number, limiteMs: number) {
   if (Date.now() - inicioMs > limiteMs) {
-    throw new Error("No se pudo generar la propuesta; probá con menos franjas o corredores.");
+    throw new ErrorPropuesta("No se pudo generar la propuesta; probá con menos franjas o corredores.");
   }
 }
 
@@ -489,7 +488,7 @@ function recortarFranjasSinCultivos(
     for (const cult of sectoresCultivo) {
       if (!actual) break;
       try {
-        const diff = difference(featureCollection([actual, turfPolygon(cult.geometria.coordinates)]));
+        const diff = restarSeguro(actual, turfPolygon(cult.geometria.coordinates));
         actual = diff ?? null;
       } catch {
         // Si dos geometrías son tangentes degeneradas, conservamos la actual.
@@ -676,7 +675,7 @@ export function generarUnaDisposicionEspacial(
         const perim = construirFranjaPerimetralMetros(contornoMetros, mid);
         let recorte: GeometriaFranja | null = null;
         if (perim) {
-          const inter = intersect(featureCollection([libreFeat, featureDesdeGeometria(perim.franja)]));
+          const inter = intersectarSeguro(libreFeat, featureDesdeGeometria(perim.franja));
           if (inter) recorte = inter.geometry;
         }
         const a = recorte ? calcularAreaPlanaM2(recorte) : areaLibreM2;
@@ -967,7 +966,7 @@ export function generarAlternativasEspaciales(
 ): AlternativaEspacial[] {
   const validObj = validarObjetivoPct(entrada.objetivoPct);
   if (!validObj.valido) {
-    throw new Error(validObj.error);
+    throw new ErrorPropuesta(validObj.error);
   }
 
   const respetarCultivos = Boolean(opciones?.respetarCultivos);

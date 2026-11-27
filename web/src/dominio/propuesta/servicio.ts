@@ -30,6 +30,7 @@ import {
   type SectorCuestionarioEntrada,
 } from "./cuestionario";
 import {
+  ErrorPropuesta,
   calcularSuperficieAAgregarHa,
   generarAlternativasEspaciales,
   generarUnaDisposicionEspacial,
@@ -37,6 +38,16 @@ import {
   validarYRecalcularFranjasEditadasAMano,
 } from "./disposiciones";
 import { elegirMezclaOptima, validarYEvaluarMezclaPersonalizada } from "./mezcla";
+
+/**
+ * El mensaje para mostrar en pantalla: el del error si es uno pensado para la persona (ErrorPropuesta); si no
+ * (por ejemplo, la librería de polígonos), uno amable, y el detalle técnico queda en el registro del servidor.
+ */
+function mensajeParaPersona(err: unknown, porDefecto: string): string {
+  if (err instanceof ErrorPropuesta) return err.message;
+  console.error("[propuesta] error inesperado al calcular:", err);
+  return porDefecto;
+}
 import {
   LIMITES_PROPUESTA,
   VERSION_REGLAS_PROPUESTA,
@@ -379,9 +390,10 @@ export async function prepararGeneracionPropuesta(
       estado: "error_calculo",
       establecimiento: ultimo.establecimiento,
       mensaje:
-        err instanceof Error
-          ? err.message
-          : "No se pudo generar la propuesta; probá con menos franjas o corredores.",
+        mensajeParaPersona(
+          err,
+          "No pudimos armar las opciones para esta finca. Probá con otra meta de flores o revisá el dibujo de la finca.",
+        ),
     };
   }
 }
@@ -423,9 +435,7 @@ export async function recalcularDisposicionEnServidor(params: {
     return {
       ok: false,
       error:
-        err instanceof Error
-          ? err.message
-          : "No se pudo recalcular la disposición; probá con menos franjas o corredores.",
+        mensajeParaPersona(err, "No pudimos recalcular esta forma. Probá con otros ajustes o elegí otra forma."),
     };
   }
 }
@@ -595,9 +605,7 @@ export async function guardarPropuestaEnBase(params: {
           ok: false,
           motivo: "invalido",
           errores: [
-            err instanceof Error
-              ? err.message
-              : "No se pudo recalcular la propuesta; probá con menos franjas o corredores.",
+            mensajeParaPersona(err, "No pudimos guardar esta forma. Probá de nuevo o elegí otra forma."),
           ],
         };
       }

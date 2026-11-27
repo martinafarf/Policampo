@@ -1,11 +1,10 @@
 // Validaciones de geometrías en el servidor para croquis y mapa (RN-05, RS-06, CA-02-10 a 13).
 // Funciones puras sin acceso a la base de datos.
-import difference from "@turf/difference";
-import { featureCollection, polygon as turfPolygon } from "@turf/helpers";
-import intersect from "@turf/intersect";
+import { polygon as turfPolygon } from "@turf/helpers";
 import kinks from "@turf/kinks";
 import type { MultiPolygon, Polygon } from "geojson";
 import { LIMITES_JUJUY } from "@/datos/jujuy";
+import { intersectarSeguro, restarSeguro } from "@/dominio/geometria-segura";
 import {
   calcularAreaGeograficaHa,
   calcularAreaGeograficaM2,
@@ -155,11 +154,12 @@ export function validarSectorDentroDelContorno(
     return { valido: false, error: "El sector tiene superficie nula." };
   }
 
-  const parteFuera = difference(
-    featureCollection([
-      turfPolygon(sectorPoligono.coordinates),
-      turfPolygon(contornoPoligono.coordinates),
-    ]),
+  // Resta segura: si la librería de polígonos falla por decimales, se toma «no sobresale nada»
+  // (un dibujo correcto nunca se rechaza por eso).
+  const parteFuera = restarSeguro(
+    turfPolygon(sectorPoligono.coordinates),
+    turfPolygon(contornoPoligono.coordinates),
+    { siFalla: "nada" },
   );
 
   if (!parteFuera) {
@@ -188,11 +188,10 @@ export function validarSectoresSinSuperposicion(
 
   for (let i = 0; i < sectores.length; i += 1) {
     for (let j = i + 1; j < sectores.length; j += 1) {
-      const superposicion = intersect(
-        featureCollection([
-          turfPolygon(sectores[i].coordinates),
-          turfPolygon(sectores[j].coordinates),
-        ]),
+      // Intersección segura: si la librería falla por decimales, se toma «no se superponen»
+      const superposicion = intersectarSeguro(
+        turfPolygon(sectores[i].coordinates),
+        turfPolygon(sectores[j].coordinates),
       );
 
       if (!superposicion) continue;
